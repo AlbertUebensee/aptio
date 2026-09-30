@@ -1,0 +1,134 @@
+# Aptio – Prototyp v0.5
+
+Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
+
+## Öffnen
+
+Doppelklick auf **`Aptio.html`**. Die App läuft in jedem Browser, ohne Internet, ohne Installation.
+Nichts wird gespeichert: Wenn du die Seite neu lädst, fängt das Quiz von vorn an.
+
+## Was drin ist
+
+- Alle 20 Fragen (18 Multiple-Choice, 2 Freitext), per Du. Antwort antippen springt automatisch weiter.
+- Punkte für 16 Fragen (alle außer 7, 12, 19 und 20)
+- **329 Berufe**: 20 geprüfte aus der eigenen Berufsliste und 309 aus dem BIBB-Verzeichnis 2026, jeder mit eigenem Profil
+- Ergebnis: stärkste Eigenschaften, 3–5 Berufe mit Passung in Prozent (eine Nachkommastelle), ein Satz aus Frage 7, Zitate aus Frage 19 und 20
+- Unter den Vorschlägen: **„Alle weiteren Berufe mit Prozentzahl“** zum Aufklappen – die komplette Rangliste aller 329 Berufe
+- Ganz unten: **„So wurde gerechnet“** zum Aufklappen, mit deinem Profil, allen Punkten und den besten 25 Berufen
+
+Nicht drin (kommt später): Bewerbungshilfe, echte Stellenangebote, Login. Speichern fehlt noch, gehört aber zu Version 1 (siehe Offene Punkte).
+
+## Berufsprofile
+
+Jeder Beruf hat ein Profil in Prozent, im Code zum Beispiel so:
+
+```
+{ name: 'Tischler/in', …, profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 70, Struktur: 70, Verantwortung: 30, Vorne: 20 } }
+```
+
+- **Menschen + Dinge + Infos** ergeben zusammen 100.
+- **Drinnen, Struktur, Vorne** sind jeweils die eine Seite; die andere ergibt sich von selbst (Drinnen 70 = Draußen 30, Struktur 70 = Spontan 30, Vorne 20 = Hintergrund 80).
+- **Verantwortung** von 0 (eher nicht) bis 100 (sehr viel).
+- Werte ab 60 gelten als Merkmal des Berufs und erscheinen im Ergebnis bei „Passt zu dir“.
+
+**Die 20 geprüften Berufe:** Ihre Profile sind so gewählt, dass daraus genau die Merkmale aus deiner Berufsliste entstehen. Die feinen Zahlen darin sind aber meine Einschätzung.
+
+**Die 309 BIBB-Berufe:** Das Profil ist eine erste Einschätzung pro Beruf, noch nicht fachlich geprüft. In der App steht dort **„Profil noch vorläufig“**. Wenn ein Profil geprüft ist, `vorlaeufig: true` löschen – dann verschwindet der Hinweis.
+
+## So wird gerechnet (zum Erklären)
+
+1. Jede Antwort gibt Punkte für bestimmte Eigenschaften.
+2. Die Punkte werden in Prozent der maximal möglichen Punkte umgerechnet.
+3. In jedem Bereich gewinnt die Eigenschaft mit dem höchsten Prozentwert. Sie gilt als **deutlich**, wenn sie mindestens 50 % hat und die Gegenseite um mehr als 25 Prozentpunkte übertrifft. Verantwortung zählt ab 50 %. Das sind deine stärksten Eigenschaften.
+4. Aus deinen Prozentwerten entsteht **dein eigenes Profil** im selben Format wie die Berufsprofile. Beispiel: Hast du bei Menschen 67 % und bei Dinge 33 % der möglichen Punkte, wird daraus Menschen 67, Dinge 33, Infos 0.
+5. Die **Passung** zeigt, wie nah dein Profil am Profil eines Berufs liegt. 100 % heißt: gleich. Die Bereiche zählen unterschiedlich stark:
+
+   | Bereich | Gewicht |
+   |---|---|
+   | Menschen / Dinge / Infos | 30 % |
+   | Drinnen / Draußen | 25 % |
+   | Struktur / Spontan | 20 % |
+   | Verantwortung | 15 % |
+   | Vorne / Hintergrund | 10 % |
+
+6. Höhere Passung = weiter oben. Bei exakt gleicher Passung kommen zuerst die Berufe, die mehr deiner stärksten Eigenschaften treffen, dann die geprüften Berufe, darunter wird zufällig ausgewählt.
+7. Vorgeschlagen werden die Berufe, die höchstens 10 Prozentpunkte unter dem besten liegen (mindestens 3, höchstens 5).
+
+Alle Stellschrauben (50 %, 25 Punkte, Gewichte, 10 Prozentpunkte Abstand, 3–5 Berufe, Zufall an/aus) stehen im Code unter `REGELN`.
+
+**Warum unterschiedliche Gewichte?** Womit man arbeitet (Menschen, Dinge oder Infos), ist für die Berufswahl am wichtigsten, Sichtbarkeit am wenigsten. Außerdem verhindern unterschiedliche Gewichte viele zufällige Gleichstände: Bei gleichen Gewichten bekommen zwei Berufe, die in verschiedenen Bereichen gleich weit danebenliegen, exakt dieselbe Prozentzahl.
+
+## Gleiche Prozentzahlen
+
+Mit den Profilen und der Nachkommastelle haben die Vorschläge fast immer verschiedene Werte. Gemessen über alle 15.552 möglichen Antwort-Kombinationen, jeweils die größte Gruppe mit demselben angezeigten Wert:
+
+| | vorher (Merkmale nach Bereich) | jetzt |
+|---|---|---|
+| Top 5 | typisch 3 gleiche | typisch keine gleichen, höchstens 4 |
+| Top 25 | typisch 10 gleiche | typisch 2, höchstens 6 |
+| ganze Liste (329) | typisch 37 gleiche | typisch 6, höchstens 13 |
+
+Ganz verschwinden können gleiche Werte in der langen Liste nicht. Manche Berufe sind sich wirklich sehr ähnlich (zum Beispiel die vielen Verfahrens- und Produktionsberufe), und 329 Berufe passen nicht in eine Skala von 0 bis 100 mit einer Nachkommastelle, ohne dass einige zusammenfallen. Gruppen von 10 oder mehr gleichen Werten gibt es nur noch bei rund 1 % der Antwort-Kombinationen, und dann weit hinten in der Liste (nie unter den besten 25).
+
+## Aufbau der Datei
+
+`Aptio.html` besteht aus drei Teilen:
+
+| Teil | Inhalt | Wann ändern? |
+|---|---|---|
+| 1. DATEN | Fragen, Antworten, Punkte, Berufe mit Profilen, Regeln | Neue Fragetexte, Punkte, Berufe, Profile |
+| 2. AUSWERTUNG | Rechenlogik | Wenn sich die Matching-Regeln ändern |
+| 3. OBERFLÄCHE | Bildschirme und Texte im Ergebnis | Design oder Ablauf |
+
+Die Berufe stehen in zwei Listen: `BERUFE_GEPRUEFT` (die 20 aus der eigenen Liste, mit Beschreibungstext) und `BERUFE_VORLAEUFIG` (die 309 aus dem BIBB-Verzeichnis). Beim Öffnen prüft die App alle Profile (Summe 100, Werte zwischen 0 und 100) und meldet Fehler in der Browser-Konsole.
+
+## Offene Punkte
+
+- [ ] **Profile prüfen:** 309 Berufe haben vorläufige Profile (meine Einschätzung).
+- [ ] **Beschreibungen fehlen:** Die 309 neuen Berufe haben keinen Text „Was man dort tut“.
+- [x] **Fragetexte:** Die Originale aus `TiP_Quizfragen_Entwurf_2026-08-28` (Google Drive, Liste „Die 20 Fragen“) sind 1:1 eingesetzt. Nur die Apostrophe sind typografisch gesetzt (’ statt ').
+- [ ] **Speichern/Mitnehmen:** Laut `Aptio_planung_2026-08-28` Pflicht für Version 1 (PDF, Link oder Screenshot), laut Meilensteinen bis Ende Dezember.
+- [ ] **Begründung pro Vorschlag:** Laut Planung ein bis zwei Sätze, warum der Beruf passt. Bisher nur Stichworte („Passt zu dir: …“).
+- [x] **Punktelogik** für Frage 5, 9, 10, 13, 15, 16, 17, 18 ergänzt (Stand 30.09.2026, siehe „Punkte der Fragen 5–18“). Frage 12 bleibt bewusst ohne Punkte.
+- [ ] **Frage 12 (Kritik):** Ohne Punkte. Offen, ob sie wie Frage 7 einen Satz im Ergebnis bekommt oder gestrichen wird.
+- [ ] **Frage 20:** Wird vorerst wie Frage 19 behandelt (Zitat, keine Punkte). Das ist noch nicht offiziell entschieden.
+- [ ] **Bereiche vereinheitlichen:** Die 20 geprüften Berufe nutzen eigene Bereichsnamen (Handwerk, Büro, Pflege …), die BIBB-Berufe die aus der Liste (Bau/Handwerk, Büro/Verwaltung …).
+- [x] **Draußen-Lücke:** weitgehend geschlossen – Bau, Logistik und Landwirtschaft bringen viele Draußen-Berufe mit.
+
+## Punkte der Fragen 5–18
+
+Die Punkte für die Fragen 1, 2, 3, 4, 6, 8, 11 und 14 stammen aus `TiP_Auswertungslogik_2026-09-04`. Die übrigen wurden am 30.09.2026 ergänzt:
+
+| Frage | a) | b) | c) |
+|---|---|---|---|
+| 5 Menschen, Dinge oder Zahlen/Infos | +2 Menschen | +2 Dinge | +2 Infos |
+| 9 Zimmer/Schreibtisch | +1 Struktur | – | +1 Spontan |
+| 10 Gerät reparieren oder Streit schlichten | +2 Dinge | +2 Menschen, +1 Verantwortung | +1 Infos |
+| 12 Kritik | – | – | – |
+| 13 Kreativ sein | +1 Dinge, +1 Spontan | – | +1 Struktur |
+| 15 Wechsel oder Routine stresst | +2 Struktur | +2 Spontan | +1 Struktur, +1 Spontan |
+| 16 Computer/Technik | +2 Infos, +1 Drinnen | – | – |
+| 17 Helfen oder sichtbares Ergebnis | +2 Menschen | +2 Dinge | +1 Menschen, +1 Dinge |
+| 18 Risiko oder Sicherheit | +1 Spontan | +1 Struktur | – |
+
+- Direkte Fragen geben 2 Punkte, indirekte (9, 13, 18) nur 1.
+- Gestalten zählt zu „Dinge“ (laut Auswertungslogik handwerklich/gestalterisch).
+- Frage 12 bleibt ohne Punkte: Punkte auf Vorne/Hintergrund haben im Test „Vorne“ fast doppelt so oft zur stärksten Eigenschaft gemacht wie „Hintergrund“.
+
+Höchstpunkte jetzt: Menschen 12, Dinge 11, Infos 11, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 5, Vorne 2, Hintergrund 4.
+
+## Gegenprobe
+
+Mit 16 gewerteten Fragen gibt es zu viele Kombinationen, um alle durchzurechnen. Getestet wurden deshalb 20.000 zufällige Antwort-Kombinationen (Stand 30.09.2026):
+
+- kein einziger Fehler, immer 3 bis 5 Vorschläge
+- 280 von 329 Berufen landen bei irgendeiner Kombination unter den Vorschlägen
+- die beste Passung liegt je nach Antworten zwischen 57 % und 98 %, typisch bei 82 %
+
+Vorher, mit 8 gewerteten Fragen, über alle 15.552 Kombinationen: 299 Berufe erreichbar, beste Passung 49 % bis 97 %, typisch 79 %. Die Werte unter „Gleiche Prozentzahlen“ stammen noch aus dieser Zeit.
+
+## Doppelte Berufe
+
+13 Einträge aus der BIBB-Liste wurden nicht übernommen, weil sie schon als geprüfter Beruf vorhanden sind: Fachinformatiker, Fachkraft für Lagerlogistik, Fotograf, IT-System-Elektroniker, Kaufmann für Büromanagement, Kaufmann für Spedition und Logistikdienstleistung, Kaufmann im Einzelhandel, Kraftfahrzeugmechatroniker, Mechatroniker, Mediengestalter Digital und Print, Sozialversicherungsfachangestellter, Steuerfachangestellter, Tischler.
+
+Umgekehrt fehlen in der BIBB-Liste einige schulische Ausbildungen, die bei uns schon drin sind: Erzieher/in, Pflegefachmann/-frau, Notfallsanitäter/in, Physiotherapeut/in.

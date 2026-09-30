@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Aptio – Welcher Job passt zu dir?</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-display: "Segoe UI Variable Display", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --bg: #09090b;
+    --surface: #111113;
+    --surface-2: #18181b;
+    --surface-3: #232327;
+    --text: #fafafa;
+    --muted: #a1a1aa;
+    --subtle: #84848e;
+    --line: #232327;
+    --line-strong: #3a3a41;
+    --accent: #fafafa;
+    --accent-hover: #d4d4d8;
+    --on-accent: #09090b;
+    --radius: 14px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+  body {
+    margin: 0;
+    background: radial-gradient(900px 460px at 50% -180px, rgb(255 255 255 / .07), transparent 70%) no-repeat, var(--bg);
+    color: var(--text);
+    font: 16px/1.6 var(--font);
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgb(255 255 255 / .22); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .wrap { max-width: 640px; margin: 0 auto; padding: 20px 20px 48px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; height: 44px; margin-bottom: 40px; }
+  @media (min-width: 600px) { .wrap { padding-top: 32px; } .topbar { margin-bottom: 72px; } }
+  .wordmark { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; letter-spacing: -.02em; display: inline-flex; align-items: center; gap: .4rem; }
+  .wordmark i { width: .42rem; height: .42rem; border-radius: 50%; background: var(--text); display: inline-block; transform: translateY(.08rem); }
+  .pill { font-size: .72rem; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 999px; padding: .2rem .7rem; letter-spacing: .02em; }
+
+  h1 { font-family: var(--font-display); font-size: clamp(2.3rem, 8vw, 3.5rem); font-weight: 700; line-height: 1.04; letter-spacing: -.045em; margin: .35em 0 .5em; }
+  h2 { font-size: 1.2rem; line-height: 1.3; margin: 0 0 12px; }
+  h3 { font-size: .95rem; font-weight: 600; margin: 28px 0 10px; }
+  p { margin: 0 0 1em; }
+  .eyebrow { font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--subtle); margin: 0; }
+  .lead { font-size: 1.12rem; color: var(--muted); }
+  .muted { color: var(--muted); }
+  .small { font-size: .875rem; }
+
+  .btn {
+    appearance: none; border: 1px solid transparent; border-radius: 999px; padding: .7rem 1.3rem; min-height: 46px;
+    font: inherit; font-size: .95rem; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    transition: background-color .15s, color .15s, border-color .15s;
+  }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; color: var(--muted); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+  .btn-outline { background: transparent; color: var(--text); border-color: var(--line-strong); }
+  .btn-outline:hover { border-color: var(--muted); }
+  .btn-lg { font-size: 1rem; padding: .85rem 1.8rem; min-height: 52px; }
+
+  /* Start */
+  .facts {
+    list-style: none; padding: 0; margin: 40px 0 44px;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .facts li { padding: 18px 0 18px 18px; border-left: 1px solid var(--line); }
+  .facts li:first-child { padding-left: 0; border-left: 0; }
+  .facts strong { display: block; font-family: var(--font-display); font-size: clamp(1.15rem, 4.6vw, 1.5rem); font-weight: 600; letter-spacing: -.03em; line-height: 1.25; }
+  .facts span { font-size: .8rem; color: var(--subtle); }
+  .intro .small { margin: 22px 0 0; color: var(--subtle); }
+
+  /* Quiz */
+  .progress { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+  .progress-track { flex: 1; height: 3px; border-radius: 99px; background: var(--line); overflow: hidden; }
+  .progress-fill { height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+  .progress-label { font-size: .8rem; color: var(--subtle); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .question { font-family: var(--font-display); font-size: clamp(1.5rem, 5.4vw, 2rem); font-weight: 650; line-height: 1.18; letter-spacing: -.035em; margin: 0; }
+  .question:focus { outline: none; }
+  .hint { margin: 14px 0 0; }
+  .answers { display: grid; gap: 8px; margin: 32px 0 0; }
+  .answer {
+    width: 100%; display: flex; align-items: center; gap: 14px; text-align: left;
+    padding: 14px 16px; min-height: 60px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); color: var(--text); font: inherit; cursor: pointer;
+    transition: border-color .15s, background-color .15s, transform .08s;
+  }
+  .answer:hover { border-color: var(--line-strong); background: var(--surface-2); }
+  .answer:active { transform: scale(.995); }
+  .answer[aria-pressed="true"] { border-color: var(--accent); background: var(--surface-2); }
+  .answer .key {
+    flex: none; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+    font-size: .76rem; font-weight: 600; border: 1px solid var(--line-strong); color: var(--muted);
+    transition: background-color .15s, color .15s, border-color .15s;
+  }
+  .answer[aria-pressed="true"] .key { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  textarea {
+    display: block; width: 100%; min-height: 160px; resize: vertical; margin-top: 32px;
+    padding: 16px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); color: var(--text); font: inherit;
+  }
+  textarea::placeholder { color: var(--subtle); }
+  textarea:focus { outline: none; border-color: var(--muted); box-shadow: 0 0 0 4px rgb(255 255 255 / .06); }
+  .quiz-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 32px; }
+
+  /* Ergebnis */
+  .section { margin-top: 56px; }
+  .section h2 { font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--subtle); margin: 0 0 16px; }
+  .traits { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+  .trait { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+  .trait-name { font-family: var(--font-display); font-size: 1.2rem; font-weight: 650; letter-spacing: -.025em; }
+  .trait-dim { font-size: .78rem; color: var(--subtle); }
+  .meter { display: block; height: 3px; background: var(--line-strong); border-radius: 99px; overflow: hidden; }
+  .meter > span { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+  .trait .meter { margin-top: 16px; }
+  .also { margin: 14px 0 0; }
+
+  .quote {
+    margin: 0; padding: 2px 0 2px 20px; border-left: 2px solid var(--accent);
+    font-family: var(--font-display); font-size: 1.25rem; line-height: 1.45; letter-spacing: -.015em;
+    overflow-wrap: anywhere; white-space: pre-line;
+  }
+  .quote + p { margin-top: 14px; }
+
+  .jobs { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .job { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; background: var(--surface); }
+  .job-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .job-name { font-family: var(--font-display); font-size: 1.18rem; font-weight: 650; line-height: 1.3; letter-spacing: -.025em; margin: 0; }
+  .job-area { flex: none; font-size: .72rem; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 99px; padding: .12rem .6rem; margin-top: .22rem; }
+  .job-desc { color: var(--muted); margin: .4rem 0 1rem; }
+  .job-flag { display: inline-block; font-size: .72rem; color: var(--subtle); border: 1px dashed var(--line-strong); border-radius: 99px; padding: .1rem .6rem; margin: 0 0 .9rem; }
+  .chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; font-size: .8rem; }
+  .chips-label { color: var(--subtle); margin-right: 2px; }
+  .chip { padding: .2rem .65rem; border: 1px solid transparent; border-radius: 99px; background: var(--surface-3); color: var(--text); font-weight: 500; }
+  .chip.contrast { background: transparent; border: 1px dashed var(--line-strong); color: var(--subtle); }
+  .fit { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: .8rem; color: var(--subtle); }
+  .fit .meter { flex: 1; }
+  .fit-wert { color: var(--text); font-size: .95rem; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .dots { display: inline-flex; gap: 4px; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }
+  .dots i.on { background: var(--accent); }
+  .note { font-size: .9rem; color: var(--muted); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; margin: 12px 0 0; }
+  .more { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .more summary { cursor: pointer; font-size: .9rem; color: var(--muted); }
+  .more summary:hover, .more[open] summary { color: var(--text); }
+  .more[open] summary { margin-bottom: 8px; }
+  .more-list { list-style: none; margin: 0; padding: 0 4px 0 0; max-height: 420px; overflow-y: auto; }
+  .more-rank { color: var(--subtle); font-size: .78rem; font-variant-numeric: tabular-nums; text-align: right; }
+  .more-row { display: grid; grid-template-columns: 2.4rem 1fr 64px 3.1rem; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .88rem; }
+  .more-list li:last-child { border-bottom: 0; }
+  .more-name { color: var(--muted); }
+  .more-pct { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+  @media (max-width: 420px) {
+    .more-row { grid-template-columns: 1.9rem 1fr 3.1rem; gap: 8px; }
+    .more-row .meter { display: none; }
+  }
+
+  .actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 56px; }
+
+  .calc { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 20px; }
+  .calc summary { cursor: pointer; font-weight: 500; color: var(--muted); }
+  .calc summary:hover, .calc[open] summary { color: var(--text); }
+  .calc[open] summary { margin-bottom: 14px; }
+  .calc ol { padding-left: 1.2rem; margin: 0; color: var(--muted); }
+  .calc li { margin-bottom: 4px; }
+  .bar-group { margin-bottom: 16px; }
+  .bar-dim { font-size: .78rem; font-weight: 600; color: var(--subtle); margin: 0 0 4px; }
+  .bar-row { display: grid; grid-template-columns: 7.2rem 1fr 6.6rem; gap: 12px; align-items: center; font-size: .88rem; padding: 3px 0; }
+  .bar-val { text-align: right; font-variant-numeric: tabular-nums; color: var(--subtle); font-size: .8rem; }
+  .mark { display: inline-grid; place-items: center; width: 1.1rem; height: 1.1rem; margin-left: 6px; border-radius: 50%; font-size: .66rem; font-weight: 700; background: var(--accent); color: var(--on-accent); vertical-align: 1px; }
+  .mark.alt { background: transparent; border: 1px solid var(--muted); color: var(--muted); }
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .84rem; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--subtle); font-weight: 500; }
+  td { color: var(--muted); }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.is-shown td { background: var(--surface-2); color: var(--text); font-weight: 600; }
+
+  .footer { text-align: center; font-size: .75rem; color: var(--subtle); margin-top: 64px; }
+
+  .enter { animation: enter .35s cubic-bezier(.2, .8, .2, 1) both; }
+  @keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <span class="wordmark">Aptio<i aria-hidden="true"></i></span>
+    <span class="pill">Testversion</span>
+  </header>
+
+  <main>
+    <!-- Startbildschirm -->
+    <section id="screen-intro">
+      <div class="card intro enter">
+        <p class="eyebrow">Berufsorientierung</p>
+        <h1>Welcher Job passt zu dir?</h1>
+        <p class="lead">Beantworte <span id="fact-total">20</span> kurze Fragen – es gibt kein Richtig oder Falsch. Am Ende bekommst du Berufe und Ausbildungen, die zu dir passen könnten.</p>
+        <ul class="facts">
+          <li><strong>ca. 5 Min.</strong><span>dauert’s</span></li>
+          <li><strong id="fact-mc">18</strong><span>zum Antippen</span></li>
+          <li><strong id="fact-text">2</strong><span>zum kurz Schreiben</span></li>
+        </ul>
+        <button class="btn btn-primary btn-lg" id="start" type="button">Los geht’s</button>
+        <p class="small muted">Deine Antworten bleiben in diesem Browserfenster und werden nirgends gespeichert.</p>
+      </div>
+    </section>
+
+    <!-- Quiz -->
+    <section id="screen-quiz" hidden>
+      <div class="progress">
+        <div class="progress-track" id="progress" role="progressbar" aria-label="Fortschritt" aria-valuemin="1" aria-valuemax="20" aria-valuenow="1">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <span class="progress-label" id="progress-label">Frage 1 von 20</span>
+      </div>
+      <div class="card" id="quiz-card">
+        <h2 class="question" id="question" tabindex="-1"></h2>
+        <p class="hint small muted" id="hint" hidden></p>
+        <div id="answer-area"></div>
+        <div class="quiz-nav">
+          <button class="btn btn-ghost" id="back" type="button">← Zurück</button>
+          <button class="btn btn-primary" id="next" type="button">Weiter →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ergebnis -->
+    <section id="screen-result" hidden>
+      <div class="card" id="result-card">
+        <div id="result-content"></div>
+        <div class="actions">
+          <button class="btn btn-outline" id="edit" type="button">← Antworten ändern</button>
+          <button class="btn btn-primary" id="restart" type="button">Nochmal von vorn</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <p class="footer">Aptio · Prototyp v0.5 · Stand 30.09.2026</p>
+</div>
+
+<script>
+'use strict';
+
+/* =============================================================================
+   APTIO – Prototyp v0.5
+   Diese Datei hat drei Teile:
+     1. DATEN       – Eigenschaften, Fragen mit Punkten, Berufe, Regeln
+     2. AUSWERTUNG  – Punkte zählen, Top-Eigenschaften bestimmen, Berufe zuordnen
+     3. OBERFLÄCHE  – Startbildschirm, Quiz und Ergebnis anzeigen
+   Inhalte (Fragen, Punkte, Berufe) werden nur in Teil 1 geändert.
+   ============================================================================= */
+
+
+/* =============================================================================
+   1. DATEN
+   ============================================================================= */
+
+// Die 10 Eigenschaften. „satzteil“ ergänzt „Du …“ im Ergebnistext.
+const EIGENSCHAFTEN = {
+  Menschen:      { satzteil: 'hast gern mit Menschen zu tun' },
+  Dinge:         { satzteil: 'packst am liebsten selbst mit an' },
+  Infos:         { satzteil: 'tüftelst gern mit Köpfchen' },
+  Drinnen:       { satzteil: 'arbeitest am liebsten drinnen' },
+  Draußen:       { satzteil: 'bist am liebsten draußen unterwegs' },
+  Struktur:      { satzteil: 'magst klare Abläufe' },
+  Spontan:       { satzteil: 'kommst gut mit Überraschungen klar' },
+  Verantwortung: { satzteil: 'übernimmst gern Verantwortung' },
+  Vorne:         { satzteil: 'redest gern vor anderen' },
+  Hintergrund:   { satzteil: 'wirkst lieber im Hintergrund' },
+};
+
+// Die 5 Auswertungs-Dimensionen und welche Eigenschaften zu ihnen gehören.
+const DIMENSIONEN = [
+  { name: 'Menschen / Dinge / Infos', pole: ['Menschen', 'Dinge', 'Infos'] },
+  { name: 'Drinnen / Draußen',        pole: ['Drinnen', 'Draußen'] },
+  { name: 'Struktur / Spontan',       pole: ['Struktur', 'Spontan'] },
+  { name: 'Verantwortung',            pole: ['Verantwortung'] },
+  { name: 'Sichtbarkeit',             pole: ['Vorne', 'Hintergrund'] },
+];
+
+// Stellschrauben der Auswertung (siehe Teil 2).
+const REGELN = {
+  mindestProzent: 50,    // Eine Eigenschaft ist „deutlich“ ab so viel % der möglichen Punkte …
+  mindestVorsprung: 25,  // … und wenn sie die Gegenseite um MEHR als so viele Prozentpunkte übertrifft.
+  mindestTop: 2,         // Sind weniger Eigenschaften deutlich, rücken die nächststärksten nach.
+  topAnzeige: 3,         // So viele Top-Eigenschaften werden im Ergebnis groß angezeigt.
+  minBerufe: 3,          // So viele Berufe werden mindestens …
+  maxBerufe: 5,          // … und höchstens vorgeschlagen.
+  passungAbstand: 10,    // So viele Prozentpunkte darf ein Vorschlag hinter dem besten liegen.
+  profilDeutlich: 60,    // Ab so viel % im Berufsprofil gilt eine Eigenschaft als Merkmal des Berufs.
+  // Wie stark jeder Bereich in die Passung eingeht (zusammen 100).
+  gewichte: { Arbeitsfeld: 30, Umgebung: 25, Arbeitsweise: 20, Verantwortung: 15, Sichtbarkeit: 10 },
+  zufallBeiGleichstand: true, // Berufe mit exakt gleicher Bewertung werden zufaellig gemischt (false = alphabetisch).
+  tabelleMax: 25,        // So viele Berufe zeigt die Tabelle unter im Rechenweg.
+};
+
+// Die 20 Fragen.
+// Texte 1:1 aus „TiP_Quizfragen_Entwurf_2026-08-28“ (Google Drive), Liste „Die 20 Fragen“.
+// Nur die Apostrophe sind typografisch gesetzt (’ statt ').
+// Punkte laut „TiP_Auswertungslogik_2026-09-04“, korrigiert auf die echten Fragennummern.
+const FRAGEN = [
+  {
+    nr: 1,
+    text: 'Wenn du an einem freien Nachmittag machen kannst, was du willst – was wird’s?',
+    antworten: [
+      { text: 'Ich treff mich mit Leuten',                                  punkte: { Menschen: 2 } },
+      { text: 'Ich mach was mit meinen Händen (basteln, bauen, kochen...)', punkte: { Dinge: 2 } },
+      { text: 'Ich zock, lese oder schau was – Zeit für mich allein',       punkte: { Infos: 2 } },
+      { text: 'Ich bin draußen unterwegs, Sport oder einfach raus',         punkte: { Draußen: 2 } },
+    ],
+  },
+  {
+    nr: 2,
+    text: 'Stell dir vor, du hast ein Gruppenprojekt in der Schule. Welche Rolle übernimmst du meistens, ohne dass es jemand sagen muss?',
+    antworten: [
+      { text: 'Ich organisier, wer was macht',                    punkte: { Verantwortung: 2 } },
+      { text: 'Ich mach den Teil, der am meisten Köpfchen braucht', punkte: { Infos: 2 } },
+      { text: 'Ich sorg dafür, dass alle gut zusammenarbeiten',   punkte: { Menschen: 2 } },
+      { text: 'Ich mach einfach meins und liefer ab',             punkte: { Hintergrund: 2 } },
+    ],
+  },
+  {
+    nr: 3,
+    text: 'Was nervt dich mehr: wenn ein Tag komplett durchgeplant ist, oder wenn gar kein Plan da ist?',
+    antworten: [
+      { text: 'Kein Plan – ich brauch Struktur',                                     punkte: { Struktur: 2 } },
+      { text: 'Zu viel Plan – ich mag’s spontan',                                    punkte: { Spontan: 2 } },
+      { text: 'Beides geht, Hauptsache ich weiß, was am Ende rauskommen soll',       punkte: { Struktur: 1, Spontan: 1 } },
+    ],
+  },
+  {
+    nr: 4,
+    text: 'Du sollst was Neues lernen. Was hilft dir am meisten?',
+    antworten: [
+      { text: 'Mir zeigt’s wer und ich mach’s nach',        punkte: { Menschen: 1, Dinge: 1 } },
+      { text: 'Ich les mich erst mal schlau',               punkte: { Infos: 2 } },
+      { text: 'Ich probier einfach direkt rum, bis es klappt', punkte: { Dinge: 2 } },
+      { text: 'Ich frag jemanden, der’s schon kann',        punkte: { Menschen: 2 } },
+    ],
+  },
+  {
+    nr: 5,
+    text: 'Arbeitest du lieber mit Menschen, mit Dingen oder mit Zahlen/Infos?',
+    antworten: [
+      { text: 'Menschen – reden, helfen, erklären',                punkte: { Menschen: 2 } },
+      { text: 'Dinge – bauen, reparieren, gestalten',              punkte: { Dinge: 2 } },
+      { text: 'Zahlen oder Infos – ordnen, auswerten, verstehen',  punkte: { Infos: 2 } },
+    ],
+  },
+  {
+    nr: 6,
+    text: 'Wie reagierst du, wenn plötzlich alles anders läuft als geplant?',
+    antworten: [
+      { text: 'Bleib cool, pass mich an',                          punkte: { Spontan: 2 } },
+      { text: 'Brauch kurz, um umzudenken, dann geht’s',           punkte: { Struktur: 1, Spontan: 1 } },
+      { text: 'Stresst mich ziemlich, ich mag’s lieber vorhersehbar', punkte: { Struktur: 2 } },
+    ],
+  },
+  {
+    // Ungepunktet: Der gewählte „ergebnisSatz“ erscheint im Ergebnistext.
+    nr: 7,
+    rolle: 'geldOderSpass',
+    text: 'Was ist dir wichtiger: dass deine Arbeit gut bezahlt wird, oder dass sie dir wirklich Spaß macht?',
+    antworten: [
+      { text: 'Bezahlung geht vor',                                punkte: {}, ergebnisSatz: 'Dir ist wichtig, dass sich die Arbeit lohnt.' },
+      { text: 'Spaß geht vor, auch wenn’s weniger ist',            punkte: {}, ergebnisSatz: 'Dir ist wichtig, dass die Arbeit dir wirklich Spaß macht.' },
+      { text: 'Beides muss stimmen, keins von beiden allein reicht', punkte: {}, ergebnisSatz: 'Dir ist wichtig, dass beides stimmt: Die Arbeit soll Spaß machen und sich lohnen.' },
+    ],
+  },
+  {
+    nr: 8,
+    text: 'Stehst du lieber vor Leuten und redest, oder bist du eher im Hintergrund aktiv?',
+    antworten: [
+      { text: 'Vorne, ich rede gern vor anderen',                        punkte: { Vorne: 2 } },
+      { text: 'Hintergrund, ich mach lieber die Arbeit, die man nicht sieht', punkte: { Hintergrund: 2 } },
+      { text: 'Kommt drauf an, mit wem',                                 punkte: { Vorne: 1, Hintergrund: 1 } },
+    ],
+  },
+  {
+    // Indirekte Frage, darum nur 1 Punkt.
+    nr: 9,
+    text: 'Wie sieht dein Zimmer/Schreibtisch normalerweise aus?',
+    antworten: [
+      { text: 'Ordentlich, alles hat seinen Platz',        punkte: { Struktur: 1 } },
+      { text: 'Kreatives Chaos, ich find trotzdem alles',  punkte: {} },
+      { text: 'Ehrlich? Eher chaotisch',                   punkte: { Spontan: 1 } },
+    ],
+  },
+  {
+    nr: 10,
+    text: 'Was würdest du eher machen: ein kaputtes Gerät reparieren oder einen Streit zwischen zwei Freunden schlichten?',
+    antworten: [
+      { text: 'Gerät reparieren',                       punkte: { Dinge: 2 } },
+      { text: 'Streit schlichten',                      punkte: { Menschen: 2, Verantwortung: 1 } },
+      { text: 'Beides nicht so meins, ehrlich gesagt',  punkte: { Infos: 1 } }, // weder Dinge noch Menschen: eher Kopfarbeit
+    ],
+  },
+  {
+    nr: 11,
+    text: 'Bist du lieber drinnen oder draußen bei der Arbeit?',
+    antworten: [
+      { text: 'Drinnen',                   punkte: { Drinnen: 2 } },
+      { text: 'Draußen',                   punkte: { Draußen: 2 } },
+      { text: 'Mix aus beidem wäre ideal', punkte: { Drinnen: 1, Draußen: 1 } },
+    ],
+  },
+  {
+    // Bewusst ungepunktet: Umgang mit Kritik passt zu keiner der fünf Eigenschaften.
+    // Punkte auf Vorne/Hintergrund haben die Sichtbarkeit im Test stark zu „Vorne“ verschoben.
+    nr: 12,
+    text: 'Wenn du Kritik bekommst – wie geht’s dir dabei meistens?',
+    antworten: [
+      { text: 'Nehm ich an, wenn sie fair ist, und mach weiter', punkte: {} },
+      { text: 'Trifft mich erstmal, aber ich komm drüber weg',   punkte: {} },
+      { text: 'Fällt mir schwer, damit umzugehen',               punkte: {} },
+    ],
+  },
+  {
+    // Indirekte Frage, darum nur 1 Punkt. Gestalten zählt zu „Dinge“ (handwerklich/gestalterisch).
+    nr: 13,
+    text: 'Wie wichtig ist dir, dass du bei deinem Job kreativ sein kannst?',
+    antworten: [
+      { text: 'Sehr wichtig, ich will was gestalten',                 punkte: { Dinge: 1, Spontan: 1 } },
+      { text: 'Ist okay, muss aber nicht im Vordergrund stehen',      punkte: {} },
+      { text: 'Eher unwichtig, ich mag klare Abläufe',                punkte: { Struktur: 1 } },
+    ],
+  },
+  {
+    nr: 14,
+    text: 'Traust du dir zu, Verantwortung für andere zu übernehmen (z. B. jüngere Leute anleiten)?',
+    antworten: [
+      { text: 'Ja, mach ich gern',                                   punkte: { Verantwortung: 2 } },
+      { text: 'Käme drauf an, aber grundsätzlich schon',             punkte: { Verantwortung: 1 } },
+      { text: 'Eher nicht, ich bin lieber für mich verantwortlich',  punkte: {} }, // +0 (bewusst)
+    ],
+  },
+  {
+    nr: 15,
+    text: 'Was würde dich mehr stressen: ständig neue, wechselnde Aufgaben – oder jeden Tag dasselbe?',
+    antworten: [
+      { text: 'Ständiger Wechsel stresst mich', punkte: { Struktur: 2 } },
+      { text: 'Immer dasselbe stresst mich',    punkte: { Spontan: 2 } },
+      { text: 'Beides in Maßen ist okay',       punkte: { Struktur: 1, Spontan: 1 } },
+    ],
+  },
+  {
+    // Computerarbeit ist Kopfarbeit und findet drinnen statt.
+    nr: 16,
+    text: 'Wie gut kommst du mit Computern/Technik klar?',
+    antworten: [
+      { text: 'Richtig gut, das ist meins',           punkte: { Infos: 2, Drinnen: 1 } },
+      { text: 'Geht so, im Alltag komm ich klar',     punkte: {} },
+      { text: 'Eher nicht mein Ding',                 punkte: {} },
+    ],
+  },
+  {
+    nr: 17,
+    text: 'Was motiviert dich mehr: wenn du merkst, dass du jemandem geholfen hast – oder wenn du ein Ergebnis siehst, auf das du stolz bist?',
+    antworten: [
+      { text: 'Jemandem geholfen zu haben',        punkte: { Menschen: 2 } },
+      { text: 'Ein sichtbares Ergebnis / Produkt', punkte: { Dinge: 2 } },
+      { text: 'Beides gleich wichtig',             punkte: { Menschen: 1, Dinge: 1 } },
+    ],
+  },
+  {
+    // Indirekte Frage, darum nur 1 Punkt.
+    nr: 18,
+    text: 'Bist du eher der Typ, der Risiken eingeht, oder der lieber auf Nummer sicher geht?',
+    antworten: [
+      { text: 'Ich geh auch mal ein Risiko ein',  punkte: { Spontan: 1 } },
+      { text: 'Ich geh lieber auf Nummer sicher', punkte: { Struktur: 1 } },
+      { text: 'Kommt auf die Situation an',       punkte: {} },
+    ],
+  },
+  {
+    // Ungepunktet: wird im Ergebnis wörtlich zitiert.
+    // Im Entwurf steht dazu: „freie Antwort – kurz in eigenen Worten“.
+    nr: 19,
+    typ: 'freitext',
+    rolle: 'traumtag',
+    text: 'Wenn du an deinen Traumtag bei der Arbeit denkst – was passiert da auf jeden Fall?',
+    platzhalter: 'Kurz in eigenen Worten, zum Beispiel: Ich bin viel unterwegs, rede mit Leuten und …',
+  },
+  {
+    // TODO: Behandlung noch offen – vorerst wie Frage 19 (ungepunktet, Zitat im Ergebnis)
+    nr: 20,
+    typ: 'freitext',
+    rolle: 'wunschberuf',
+    text: 'Gibt’s schon einen Beruf oder ein Berufsfeld, das dich reizt – auch wenn du dir nicht sicher bist?',
+    platzhalter: 'Kurz in eigenen Worten, zum Beispiel: Irgendwas mit Tieren, weil …',
+  },
+];
+
+// Die 20 geprüften Berufe aus der eigenen Berufsliste, mit Beschreibungstext.
+// Draußen-Berufe kommen vor allem aus BERUFE_VORLAEUFIG (Bau, Logistik, Landwirtschaft).
+const BERUFE_GEPRUEFT = [
+  { name: 'Tischler/in', bereich: 'Handwerk',
+    beschreibung: 'Baut und fertigt Möbel und Einrichtungsgegenstände aus Holz.',
+    profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 70, Struktur: 70, Verantwortung: 30, Vorne: 20 } },
+  { name: 'Elektroniker/in für Energie- und Gebäudetechnik', bereich: 'Handwerk',
+    beschreibung: 'Installiert und wartet elektrische Anlagen in Gebäuden.',
+    profil: { Menschen: 10, Dinge: 75, Infos: 15, Drinnen: 65, Struktur: 80, Verantwortung: 70, Vorne: 20 } },
+  { name: 'Kfz-Mechatroniker/in', bereich: 'Handwerk',
+    beschreibung: 'Wartet und repariert Fahrzeuge und ihre Elektronik.',
+    profil: { Menschen: 15, Dinge: 75, Infos: 10, Drinnen: 85, Struktur: 65, Verantwortung: 35, Vorne: 25 } },
+  { name: 'Kaufmann/-frau für Büromanagement', bereich: 'Büro',
+    beschreibung: 'Organisiert Termine, Schriftverkehr und allgemeine Verwaltungsaufgaben.',
+    profil: { Menschen: 30, Dinge: 5, Infos: 65, Drinnen: 95, Struktur: 85, Verantwortung: 35, Vorne: 30 } },
+  { name: 'Steuerfachangestellte/r', bereich: 'Büro',
+    beschreibung: 'Erstellt Steuererklärungen und Buchhaltung für Mandant:innen.',
+    profil: { Menschen: 20, Dinge: 0, Infos: 80, Drinnen: 95, Struktur: 90, Verantwortung: 70, Vorne: 20 } },
+  { name: 'Fachinformatiker/in Anwendungsentwicklung', bereich: 'Technik',
+    beschreibung: 'Programmiert und testet Softwareanwendungen.',
+    profil: { Menschen: 10, Dinge: 10, Infos: 80, Drinnen: 95, Struktur: 65, Verantwortung: 40, Vorne: 15 } },
+  { name: 'Mechatroniker/in', bereich: 'Technik',
+    beschreibung: 'Kombiniert Mechanik, Elektronik und Informatik bei komplexen Maschinen.',
+    profil: { Menschen: 10, Dinge: 75, Infos: 15, Drinnen: 80, Struktur: 75, Verantwortung: 40, Vorne: 15 } },
+  { name: 'IT-Systemelektroniker/in', bereich: 'Technik',
+    beschreibung: 'Baut IT-Netzwerke und Hardware auf und wartet sie.',
+    profil: { Menschen: 15, Dinge: 60, Infos: 25, Drinnen: 85, Struktur: 70, Verantwortung: 65, Vorne: 25 } },
+  { name: 'Erzieher/in', bereich: 'Menschen',
+    beschreibung: 'Betreut und fördert Kinder in Kita oder Hort.',
+    profil: { Menschen: 85, Dinge: 5, Infos: 10, Drinnen: 55, Struktur: 45, Verantwortung: 90, Vorne: 75 } },
+  { name: 'Sozialversicherungsfachangestellte/r', bereich: 'Menschen',
+    beschreibung: 'Berät Versicherte zu Ansprüchen und Leistungen.',
+    profil: { Menschen: 60, Dinge: 0, Infos: 40, Drinnen: 95, Struktur: 85, Verantwortung: 45, Vorne: 65 } },
+  { name: 'Kaufmann/-frau im Einzelhandel', bereich: 'Verkauf',
+    beschreibung: 'Berät Kund:innen und präsentiert Waren im Laden.',
+    profil: { Menschen: 70, Dinge: 20, Infos: 10, Drinnen: 90, Struktur: 35, Verantwortung: 35, Vorne: 80 } },
+  { name: 'Vertriebsassistent/in', bereich: 'Verkauf',
+    beschreibung: 'Unterstützt den Außendienst bei Angeboten und Kundenkontakt.',
+    profil: { Menschen: 60, Dinge: 0, Infos: 40, Drinnen: 55, Struktur: 70, Verantwortung: 35, Vorne: 35 } },
+  { name: 'Pflegefachmann/-frau', bereich: 'Pflege',
+    beschreibung: 'Pflegt und betreut kranke oder ältere Menschen.',
+    profil: { Menschen: 85, Dinge: 10, Infos: 5, Drinnen: 90, Struktur: 35, Verantwortung: 90, Vorne: 65 } },
+  { name: 'Notfallsanitäter/in', bereich: 'Pflege',
+    beschreibung: 'Versorgt und transportiert Patient:innen im Rettungsdienst.',
+    profil: { Menschen: 75, Dinge: 15, Infos: 10, Drinnen: 30, Struktur: 20, Verantwortung: 95, Vorne: 70 } },
+  { name: 'Physiotherapeut/in', bereich: 'Pflege',
+    beschreibung: 'Behandelt Patient:innen, damit sie wieder beweglich werden.',
+    profil: { Menschen: 80, Dinge: 15, Infos: 5, Drinnen: 90, Struktur: 65, Verantwortung: 55, Vorne: 70 } },
+  { name: 'Mediengestalter/in Digital und Print', bereich: 'Kreatives',
+    beschreibung: 'Gestaltet Layouts für Print- und Onlinemedien.',
+    profil: { Menschen: 10, Dinge: 60, Infos: 30, Drinnen: 95, Struktur: 35, Verantwortung: 25, Vorne: 20 } },
+  { name: 'Fotograf/in', bereich: 'Kreatives',
+    beschreibung: 'Nimmt Fotos auf und bearbeitet sie für Kund:innen oder Unternehmen.',
+    profil: { Menschen: 30, Dinge: 60, Infos: 10, Drinnen: 35, Struktur: 25, Verantwortung: 30, Vorne: 65 } },
+  { name: 'Werbekaufmann/-frau', bereich: 'Kreatives',
+    beschreibung: 'Entwickelt Werbekonzepte und berät Kund:innen zu Kampagnen.',
+    profil: { Menschen: 65, Dinge: 5, Infos: 30, Drinnen: 90, Struktur: 30, Verantwortung: 40, Vorne: 75 } },
+  { name: 'Fachkraft für Lagerlogistik', bereich: 'Logistik',
+    beschreibung: 'Organisiert Wareneingang und -ausgang im Lager.',
+    profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 75, Struktur: 85, Verantwortung: 30, Vorne: 10 } },
+  { name: 'Kaufmann/-frau für Spedition und Logistikdienstleistung', bereich: 'Logistik',
+    beschreibung: 'Plant Transportwege und wickelt Frachtaufträge ab.',
+    profil: { Menschen: 30, Dinge: 0, Infos: 70, Drinnen: 90, Struktur: 75, Verantwortung: 65, Vorne: 30 } },
+].map(b => ({ ...b, vorlaeufig: false }));
+
+// 309 Ausbildungsberufe aus dem BIBB-Verzeichnis 2026.
+// ACHTUNG: Die Profile sind VORLAEUFIG - eine Einschaetzung pro Beruf, noch nicht fachlich geprueft.
+// In der App stehen diese Berufe mit dem Hinweis "Profil noch vorlaeufig".
+const BERUFE_VORLAEUFIG = [
+  { name: 'Änderungsschneider/in', bereich: 'Handwerk/Mode', profil: { Menschen: 25, Dinge: 70, Infos: 5, Drinnen: 95, Struktur: 70, Verantwortung: 25, Vorne: 35 } },
+  { name: 'Anlagenmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 65, Struktur: 75, Verantwortung: 45, Vorne: 15 } },
+  { name: 'Anlagenmechaniker/in für Sanitär-, Heizungs- und Klimatechnik', bereich: 'Handwerk/Technik', profil: { Menschen: 20, Dinge: 70, Infos: 10, Drinnen: 60, Struktur: 70, Verantwortung: 50, Vorne: 30 } },
+  { name: 'Asphaltbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 5, Struktur: 75, Verantwortung: 35, Vorne: 10 } },
+  { name: 'Aufbereitungsmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 40, Struktur: 80, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Augenoptiker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 50, Dinge: 40, Infos: 10, Drinnen: 95, Struktur: 70, Verantwortung: 40, Vorne: 60 } },
+  { name: 'Ausbaufacharbeiter/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 50, Struktur: 70, Verantwortung: 30, Vorne: 10 } },
+  { name: 'Automatenfachmann/-frau', bereich: 'Technik', profil: { Menschen: 20, Dinge: 65, Infos: 15, Drinnen: 70, Struktur: 65, Verantwortung: 40, Vorne: 30 } },
+  { name: 'Automobilkaufmann/-frau', bereich: 'Verkauf', profil: { Menschen: 65, Dinge: 15, Infos: 20, Drinnen: 85, Struktur: 55, Verantwortung: 40, Vorne: 80 } },
+  { name: 'Bäcker/in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 95, Struktur: 80, Verantwortung: 35, Vorne: 15 } },
+  { name: 'Bankkaufmann/-frau', bereich: 'Büro/Verwaltung', profil: { Menschen: 55, Dinge: 0, Infos: 45, Drinnen: 95, Struktur: 85, Verantwortung: 60, Vorne: 65 } },
+  { name: 'Baugeräteführer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 10, Struktur: 70, Verantwortung: 55, Vorne: 10 } },
+  { name: 'Baustoffprüfer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 55, Infos: 40, Drinnen: 60, Struktur: 90, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Bauwerksabdichter/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 25, Struktur: 75, Verantwortung: 35, Vorne: 10 } },
+  { name: 'Bauwerksmechaniker/in für Abbruch und Betontrenntechnik', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 30, Struktur: 65, Verantwortung: 50, Vorne: 10 } },
+  { name: 'Bauzeichner/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 20, Infos: 70, Drinnen: 90, Struktur: 85, Verantwortung: 35, Vorne: 15 } },
+  { name: 'Behälter- und Apparatebauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 75, Struktur: 80, Verantwortung: 35, Vorne: 10 } },
+  { name: 'Berg- und Maschinenmann/-frau', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 35, Struktur: 75, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Bergbautechnologe/-in', bereich: 'Technik', profil: { Menschen: 10, Dinge: 70, Infos: 20, Drinnen: 40, Struktur: 80, Verantwortung: 55, Vorne: 15 } },
+  { name: 'Berufskraftfahrer/in', bereich: 'Logistik/Transport', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 25, Struktur: 65, Verantwortung: 60, Vorne: 20 } },
+  { name: 'Bestattungsfachkraft', bereich: 'Dienstleistung', profil: { Menschen: 60, Dinge: 30, Infos: 10, Drinnen: 70, Struktur: 65, Verantwortung: 65, Vorne: 50 } },
+  { name: 'Beton- und Stahlbetonbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 10, Struktur: 75, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Betonfertigteilbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 70, Struktur: 85, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Binnenschiffer/in', bereich: 'Logistik/Transport', profil: { Menschen: 15, Dinge: 75, Infos: 10, Drinnen: 20, Struktur: 60, Verantwortung: 55, Vorne: 15 } },
+  { name: 'Binnenschifffahrtskapitän/in', bereich: 'Logistik/Transport', profil: { Menschen: 30, Dinge: 45, Infos: 25, Drinnen: 30, Struktur: 65, Verantwortung: 90, Vorne: 50 } },
+  { name: 'Biologielaborant/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 35, Infos: 60, Drinnen: 100, Struktur: 90, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Biologiemodellmacher/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 95, Struktur: 55, Verantwortung: 25, Vorne: 15 } },
+  { name: 'Bodenleger/in', bereich: 'Bau/Handwerk', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 90, Struktur: 70, Verantwortung: 30, Vorne: 20 } },
+  { name: 'Bogenmacher/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 60, Verantwortung: 20, Vorne: 10 } },
+  { name: 'Bootsbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 60, Struktur: 70, Verantwortung: 35, Vorne: 15 } },
+  { name: 'Böttcher/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 85, Struktur: 75, Verantwortung: 25, Vorne: 10 } },
+  { name: 'Brauer/in und Mälzer/in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 90, Struktur: 85, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Brenner/in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 90, Struktur: 85, Verantwortung: 40, Vorne: 15 } },
+  { name: 'Brunnenbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 10, Struktur: 70, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Buchbinder/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 80, Verantwortung: 25, Vorne: 10 } },
+  { name: 'Buchhändler/in', bereich: 'Verkauf', profil: { Menschen: 60, Dinge: 10, Infos: 30, Drinnen: 95, Struktur: 55, Verantwortung: 35, Vorne: 70 } },
+  { name: 'Büchsenmacher/in', bereich: 'Handwerk/Technik', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 95, Struktur: 85, Verantwortung: 50, Vorne: 15 } },
+  { name: 'Bühnenmaler/in und -plastiker/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 90, Struktur: 35, Verantwortung: 25, Vorne: 20 } },
+  { name: 'Bürsten- und Pinselmacher/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 80, Verantwortung: 20, Vorne: 5 } },
+  { name: 'Chemielaborant/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 35, Infos: 60, Drinnen: 100, Struktur: 90, Verantwortung: 50, Vorne: 10 } },
+  { name: 'Chemielaborjungwerker/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 55, Infos: 40, Drinnen: 100, Struktur: 90, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Chemikant/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 65, Infos: 30, Drinnen: 85, Struktur: 90, Verantwortung: 55, Vorne: 10 } },
+  { name: 'Chirurgiemechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 90, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Dachdecker/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 5, Struktur: 70, Verantwortung: 40, Vorne: 15 } },
+  { name: 'Destillateur/in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 95, Struktur: 80, Verantwortung: 35, Vorne: 15 } },
+  { name: 'Drechsler/in (Elfenbeinschnitzer/in)', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 60, Verantwortung: 20, Vorne: 15 } },
+  { name: 'Drogist/in', bereich: 'Verkauf', profil: { Menschen: 65, Dinge: 15, Infos: 20, Drinnen: 100, Struktur: 60, Verantwortung: 45, Vorne: 70 } },
+  { name: 'Edelsteinfasser/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 80, Verantwortung: 30, Vorne: 10 } },
+  { name: 'Edelsteinschleifer/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 75, Verantwortung: 25, Vorne: 5 } },
+  { name: 'Eisenbahner/in im Betriebsdienst Lokführer/in und Transport', bereich: 'Logistik/Transport', profil: { Menschen: 15, Dinge: 70, Infos: 15, Drinnen: 45, Struktur: 85, Verantwortung: 80, Vorne: 20 } },
+  { name: 'Eisenbahner/in in der Zugverkehrssteuerung', bereich: 'Logistik/Transport', profil: { Menschen: 20, Dinge: 20, Infos: 60, Drinnen: 95, Struktur: 90, Verantwortung: 85, Vorne: 15 } },
+  { name: 'Elektroanlagenmonteur/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 65, Struktur: 80, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Elektroniker/in', bereich: 'Technik', profil: { Menschen: 20, Dinge: 70, Infos: 10, Drinnen: 60, Struktur: 70, Verantwortung: 50, Vorne: 25 } },
+  { name: 'Elektroniker/in für Automatisierungstechnik', bereich: 'Technik', profil: { Menschen: 5, Dinge: 60, Infos: 35, Drinnen: 85, Struktur: 80, Verantwortung: 50, Vorne: 10 } },
+  { name: 'Elektroniker/in für Betriebstechnik', bereich: 'Technik', profil: { Menschen: 10, Dinge: 75, Infos: 15, Drinnen: 75, Struktur: 75, Verantwortung: 55, Vorne: 15 } },
+  { name: 'Elektroniker/in für Gebäude- und Infrastruktursysteme', bereich: 'Technik', profil: { Menschen: 15, Dinge: 70, Infos: 15, Drinnen: 55, Struktur: 75, Verantwortung: 50, Vorne: 20 } },
+  { name: 'Elektroniker/in für Gebäudesystemintegration', bereich: 'Technik', profil: { Menschen: 15, Dinge: 55, Infos: 30, Drinnen: 75, Struktur: 75, Verantwortung: 45, Vorne: 20 } },
+  { name: 'Elektroniker/in für Geräte und Systeme', bereich: 'Technik', profil: { Menschen: 5, Dinge: 65, Infos: 30, Drinnen: 100, Struktur: 85, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Elektroniker/in für Informations- und Systemtechnik', bereich: 'Technik', profil: { Menschen: 10, Dinge: 45, Infos: 45, Drinnen: 95, Struktur: 75, Verantwortung: 45, Vorne: 15 } },
+  { name: 'Elektroniker/in für Maschinen und Antriebstechnik nach dem Berufsbildungsgesetz', bereich: 'Technik', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 85, Struktur: 80, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Elektroniker/in für Maschinen und Antriebstechnik nach der Handwerksordnung', bereich: 'Technik', profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 80, Struktur: 75, Verantwortung: 45, Vorne: 15 } },
+  { name: 'Estrichleger/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 80, Struktur: 70, Verantwortung: 25, Vorne: 5 } },
+  { name: 'Fachangestellte/r für Arbeitsmarktdienstleistungen', bereich: 'Büro/Verwaltung', profil: { Menschen: 70, Dinge: 0, Infos: 30, Drinnen: 100, Struktur: 80, Verantwortung: 55, Vorne: 60 } },
+  { name: 'Fachangestellte/r für Bäderbetriebe', bereich: 'Büro/Verwaltung', profil: { Menschen: 60, Dinge: 30, Infos: 10, Drinnen: 65, Struktur: 65, Verantwortung: 90, Vorne: 55 } },
+  { name: 'Fachangestellte/r für Markt- und Sozialforschung', bereich: 'Büro/Verwaltung', profil: { Menschen: 35, Dinge: 0, Infos: 65, Drinnen: 100, Struktur: 80, Verantwortung: 35, Vorne: 35 } },
+  { name: 'Fachangestellte/r für Medien- und Informationsdienste', bereich: 'Büro/Verwaltung', profil: { Menschen: 45, Dinge: 10, Infos: 45, Drinnen: 100, Struktur: 85, Verantwortung: 35, Vorne: 40 } },
+  { name: 'Fachkraft Agrarservice', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 10, Struktur: 60, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Fachkraft für Fruchtsafttechnik', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 95, Struktur: 90, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Fachkraft für Gastronomie', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 65, Dinge: 30, Infos: 5, Drinnen: 95, Struktur: 40, Verantwortung: 35, Vorne: 75 } },
+  { name: 'Fachkraft für Hafenlogistik', bereich: 'Logistik/Transport', profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 20, Struktur: 70, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Fachkraft für Holz- und Bautenschutzarbeiten', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 35, Struktur: 70, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Fachkraft für Kurier-, Express- und Postdienstleistungen', bereich: 'Logistik/Transport', profil: { Menschen: 35, Dinge: 60, Infos: 5, Drinnen: 35, Struktur: 60, Verantwortung: 35, Vorne: 45 } },
+  { name: 'Fachkraft für Lebensmitteltechnik', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 100, Struktur: 90, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Fachkraft für Lederherstellung und Gerbereitechnik', bereich: 'Handwerk/Mode', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 85, Verantwortung: 25, Vorne: 5 } },
+  { name: 'Fachkraft für Lederverarbeitung', bereich: 'Handwerk/Mode', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 80, Verantwortung: 20, Vorne: 10 } },
+  { name: 'Fachkraft für Metalltechnik', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 90, Struktur: 85, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Fachkraft für Möbel-, Küchen- und Umzugsservice', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 35, Dinge: 60, Infos: 5, Drinnen: 65, Struktur: 55, Verantwortung: 30, Vorne: 40 } },
+  { name: 'Fachkraft für Schutz und Sicherheit', bereich: 'Dienstleistung', profil: { Menschen: 60, Dinge: 25, Infos: 15, Drinnen: 55, Struktur: 70, Verantwortung: 85, Vorne: 65 } },
+  { name: 'Fachkraft für Straßen- und Verkehrstechnik', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 55, Infos: 35, Drinnen: 35, Struktur: 80, Verantwortung: 60, Vorne: 15 } },
+  { name: 'Fachkraft für Veranstaltungstechnik', bereich: 'Technik', profil: { Menschen: 25, Dinge: 65, Infos: 10, Drinnen: 60, Struktur: 30, Verantwortung: 60, Vorne: 30 } },
+  { name: 'Fachkraft für Wasserwirtschaft', bereich: 'Technik', profil: { Menschen: 5, Dinge: 65, Infos: 30, Drinnen: 50, Struktur: 85, Verantwortung: 65, Vorne: 10 } },
+  { name: 'Fachkraft im Fahrbetrieb', bereich: 'Logistik/Transport', profil: { Menschen: 50, Dinge: 40, Infos: 10, Drinnen: 40, Struktur: 80, Verantwortung: 75, Vorne: 55 } },
+  { name: 'Fachkraft Küche', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 55, Verantwortung: 30, Vorne: 15 } },
+  { name: 'Fachlagerist/in', bereich: 'Logistik/Transport', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 75, Struktur: 85, Verantwortung: 25, Vorne: 10 } },
+  { name: 'Fachmann/-frau für Restaurants und Veranstaltungsgastronomie', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 70, Dinge: 25, Infos: 5, Drinnen: 90, Struktur: 35, Verantwortung: 45, Vorne: 80 } },
+  { name: 'Fachmann/-frau für Systemgastronomie', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 55, Dinge: 30, Infos: 15, Drinnen: 95, Struktur: 75, Verantwortung: 60, Vorne: 60 } },
+  { name: 'Fachverkäufer/in im Lebensmittelhandwerk', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 65, Dinge: 30, Infos: 5, Drinnen: 100, Struktur: 55, Verantwortung: 30, Vorne: 75 } },
+  { name: 'Fahrradmonteur/in', bereich: 'Handwerk/Technik', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 85, Struktur: 65, Verantwortung: 25, Vorne: 25 } },
+  { name: 'Fahrzeuginterieur-Mechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 95, Struktur: 75, Verantwortung: 25, Vorne: 10 } },
+  { name: 'Fahrzeuglackierer/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 75, Verantwortung: 30, Vorne: 10 } },
+  { name: 'Fassadenmonteur/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 10, Struktur: 75, Verantwortung: 35, Vorne: 10 } },
+  { name: 'Feinoptiker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 100, Struktur: 95, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Feinpolierer/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 85, Verantwortung: 20, Vorne: 5 } },
+  { name: 'Feinwerkmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 95, Struktur: 85, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Fertigungsmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 95, Struktur: 90, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Feuerungs- und Schornsteinbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 40, Struktur: 75, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Figurenkeramformer/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 60, Verantwortung: 20, Vorne: 10 } },
+  { name: 'Fischwirt/in', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 15, Struktur: 55, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Flachglastechnologe/-in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 90, Struktur: 90, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Flechtwerkgestalter/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 90, Struktur: 50, Verantwortung: 20, Vorne: 20 } },
+  { name: 'Fleischer/in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 95, Struktur: 80, Verantwortung: 35, Vorne: 25 } },
+  { name: 'Fliesen-, Platten- und Mosaikleger/in', bereich: 'Bau/Handwerk', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 85, Struktur: 75, Verantwortung: 30, Vorne: 15 } },
+  { name: 'Florist/in', bereich: 'Kreatives', profil: { Menschen: 45, Dinge: 50, Infos: 5, Drinnen: 85, Struktur: 30, Verantwortung: 30, Vorne: 65 } },
+  { name: 'Fluggerätelektroniker/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 65, Infos: 30, Drinnen: 85, Struktur: 95, Verantwortung: 80, Vorne: 5 } },
+  { name: 'Fluggerätmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 80, Struktur: 95, Verantwortung: 80, Vorne: 10 } },
+  { name: 'Forstwirt/in', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 5, Struktur: 55, Verantwortung: 50, Vorne: 10 } },
+  { name: 'Fotomedienfachmann/-frau', bereich: 'Kreatives', profil: { Menschen: 40, Dinge: 50, Infos: 10, Drinnen: 90, Struktur: 45, Verantwortung: 30, Vorne: 55 } },
+  { name: 'Friseur/in', bereich: 'Handwerk/Mode', profil: { Menschen: 75, Dinge: 25, Infos: 0, Drinnen: 100, Struktur: 40, Verantwortung: 35, Vorne: 85 } },
+  { name: 'Gärtner/in', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 15, Struktur: 50, Verantwortung: 35, Vorne: 20 } },
+  { name: 'Gebäudereiniger/in', bereich: 'Dienstleistung', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 75, Struktur: 80, Verantwortung: 30, Vorne: 15 } },
+  { name: 'Geigenbauer/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 65, Verantwortung: 25, Vorne: 15 } },
+  { name: 'Geomatiker/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 15, Infos: 80, Drinnen: 75, Struktur: 85, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Gerüstbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 5, Struktur: 70, Verantwortung: 55, Vorne: 10 } },
+  { name: 'Gestalter/in für immersive Medien', bereich: 'Kreatives', profil: { Menschen: 15, Dinge: 35, Infos: 50, Drinnen: 100, Struktur: 30, Verantwortung: 30, Vorne: 25 } },
+  { name: 'Gestalter/in für visuelles Marketing', bereich: 'Kreatives', profil: { Menschen: 25, Dinge: 65, Infos: 10, Drinnen: 95, Struktur: 30, Verantwortung: 25, Vorne: 45 } },
+  { name: 'Gießereimechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 90, Struktur: 85, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Glas- und Porzellanmaler/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 55, Verantwortung: 20, Vorne: 10 } },
+  { name: 'Glasapparatebauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 80, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Glasbläser/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 60, Verantwortung: 25, Vorne: 15 } },
+  { name: 'Glaser/in', bereich: 'Handwerk/Technik', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 55, Struktur: 70, Verantwortung: 35, Vorne: 20 } },
+  { name: 'Glasmacher/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 75, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Glasveredler/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 65, Verantwortung: 20, Vorne: 10 } },
+  { name: 'Gleisbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 5, Struktur: 80, Verantwortung: 50, Vorne: 10 } },
+  { name: 'Gold- und Silberschmied/in', bereich: 'Handwerk/Technik', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 100, Struktur: 55, Verantwortung: 30, Vorne: 35 } },
+  { name: 'Graveur/in', bereich: 'Handwerk/Technik', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 70, Verantwortung: 25, Vorne: 15 } },
+  { name: 'Hafenschiffer/in', bereich: 'Logistik/Transport', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 15, Struktur: 65, Verantwortung: 55, Vorne: 15 } },
+  { name: 'Handzuginstrumentenmacher/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 75, Verantwortung: 20, Vorne: 10 } },
+  { name: 'Hauswirtschafter/in', bereich: 'Dienstleistung', profil: { Menschen: 55, Dinge: 40, Infos: 5, Drinnen: 90, Struktur: 70, Verantwortung: 55, Vorne: 45 } },
+  { name: 'Hochbaufacharbeiter/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 10, Struktur: 70, Verantwortung: 30, Vorne: 10 } },
+  { name: 'Holz- und Bautenschützer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 40, Struktur: 75, Verantwortung: 35, Vorne: 10 } },
+  { name: 'Holzbearbeitungsmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 85, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Holzbildhauer/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 90, Struktur: 40, Verantwortung: 20, Vorne: 25 } },
+  { name: 'Holzblasinstrumentenmacher/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 80, Verantwortung: 25, Vorne: 5 } },
+  { name: 'Holzmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 80, Verantwortung: 30, Vorne: 10 } },
+  { name: 'Holzspielzeugmacher/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 55, Verantwortung: 20, Vorne: 15 } },
+  { name: 'Hörakustiker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 55, Dinge: 35, Infos: 10, Drinnen: 100, Struktur: 70, Verantwortung: 45, Vorne: 55 } },
+  { name: 'Hotelfachmann/-frau', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 75, Dinge: 15, Infos: 10, Drinnen: 95, Struktur: 45, Verantwortung: 45, Vorne: 80 } },
+  { name: 'Immobilienkaufmann/-frau', bereich: 'Verkauf', profil: { Menschen: 55, Dinge: 5, Infos: 40, Drinnen: 75, Struktur: 65, Verantwortung: 50, Vorne: 70 } },
+  { name: 'Industrieelektriker/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 90, Struktur: 85, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Industrie-Isolierer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 60, Struktur: 75, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Industriekaufmann/-frau', bereich: 'Büro/Verwaltung', profil: { Menschen: 40, Dinge: 0, Infos: 60, Drinnen: 100, Struktur: 80, Verantwortung: 45, Vorne: 40 } },
+  { name: 'Industriekeramiker/in Anlagentechnik', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 95, Struktur: 90, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Industriekeramiker/in Dekorationstechnik', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 65, Verantwortung: 20, Vorne: 10 } },
+  { name: 'Industriekeramiker/in Modelltechnik', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 100, Struktur: 75, Verantwortung: 25, Vorne: 10 } },
+  { name: 'Industriekeramiker/in Verfahrenstechnik', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 95, Struktur: 90, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Industriemechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 85, Struktur: 80, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Informationselektroniker/in', bereich: 'Technik', profil: { Menschen: 30, Dinge: 55, Infos: 15, Drinnen: 70, Struktur: 65, Verantwortung: 40, Vorne: 40 } },
+  { name: 'Investmentfondskaufmann/-frau', bereich: 'Büro/Verwaltung', profil: { Menschen: 25, Dinge: 0, Infos: 75, Drinnen: 100, Struktur: 85, Verantwortung: 60, Vorne: 25 } },
+  { name: 'Isolierfacharbeiter/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 55, Struktur: 75, Verantwortung: 25, Vorne: 10 } },
+  { name: 'Justizfachangestellte/r', bereich: 'Büro/Verwaltung', profil: { Menschen: 35, Dinge: 0, Infos: 65, Drinnen: 100, Struktur: 95, Verantwortung: 45, Vorne: 30 } },
+  { name: 'Kanalbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 10, Struktur: 75, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Karosserie- und Fahrzeugbaumechaniker/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 90, Struktur: 75, Verantwortung: 35, Vorne: 10 } },
+  { name: 'Kaufmann/-frau für audiovisuelle Medien', bereich: 'Büro/Verwaltung', profil: { Menschen: 50, Dinge: 5, Infos: 45, Drinnen: 95, Struktur: 55, Verantwortung: 45, Vorne: 50 } },
+  { name: 'Kaufmann/-frau für Dialogmarketing', bereich: 'Büro/Verwaltung', profil: { Menschen: 70, Dinge: 0, Infos: 30, Drinnen: 100, Struktur: 70, Verantwortung: 35, Vorne: 65 } },
+  { name: 'Kaufmann/-frau für Digitalisierungsmanagement', bereich: 'Büro/Verwaltung', profil: { Menschen: 35, Dinge: 5, Infos: 60, Drinnen: 100, Struktur: 60, Verantwortung: 50, Vorne: 45 } },
+  { name: 'Kaufmann/-frau für Groß- und Außenhandelsmanagement', bereich: 'Büro/Verwaltung', profil: { Menschen: 50, Dinge: 10, Infos: 40, Drinnen: 95, Struktur: 70, Verantwortung: 50, Vorne: 55 } },
+  { name: 'Kaufmann/-frau für Hotelmanagement', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 60, Dinge: 5, Infos: 35, Drinnen: 95, Struktur: 60, Verantwortung: 60, Vorne: 65 } },
+  { name: 'Kaufmann/-frau für IT-System-Management', bereich: 'Büro/Verwaltung', profil: { Menschen: 45, Dinge: 15, Infos: 40, Drinnen: 90, Struktur: 60, Verantwortung: 50, Vorne: 60 } },
+  { name: 'Kaufmann/-frau für Kurier-, Express- und Postdienstleistungen', bereich: 'Logistik/Transport', profil: { Menschen: 45, Dinge: 10, Infos: 45, Drinnen: 85, Struktur: 70, Verantwortung: 50, Vorne: 45 } },
+  { name: 'Kaufmann/-frau für Marketingkommunikation', bereich: 'Büro/Verwaltung', profil: { Menschen: 55, Dinge: 5, Infos: 40, Drinnen: 95, Struktur: 40, Verantwortung: 45, Vorne: 65 } },
+  { name: 'Kaufmann/-frau für Tourismus und Freizeit', bereich: 'Büro/Verwaltung', profil: { Menschen: 65, Dinge: 5, Infos: 30, Drinnen: 75, Struktur: 45, Verantwortung: 45, Vorne: 70 } },
+  { name: 'Kaufmann/-frau für Verkehrsservice', bereich: 'Logistik/Transport', profil: { Menschen: 75, Dinge: 10, Infos: 15, Drinnen: 60, Struktur: 60, Verantwortung: 50, Vorne: 80 } },
+  { name: 'Kaufmann/-frau für Versicherungen und Finanzanlagen', bereich: 'Büro/Verwaltung', profil: { Menschen: 60, Dinge: 0, Infos: 40, Drinnen: 85, Struktur: 70, Verantwortung: 55, Vorne: 75 } },
+  { name: 'Kaufmann/-frau im E-Commerce', bereich: 'Verkauf', profil: { Menschen: 30, Dinge: 5, Infos: 65, Drinnen: 100, Struktur: 55, Verantwortung: 45, Vorne: 30 } },
+  { name: 'Kaufmann/-frau im Eisenbahn- und Straßenverkehr', bereich: 'Logistik/Transport', profil: { Menschen: 50, Dinge: 10, Infos: 40, Drinnen: 80, Struktur: 75, Verantwortung: 55, Vorne: 55 } },
+  { name: 'Kaufmann/-frau im Gesundheitswesen', bereich: 'Pflege/Gesundheit', profil: { Menschen: 50, Dinge: 0, Infos: 50, Drinnen: 100, Struktur: 80, Verantwortung: 50, Vorne: 50 } },
+  { name: 'Keramiker/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 50, Verantwortung: 20, Vorne: 20 } },
+  { name: 'Kerzenhersteller/in und Wachsbildner/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 60, Verantwortung: 20, Vorne: 20 } },
+  { name: 'Klavier- und Cembalobauer/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 95, Struktur: 80, Verantwortung: 30, Vorne: 15 } },
+  { name: 'Klempner/in', bereich: 'Handwerk/Technik', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 35, Struktur: 70, Verantwortung: 40, Vorne: 15 } },
+  { name: 'Koch / Köchin', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 100, Struktur: 45, Verantwortung: 45, Vorne: 20 } },
+  { name: 'Konditor/in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 100, Struktur: 70, Verantwortung: 30, Vorne: 20 } },
+  { name: 'Konstruktionsmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 70, Struktur: 80, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Kosmetiker/in', bereich: 'Handwerk/Mode', profil: { Menschen: 75, Dinge: 20, Infos: 5, Drinnen: 100, Struktur: 60, Verantwortung: 35, Vorne: 75 } },
+  { name: 'Kunststoff- und Kautschuktechnologe/-in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 100, Struktur: 90, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Kürschner/in', bereich: 'Handwerk/Mode', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 100, Struktur: 70, Verantwortung: 25, Vorne: 20 } },
+  { name: 'Lacklaborant/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 40, Infos: 55, Drinnen: 100, Struktur: 90, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Land- und Baumaschinenmechatroniker/in', bereich: 'Technik', profil: { Menschen: 15, Dinge: 75, Infos: 10, Drinnen: 55, Struktur: 65, Verantwortung: 45, Vorne: 20 } },
+  { name: 'Landwirt/in', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 15, Struktur: 45, Verantwortung: 70, Vorne: 20 } },
+  { name: 'Leichtflugzeugbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 95, Struktur: 90, Verantwortung: 60, Vorne: 5 } },
+  { name: 'Leuchtröhrenglasbläser/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 65, Verantwortung: 25, Vorne: 10 } },
+  { name: 'Maler/in und Lackierer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 65, Struktur: 65, Verantwortung: 30, Vorne: 20 } },
+  { name: 'Manufakturporzellanmaler/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 60, Verantwortung: 15, Vorne: 10 } },
+  { name: 'Maschinen- und Anlagenführer/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 90, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Maskenbildner/in', bereich: 'Kreatives', profil: { Menschen: 50, Dinge: 45, Infos: 5, Drinnen: 95, Struktur: 30, Verantwortung: 30, Vorne: 40 } },
+  { name: 'Maßschneider/in', bereich: 'Handwerk/Mode', profil: { Menschen: 40, Dinge: 55, Infos: 5, Drinnen: 100, Struktur: 65, Verantwortung: 30, Vorne: 45 } },
+  { name: 'Maßschuhmacher/in', bereich: 'Handwerk/Mode', profil: { Menschen: 35, Dinge: 60, Infos: 5, Drinnen: 100, Struktur: 70, Verantwortung: 30, Vorne: 35 } },
+  { name: 'Mathematisch-technische/r Softwareentwickler/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 5, Infos: 90, Drinnen: 100, Struktur: 75, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Maurer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 15, Struktur: 70, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Mechaniker/in für Reifen- und Vulkanisationstechnik', bereich: 'Handwerk/Technik', profil: { Menschen: 25, Dinge: 70, Infos: 5, Drinnen: 80, Struktur: 75, Verantwortung: 30, Vorne: 25 } },
+  { name: 'Mechatroniker/in für Kältetechnik', bereich: 'Technik', profil: { Menschen: 20, Dinge: 65, Infos: 15, Drinnen: 60, Struktur: 75, Verantwortung: 50, Vorne: 25 } },
+  { name: 'Mediengestalter/in Bild und Ton', bereich: 'Kreatives', profil: { Menschen: 20, Dinge: 55, Infos: 25, Drinnen: 60, Struktur: 25, Verantwortung: 35, Vorne: 40 } },
+  { name: 'Medienkaufmann/-frau Digital und Print', bereich: 'Büro/Verwaltung', profil: { Menschen: 50, Dinge: 5, Infos: 45, Drinnen: 100, Struktur: 60, Verantwortung: 45, Vorne: 55 } },
+  { name: 'Medientechnologe/-in Druck', bereich: 'Technik', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 100, Struktur: 85, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Medientechnologe/-in Druckverarbeitung', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 85, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Medientechnologe/-in Siebdruck', bereich: 'Technik', profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 100, Struktur: 70, Verantwortung: 30, Vorne: 10 } },
+  { name: 'Medizinische/r Fachangestellte/r', bereich: 'Pflege/Gesundheit', profil: { Menschen: 70, Dinge: 15, Infos: 15, Drinnen: 100, Struktur: 75, Verantwortung: 55, Vorne: 65 } },
+  { name: 'Metall- und Glockengießer/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 90, Struktur: 70, Verantwortung: 35, Vorne: 10 } },
+  { name: 'Metallbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 45, Struktur: 75, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Metallbildner/in', bereich: 'Handwerk/Technik', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 95, Struktur: 55, Verantwortung: 20, Vorne: 20 } },
+  { name: 'Metallblasinstrumentenmacher/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 80, Verantwortung: 25, Vorne: 10 } },
+  { name: 'Mikrotechnologe/-in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 55, Infos: 40, Drinnen: 100, Struktur: 95, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Milchtechnologe/-in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 95, Struktur: 90, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Milchwirtschaftliche/r Laborant/in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 5, Dinge: 35, Infos: 60, Drinnen: 100, Struktur: 95, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Modist/in', bereich: 'Kreatives', profil: { Menschen: 25, Dinge: 70, Infos: 5, Drinnen: 100, Struktur: 45, Verantwortung: 20, Vorne: 35 } },
+  { name: 'Musikfachhändler/in', bereich: 'Kreatives', profil: { Menschen: 60, Dinge: 25, Infos: 15, Drinnen: 100, Struktur: 55, Verantwortung: 35, Vorne: 70 } },
+  { name: 'Naturwerksteinmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 65, Struktur: 75, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Oberflächenbeschichter/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 85, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Ofen- und Luftheizungsbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 75, Struktur: 70, Verantwortung: 40, Vorne: 20 } },
+  { name: 'Orgelbauer/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 80, Infos: 10, Drinnen: 90, Struktur: 70, Verantwortung: 35, Vorne: 15 } },
+  { name: 'Orthopädieschuhmacher/in', bereich: 'Handwerk/Technik', profil: { Menschen: 40, Dinge: 55, Infos: 5, Drinnen: 100, Struktur: 75, Verantwortung: 45, Vorne: 40 } },
+  { name: 'Orthopädietechnik-Mechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 40, Dinge: 50, Infos: 10, Drinnen: 100, Struktur: 75, Verantwortung: 55, Vorne: 40 } },
+  { name: 'Packmitteltechnologe/-in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 100, Struktur: 85, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Papiertechnologe/-in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 95, Struktur: 85, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Parkettleger/in', bereich: 'Bau/Handwerk', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 95, Struktur: 75, Verantwortung: 25, Vorne: 15 } },
+  { name: 'Patentanwaltsfachangestellte/r', bereich: 'Büro/Verwaltung', profil: { Menschen: 25, Dinge: 0, Infos: 75, Drinnen: 100, Struktur: 95, Verantwortung: 45, Vorne: 20 } },
+  { name: 'Pelzveredler/in', bereich: 'Handwerk/Mode', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 75, Verantwortung: 20, Vorne: 5 } },
+  { name: 'Personaldienstleistungskaufmann/-frau', bereich: 'Büro/Verwaltung', profil: { Menschen: 70, Dinge: 0, Infos: 30, Drinnen: 95, Struktur: 65, Verantwortung: 55, Vorne: 65 } },
+  { name: 'Pferdewirt/in', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 25, Struktur: 55, Verantwortung: 65, Vorne: 35 } },
+  { name: 'Pflanzentechnologe/-in', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 5, Dinge: 55, Infos: 40, Drinnen: 45, Struktur: 85, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Pharmakant/in', bereich: 'Pflege/Gesundheit', profil: { Menschen: 5, Dinge: 75, Infos: 20, Drinnen: 100, Struktur: 95, Verantwortung: 55, Vorne: 5 } },
+  { name: 'Pharmazeutisch-kaufmännische/r Angestellte/r', bereich: 'Pflege/Gesundheit', profil: { Menschen: 55, Dinge: 10, Infos: 35, Drinnen: 100, Struktur: 80, Verantwortung: 45, Vorne: 60 } },
+  { name: 'Physiklaborant/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 35, Infos: 60, Drinnen: 100, Struktur: 90, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Polster- und Dekorationsnäher/in', bereich: 'Handwerk/Mode', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 75, Verantwortung: 20, Vorne: 10 } },
+  { name: 'Polsterer / Polsterin', bereich: 'Handwerk/Mode', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 95, Struktur: 70, Verantwortung: 25, Vorne: 20 } },
+  { name: 'Präzisionswerkzeugmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 95, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Produktgestalter/in-Textil', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 55, Infos: 35, Drinnen: 100, Struktur: 40, Verantwortung: 30, Vorne: 20 } },
+  { name: 'Produktionsfachkraft Chemie', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 90, Struktur: 90, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Produktionsmechaniker/in-Textil', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 90, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Produktionstechnologe/-in', bereich: 'Technik', profil: { Menschen: 10, Dinge: 60, Infos: 30, Drinnen: 100, Struktur: 80, Verantwortung: 50, Vorne: 15 } },
+  { name: 'Produktprüfer/in-Textil', bereich: 'Handwerk/Mode', profil: { Menschen: 5, Dinge: 55, Infos: 40, Drinnen: 100, Struktur: 95, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Produktveredler/in-Textil', bereich: 'Handwerk/Mode', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 100, Struktur: 85, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Prüftechnologe/-in Keramik', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 50, Infos: 45, Drinnen: 100, Struktur: 95, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Raumausstatter/in', bereich: 'Bau/Handwerk', profil: { Menschen: 35, Dinge: 60, Infos: 5, Drinnen: 95, Struktur: 55, Verantwortung: 30, Vorne: 40 } },
+  { name: 'Rechtsanwalts- und Notarfachangestellte/r', bereich: 'Büro/Verwaltung', profil: { Menschen: 40, Dinge: 0, Infos: 60, Drinnen: 100, Struktur: 90, Verantwortung: 45, Vorne: 40 } },
+  { name: 'Rechtsanwaltsfachangestellte/r', bereich: 'Büro/Verwaltung', profil: { Menschen: 40, Dinge: 0, Infos: 60, Drinnen: 100, Struktur: 85, Verantwortung: 40, Vorne: 45 } },
+  { name: 'Revierjäger/in', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 20, Dinge: 65, Infos: 15, Drinnen: 5, Struktur: 45, Verantwortung: 70, Vorne: 30 } },
+  { name: 'Rohrleitungsbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 15, Struktur: 75, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Rollladen- und Sonnenschutzmechatroniker/in', bereich: 'Technik', profil: { Menschen: 25, Dinge: 70, Infos: 5, Drinnen: 50, Struktur: 65, Verantwortung: 35, Vorne: 25 } },
+  { name: 'Sattler/in', bereich: 'Handwerk/Mode', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 100, Struktur: 70, Verantwortung: 20, Vorne: 15 } },
+  { name: 'Schädlingsbekämpfer/in', bereich: 'Dienstleistung', profil: { Menschen: 30, Dinge: 60, Infos: 10, Drinnen: 55, Struktur: 70, Verantwortung: 60, Vorne: 35 } },
+  { name: 'Schifffahrtskaufmann/-frau', bereich: 'Logistik/Transport', profil: { Menschen: 40, Dinge: 0, Infos: 60, Drinnen: 95, Struktur: 75, Verantwortung: 50, Vorne: 40 } },
+  { name: 'Schilder- und Lichtreklamehersteller/in', bereich: 'Kreatives', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 70, Struktur: 55, Verantwortung: 30, Vorne: 15 } },
+  { name: 'Schornsteinfeger/in', bereich: 'Bau/Handwerk', profil: { Menschen: 40, Dinge: 55, Infos: 5, Drinnen: 35, Struktur: 80, Verantwortung: 65, Vorne: 45 } },
+  { name: 'Schuhfertiger/in', bereich: 'Handwerk/Mode', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 90, Verantwortung: 20, Vorne: 5 } },
+  { name: 'Segelmacher/in', bereich: 'Handwerk/Technik', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 90, Struktur: 65, Verantwortung: 25, Vorne: 15 } },
+  { name: 'Seiler/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 80, Verantwortung: 25, Vorne: 5 } },
+  { name: 'Servicefachkraft für Dialogmarketing', bereich: 'Büro/Verwaltung', profil: { Menschen: 80, Dinge: 0, Infos: 20, Drinnen: 100, Struktur: 75, Verantwortung: 30, Vorne: 70 } },
+  { name: 'Servicefahrer/in', bereich: 'Logistik/Transport', profil: { Menschen: 50, Dinge: 45, Infos: 5, Drinnen: 25, Struktur: 60, Verantwortung: 45, Vorne: 55 } },
+  { name: 'Servicekaufmann/-frau im Luftverkehr', bereich: 'Büro/Verwaltung', profil: { Menschen: 75, Dinge: 5, Infos: 20, Drinnen: 85, Struktur: 70, Verantwortung: 55, Vorne: 80 } },
+  { name: 'Servicekraft für Schutz und Sicherheit', bereich: 'Dienstleistung', profil: { Menschen: 55, Dinge: 30, Infos: 15, Drinnen: 60, Struktur: 75, Verantwortung: 75, Vorne: 60 } },
+  { name: 'Spezialtiefbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 5, Struktur: 75, Verantwortung: 50, Vorne: 5 } },
+  { name: 'Spielzeughersteller/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 60, Verantwortung: 20, Vorne: 15 } },
+  { name: 'Sport- und Fitnesskaufmann/-frau', bereich: 'Büro/Verwaltung', profil: { Menschen: 65, Dinge: 10, Infos: 25, Drinnen: 85, Struktur: 50, Verantwortung: 55, Vorne: 75 } },
+  { name: 'Sportfachmann/-frau', bereich: 'Verkauf', profil: { Menschen: 80, Dinge: 15, Infos: 5, Drinnen: 50, Struktur: 40, Verantwortung: 70, Vorne: 90 } },
+  { name: 'Stanz- und Umformmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 90, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Steinmetz/in und Steinbildhauer/in', bereich: 'Kreatives', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 50, Struktur: 55, Verantwortung: 30, Vorne: 20 } },
+  { name: 'Straßenbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 5, Struktur: 70, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Straßenwärter/in', bereich: 'Bau/Handwerk', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 10, Struktur: 60, Verantwortung: 55, Vorne: 20 } },
+  { name: 'Stuckateur/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 65, Struktur: 65, Verantwortung: 30, Vorne: 15 } },
+  { name: 'Süßwarentechnologe/-in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 100, Struktur: 85, Verantwortung: 35, Vorne: 10 } },
+  { name: 'Tankwart/in', bereich: 'Dienstleistung', profil: { Menschen: 60, Dinge: 30, Infos: 10, Drinnen: 60, Struktur: 65, Verantwortung: 35, Vorne: 70 } },
+  { name: 'Technische/r Konfektionär/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 85, Verantwortung: 25, Vorne: 5 } },
+  { name: 'Technische/r Modellbauer/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 70, Infos: 25, Drinnen: 100, Struktur: 80, Verantwortung: 35, Vorne: 10 } },
+  { name: 'Technische/r Produktdesigner/in', bereich: 'Technik', profil: { Menschen: 10, Dinge: 20, Infos: 70, Drinnen: 100, Struktur: 70, Verantwortung: 40, Vorne: 15 } },
+  { name: 'Technische/r Systemplaner/in', bereich: 'Technik', profil: { Menschen: 10, Dinge: 15, Infos: 75, Drinnen: 100, Struktur: 85, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Textil- und Modenäher/in', bereich: 'Handwerk/Mode', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 85, Verantwortung: 15, Vorne: 5 } },
+  { name: 'Textil- und Modeschneider/in', bereich: 'Handwerk/Mode', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 75, Verantwortung: 25, Vorne: 10 } },
+  { name: 'Textilgestalter/in im Handwerk', bereich: 'Kreatives', profil: { Menschen: 15, Dinge: 80, Infos: 5, Drinnen: 100, Struktur: 40, Verantwortung: 20, Vorne: 25 } },
+  { name: 'Textillaborant/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 40, Infos: 55, Drinnen: 100, Struktur: 90, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Textilreiniger/in', bereich: 'Handwerk/Mode', profil: { Menschen: 25, Dinge: 70, Infos: 5, Drinnen: 100, Struktur: 80, Verantwortung: 25, Vorne: 30 } },
+  { name: 'Thermometermacher/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 85, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Tiefbaufacharbeiter/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 5, Struktur: 75, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Tiermedizinische/r Fachangestellte/r', bereich: 'Pflege/Gesundheit', profil: { Menschen: 50, Dinge: 35, Infos: 15, Drinnen: 95, Struktur: 65, Verantwortung: 60, Vorne: 45 } },
+  { name: 'Tierpfleger/in', bereich: 'Pflege/Gesundheit', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 45, Struktur: 60, Verantwortung: 70, Vorne: 30 } },
+  { name: 'Tierwirt/in', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 35, Struktur: 60, Verantwortung: 65, Vorne: 15 } },
+  { name: 'Tourismuskaufmann/-frau (Kaufmann/-frau für Privat- und Geschäftsreisen)', bereich: 'Büro/Verwaltung', profil: { Menschen: 70, Dinge: 0, Infos: 30, Drinnen: 95, Struktur: 55, Verantwortung: 45, Vorne: 75 } },
+  { name: 'Trockenbaumonteur/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 90, Struktur: 75, Verantwortung: 30, Vorne: 10 } },
+  { name: 'Uhrmacher/in', bereich: 'Handwerk/Technik', profil: { Menschen: 20, Dinge: 75, Infos: 5, Drinnen: 100, Struktur: 85, Verantwortung: 35, Vorne: 20 } },
+  { name: 'Umwelttechnologe/-in für Abwasserbewirtschaftung', bereich: 'Technik', profil: { Menschen: 5, Dinge: 65, Infos: 30, Drinnen: 55, Struktur: 85, Verantwortung: 60, Vorne: 10 } },
+  { name: 'Umwelttechnologe/-in für Kreislauf- und Abfallwirtschaft', bereich: 'Technik', profil: { Menschen: 10, Dinge: 70, Infos: 20, Drinnen: 45, Struktur: 80, Verantwortung: 55, Vorne: 15 } },
+  { name: 'Umwelttechnologe/-in für Rohrleitungsnetze und Industrieanlagen', bereich: 'Technik', profil: { Menschen: 5, Dinge: 75, Infos: 20, Drinnen: 40, Struktur: 85, Verantwortung: 55, Vorne: 10 } },
+  { name: 'Umwelttechnologe/-in für Wasserversorgung', bereich: 'Technik', profil: { Menschen: 5, Dinge: 65, Infos: 30, Drinnen: 50, Struktur: 90, Verantwortung: 65, Vorne: 10 } },
+  { name: 'Veranstaltungskaufmann/-frau', bereich: 'Büro/Verwaltung', profil: { Menschen: 65, Dinge: 10, Infos: 25, Drinnen: 75, Struktur: 35, Verantwortung: 60, Vorne: 70 } },
+  { name: 'Verfahrensmechaniker/in für Beschichtungstechnik', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 90, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Verfahrensmechaniker/in für Brillenoptik', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 95, Verantwortung: 30, Vorne: 5 } },
+  { name: 'Verfahrensmechaniker/in Glastechnik', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 95, Struktur: 90, Verantwortung: 35, Vorne: 5 } },
+  { name: 'Verfahrensmechaniker/in in der Steine- und Erdenindustrie', bereich: 'Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 60, Struktur: 85, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Verfahrenstechnologe/-in Metall', bereich: 'Technik', profil: { Menschen: 5, Dinge: 80, Infos: 15, Drinnen: 90, Struktur: 90, Verantwortung: 50, Vorne: 5 } },
+  { name: 'Verfahrenstechnologe/-in Mühlen- und Getreidewirtschaft', bereich: 'Technik', profil: { Menschen: 5, Dinge: 75, Infos: 20, Drinnen: 95, Struktur: 90, Verantwortung: 45, Vorne: 5 } },
+  { name: 'Vergolder/in', bereich: 'Kreatives', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 65, Verantwortung: 20, Vorne: 15 } },
+  { name: 'Verkäufer/in', bereich: 'Verkauf', profil: { Menschen: 70, Dinge: 25, Infos: 5, Drinnen: 100, Struktur: 55, Verantwortung: 25, Vorne: 75 } },
+  { name: 'Vermessungstechniker/in', bereich: 'Technik', profil: { Menschen: 10, Dinge: 30, Infos: 60, Drinnen: 35, Struktur: 85, Verantwortung: 45, Vorne: 15 } },
+  { name: 'Verwaltungsfachangestellte/r', bereich: 'Büro/Verwaltung', profil: { Menschen: 45, Dinge: 0, Infos: 55, Drinnen: 100, Struktur: 95, Verantwortung: 45, Vorne: 45 } },
+  { name: 'Wärme-, Kälte- und Schallschutzisolierer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 60, Struktur: 75, Verantwortung: 30, Vorne: 10 } },
+  { name: 'Wasserbauer/in', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 5, Struktur: 70, Verantwortung: 50, Vorne: 10 } },
+  { name: 'Weintechnologe/-in', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 10, Dinge: 75, Infos: 15, Drinnen: 70, Struktur: 75, Verantwortung: 50, Vorne: 20 } },
+  { name: 'Werkfeuerwehrmann/-frau', bereich: 'Dienstleistung', profil: { Menschen: 40, Dinge: 50, Infos: 10, Drinnen: 40, Struktur: 75, Verantwortung: 95, Vorne: 45 } },
+  { name: 'Werkgehilfe/-in Schmuckwarenindustrie, Taschen- und Armbanduhren', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 90, Verantwortung: 15, Vorne: 5 } },
+  { name: 'Werksteinhersteller/in', bereich: 'Bau/Handwerk', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 85, Struktur: 85, Verantwortung: 25, Vorne: 5 } },
+  { name: 'Werkstoffprüfer/in', bereich: 'Technik', profil: { Menschen: 5, Dinge: 45, Infos: 50, Drinnen: 100, Struktur: 95, Verantwortung: 50, Vorne: 5 } },
+  { name: 'Werkzeugmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 85, Infos: 10, Drinnen: 100, Struktur: 90, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Winzer/in', bereich: 'Landwirtschaft/Natur', profil: { Menschen: 20, Dinge: 70, Infos: 10, Drinnen: 20, Struktur: 50, Verantwortung: 60, Vorne: 35 } },
+  { name: 'Zahnmedizinische/r Fachangestellte/r', bereich: 'Pflege/Gesundheit', profil: { Menschen: 65, Dinge: 25, Infos: 10, Drinnen: 100, Struktur: 80, Verantwortung: 50, Vorne: 55 } },
+  { name: 'Zahntechniker/in', bereich: 'Pflege/Gesundheit', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 100, Struktur: 85, Verantwortung: 45, Vorne: 10 } },
+  { name: 'Zerspanungsmechaniker/in', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 90, Verantwortung: 40, Vorne: 5 } },
+  { name: 'Zimmerer / Zimmerin', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 25, Struktur: 75, Verantwortung: 40, Vorne: 10 } },
+  { name: 'Zupfinstrumentenmacher/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 75, Verantwortung: 20, Vorne: 5 } },
+  { name: 'Zweiradmechatroniker/in', bereich: 'Technik', profil: { Menschen: 25, Dinge: 70, Infos: 5, Drinnen: 90, Struktur: 65, Verantwortung: 30, Vorne: 30 } },
+].map(b => ({ ...b, vorlaeufig: true }));
+
+// Alle Berufe zusammen: erst die geprueften, dann die vorlaeufigen.
+const BERUFE = BERUFE_GEPRUEFT.concat(BERUFE_VORLAEUFIG);
+
+
+/* =============================================================================
+   2. AUSWERTUNG
+   So kommt das Ergebnis zustande:
+     a) Jede Antwort gibt Punkte für bestimmte Eigenschaften.
+     b) Punkte werden in Prozent der maximal möglichen Punkte umgerechnet.
+     c) Pro Dimension gewinnt die Eigenschaft mit dem höchsten Prozentwert. Sie ist
+        „deutlich“, wenn sie mind. 50 % hat und die Gegenseite um mehr als 25 Punkte
+        übertrifft (Verantwortung: ab 50 %). Sind weniger als 2 deutlich, rücken die
+        nächststärksten Gewinner nach.
+     d) Jeder Beruf hat ein Profil in Prozent (z. B. Dinge 85, Drinnen 95, Verantwortung 45).
+        Werte ab 60 gelten als Merkmal und erklaeren im Ergebnis das "Passt zu dir".
+     e) Passung: Aus deinen Prozentwerten entsteht dein Profil im selben Format. Die Passung
+        misst den gewichteten Abstand zum Berufsprofil (100 % = gleich). Hoehere Passung = weiter vorn.
+        Bei exakt gleicher Passung zuerst die Berufe mit mehr Treffern bei deinen staerksten
+        Eigenschaften, dann die geprueften Berufe, darunter zufaellig.
+     f) Gezeigt werden die Berufe, die hoechstens 10 Prozentpunkte unter dem besten
+        liegen (mindestens 3, hoechstens 5).
+   ============================================================================= */
+
+const EPS = 1e-9; // gegen Rundungsfehler bei Kommazahlen
+
+function leereWertung() {
+  return Object.fromEntries(Object.keys(EIGENSCHAFTEN).map(eig => [eig, 0]));
+}
+
+function istMultipleChoice(frage) {
+  return frage.typ !== 'freitext';
+}
+
+// Nummern der Fragen, die aktuell Punkte vergeben.
+function gewerteteFragen() {
+  return FRAGEN
+    .filter(f => istMultipleChoice(f) && f.antworten.some(a => Object.keys(a.punkte || {}).length > 0))
+    .map(f => f.nr);
+}
+
+// Höchstmögliche Punkte je Eigenschaft: pro Frage die beste Antwort für diese Eigenschaft.
+function maxPunkteBerechnen() {
+  const max = leereWertung();
+  for (const frage of FRAGEN.filter(istMultipleChoice)) {
+    for (const eig of Object.keys(max)) {
+      max[eig] += Math.max(0, ...frage.antworten.map(a => (a.punkte || {})[eig] || 0));
+    }
+  }
+  return max;
+}
+
+// antworten: { [Fragennummer]: Index der gewählten Antwort | Freitext }
+function punkteZaehlen(antworten) {
+  const punkte = leereWertung();
+  for (const frage of FRAGEN.filter(istMultipleChoice)) {
+    const antwort = frage.antworten[antworten[frage.nr]];
+    if (!antwort) continue;
+    for (const [eig, wert] of Object.entries(antwort.punkte || {})) punkte[eig] += wert;
+  }
+  return punkte;
+}
+
+function prozenteBerechnen(punkte, max) {
+  return Object.fromEntries(Object.keys(punkte).map(eig => [eig, max[eig] ? (punkte[eig] / max[eig]) * 100 : 0]));
+}
+
+function topEigenschaftenBestimmen(prozente) {
+  const gewinner = [];
+  for (const dim of DIMENSIONEN) {
+    const [erste, zweite] = dim.pole
+      .map(eig => ({ eig, prozent: prozente[eig] }))
+      .sort((a, b) => b.prozent - a.prozent);
+    if (erste.prozent <= 0) continue;
+    if (zweite && erste.prozent - zweite.prozent < EPS) continue; // Gleichstand: keine Seite gewinnt
+    const deutlich = erste.prozent >= REGELN.mindestProzent - EPS &&
+      (!zweite || erste.prozent - zweite.prozent > REGELN.mindestVorsprung + EPS);
+    gewinner.push({ eig: erste.eig, dimension: dim.name, prozent: erste.prozent, deutlich, nachgerueckt: false, einpolig: !zweite });
+  }
+  gewinner.sort((a, b) => b.prozent - a.prozent);
+
+  const top = gewinner.filter(g => g.deutlich);
+  for (const g of gewinner) {
+    if (top.length >= REGELN.mindestTop) break;
+    if (g.deutlich || g.einpolig) continue; // Verantwortung zählt nur ab 50 %, rückt nie nach
+    g.nachgerueckt = true;
+    top.push(g);
+  }
+  return top.sort((a, b) => b.prozent - a.prozent);
+}
+
+// Merkmal des Berufs, bei dem du deutlich zur anderen Seite tendierst (z. B. Beruf „Drinnen“, du „Draußen“).
+function gegenpolIstTop(merkmal, topSet) {
+  const dim = DIMENSIONEN.find(d => d.pole.includes(merkmal));
+  return dim.pole.some(p => p !== merkmal && topSet.has(p));
+}
+
+// Fisher-Yates: mischt die Liste, damit bei Gleichstand nicht immer dieselben Berufe vorn stehen.
+function mischen(liste) {
+  for (let i = liste.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [liste[i], liste[j]] = [liste[j], liste[i]];
+  }
+  return liste;
+}
+
+// Welche Eigenschaften ein Beruf deutlich braucht (ab 60 % im Profil). Daraus entsteht "Passt zu dir".
+function merkmaleAusProfil(p) {
+  const grenze = REGELN.profilDeutlich;
+  const werte = {
+    Menschen: p.Menschen, Dinge: p.Dinge, Infos: p.Infos,
+    Drinnen: p.Drinnen, Draußen: 100 - p.Drinnen,
+    Struktur: p.Struktur, Spontan: 100 - p.Struktur,
+    Verantwortung: p.Verantwortung,
+    Vorne: p.Vorne, Hintergrund: 100 - p.Vorne,
+  };
+  return Object.keys(werte).filter(eig => werte[eig] >= grenze);
+}
+BERUFE.forEach(beruf => { beruf.merkmale = merkmaleAusProfil(beruf.profil); });
+
+// Dein Profil im selben Format wie die Berufsprofile, berechnet aus deinen Prozentwerten.
+// Beispiel: Menschen 67 % und Dinge 33 % der Punkte in diesem Bereich -> Menschen 67, Dinge 33, Infos 0.
+function nutzerProfil(prozente) {
+  const anteil = (a, b) => (a + b > 0 ? (a / (a + b)) * 100 : 50);
+  const feld = prozente.Menschen + prozente.Dinge + prozente.Infos;
+  return {
+    Menschen: feld > 0 ? (prozente.Menschen / feld) * 100 : 100 / 3,
+    Dinge: feld > 0 ? (prozente.Dinge / feld) * 100 : 100 / 3,
+    Infos: feld > 0 ? (prozente.Infos / feld) * 100 : 100 / 3,
+    Drinnen: anteil(prozente.Drinnen, prozente.Draußen),
+    Struktur: anteil(prozente.Struktur, prozente.Spontan),
+    Verantwortung: prozente.Verantwortung,
+    Vorne: anteil(prozente.Vorne, prozente.Hintergrund),
+  };
+}
+
+// Passung in Prozent: Wie nah liegt dein Profil am Profil des Berufs?
+// Pro Bereich wird der Abstand gemessen (0 = gleich, 1 = maximal verschieden), gewichtet
+// zusammengefasst und von 100 % abgezogen. 100 % = dein Profil und das Berufsprofil sind gleich.
+function passungBerechnen(p, du) {
+  const q = x => x * x;
+  const g = REGELN.gewichte;
+  const abstand =
+    g.Arbeitsfeld * (q(p.Menschen - du.Menschen) + q(p.Dinge - du.Dinge) + q(p.Infos - du.Infos)) / 20000 +
+    g.Umgebung * q(p.Drinnen - du.Drinnen) / 10000 +
+    g.Arbeitsweise * q(p.Struktur - du.Struktur) / 10000 +
+    g.Verantwortung * q(p.Verantwortung - du.Verantwortung) / 10000 +
+    g.Sichtbarkeit * q(p.Vorne - du.Vorne) / 10000;
+  const summe = g.Arbeitsfeld + g.Umgebung + g.Arbeitsweise + g.Verantwortung + g.Sichtbarkeit;
+  return 100 * (1 - Math.sqrt(abstand / summe));
+}
+
+// Prozentzahl mit einer Nachkommastelle, deutsch geschrieben (z. B. 87,3 %).
+function prozentText(wert) {
+  return `${wert.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+}
+
+function berufeBewerten(prozente, topSet) {
+  const du = nutzerProfil(prozente);
+  const bewertet = BERUFE
+    .map(beruf => ({
+      beruf,
+      treffer: beruf.merkmale.filter(m => topSet.has(m)),
+      gegensaetze: beruf.merkmale.filter(m => !topSet.has(m) && gegenpolIstTop(m, topSet)),
+      passung: passungBerechnen(beruf.profil, du),
+    }));
+  if (REGELN.zufallBeiGleichstand) mischen(bewertet);
+  return bewertet.sort((a, b) =>
+    (Math.abs(b.passung - a.passung) > EPS ? b.passung - a.passung : 0) ||
+    (b.treffer.length - a.treffer.length) ||
+    ((a.beruf.vorlaeufig ? 1 : 0) - (b.beruf.vorlaeufig ? 1 : 0)) ||
+    (REGELN.zufallBeiGleichstand ? 0 : a.beruf.name.localeCompare(b.beruf.name, 'de')));
+}
+
+function vorschlaegeAuswaehlen(rangliste) {
+  const grenze = rangliste[0].passung - REGELN.passungAbstand;
+  const vorschlaege = rangliste.filter(r => r.passung >= grenze - EPS).slice(0, REGELN.maxBerufe);
+  return vorschlaege.length >= REGELN.minBerufe ? vorschlaege : rangliste.slice(0, REGELN.minBerufe);
+}
+
+function textZurRolle(antworten, rolle) {
+  const frage = FRAGEN.find(f => f.rolle === rolle);
+  if (!frage) return '';
+  const wert = antworten[frage.nr];
+  if (!istMultipleChoice(frage)) return (wert || '').trim();
+  return (frage.antworten[wert] || {}).ergebnisSatz || '';
+}
+
+function auswerten(antworten) {
+  const max = maxPunkteBerechnen();
+  const punkte = punkteZaehlen(antworten);
+  const prozente = prozenteBerechnen(punkte, max);
+  const top = topEigenschaftenBestimmen(prozente);
+  const topSet = new Set(top.map(t => t.eig));
+  const rangliste = berufeBewerten(prozente, topSet);
+  return {
+    max, punkte, prozente, top, topSet, rangliste,
+    vorschlaege: vorschlaegeAuswaehlen(rangliste),
+    profil: nutzerProfil(prozente),
+    gewerteteFragen: gewerteteFragen(),
+    geldSatz: textZurRolle(antworten, 'geldOderSpass'),
+    traumtag: textZurRolle(antworten, 'traumtag'),
+    wunschberuf: textZurRolle(antworten, 'wunschberuf'),
+  };
+}
+
+// Findet Tippfehler in den Daten (Ausgabe in der Browser-Konsole).
+function datenPruefen() {
+  const probleme = [];
+  const bekannt = eig => eig in EIGENSCHAFTEN;
+  for (const frage of FRAGEN.filter(istMultipleChoice)) {
+    frage.antworten.forEach((a, i) => Object.keys(a.punkte || {}).forEach(eig => {
+      if (!bekannt(eig)) probleme.push(`Frage ${frage.nr}, Antwort ${i + 1}: unbekannte Eigenschaft „${eig}“`);
+    }));
+  }
+  for (const beruf of BERUFE) {
+    const p = beruf.profil || {};
+    for (const feld of ['Menschen', 'Dinge', 'Infos', 'Drinnen', 'Struktur', 'Verantwortung', 'Vorne']) {
+      if (typeof p[feld] !== 'number' || p[feld] < 0 || p[feld] > 100) probleme.push(`${beruf.name}: Profilwert ${feld} fehlt oder ist ungültig`);
+    }
+    if (p.Menschen + p.Dinge + p.Infos !== 100) probleme.push(`${beruf.name}: Menschen + Dinge + Infos ergeben nicht 100`);  }
+  return probleme;
+}
+
+
+/* =============================================================================
+   3. OBERFLÄCHE
+   ============================================================================= */
+
+function el(tag, attribute, ...kinder) {
+  const node = document.createElement(tag);
+  for (const [name, wert] of Object.entries(attribute || {})) {
+    if (wert == null || wert === false) continue;
+    if (name === 'class') node.className = wert;
+    else if (name === 'style') node.style.cssText = wert;
+    else node.setAttribute(name, String(wert));
+  }
+  for (const kind of kinder.flat()) {
+    if (kind == null || kind === false) continue;
+    node.append(kind instanceof Node ? kind : String(kind));
+  }
+  return node;
+}
+
+function aufzaehlen(teile) {
+  if (teile.length <= 1) return teile.join('');
+  return `${teile.slice(0, -1).join(', ')} und ${teile[teile.length - 1]}`;
+}
+
+function starteApp() {
+  const $ = id => document.getElementById(id);
+  const bildschirme = { start: $('screen-intro'), quiz: $('screen-quiz'), ergebnis: $('screen-result') };
+  const BUCHSTABEN = ['A', 'B', 'C', 'D', 'E', 'F'];
+  const zustand = { index: 0, antworten: {} };
+  let weiterTimer = null;
+
+  const probleme = datenPruefen();
+  if (probleme.length) console.warn('Aptio – Probleme in den Daten:\n' + probleme.join('\n'));
+
+  $('fact-total').textContent = FRAGEN.length;
+  $('fact-mc').textContent = FRAGEN.filter(istMultipleChoice).length;
+  $('fact-text').textContent = FRAGEN.filter(f => !istMultipleChoice(f)).length;
+  $('progress').setAttribute('aria-valuemax', FRAGEN.length);
+
+  function zeige(name) {
+    for (const [key, node] of Object.entries(bildschirme)) node.hidden = key !== name;
+    window.scrollTo({ top: 0 });
+  }
+
+  function animiere(node) {
+    node.classList.remove('enter');
+    void node.offsetWidth; // Animation neu starten
+    node.classList.add('enter');
+  }
+
+  // ---------- Quiz ----------
+
+  function zeigeFrage() {
+    clearTimeout(weiterTimer);
+    const frage = FRAGEN[zustand.index];
+    const nr = zustand.index + 1;
+    const letzte = nr === FRAGEN.length;
+
+    $('progress-label').textContent = `Frage ${nr} von ${FRAGEN.length}`;
+    $('progress-fill').style.width = `${(nr / FRAGEN.length) * 100}%`;
+    $('progress').setAttribute('aria-valuenow', nr);
+    $('question').textContent = frage.text;
+    $('next').textContent = letzte ? 'Ergebnis ansehen →' : 'Weiter →';
+
+    const bereich = $('answer-area');
+    bereich.replaceChildren();
+
+    if (istMultipleChoice(frage)) {
+      $('hint').hidden = true;
+      const liste = el('div', { class: 'answers', role: 'group', 'aria-labelledby': 'question' });
+      frage.antworten.forEach((antwort, i) => {
+        const knopf = el('button', { type: 'button', class: 'answer', 'aria-pressed': zustand.antworten[frage.nr] === i },
+          el('span', { class: 'key', 'aria-hidden': 'true' }, BUCHSTABEN[i]),
+          el('span', {}, antwort.text));
+        knopf.addEventListener('click', () => waehle(i));
+        liste.append(knopf);
+      });
+      bereich.append(liste);
+      $('next').hidden = true; // Antwort antippen führt direkt zur nächsten Frage
+    } else {
+      $('hint').textContent = 'Optional – aber je mehr du schreibst, desto persönlicher wird dein Ergebnis.';
+      $('hint').hidden = false;
+      const feld = el('textarea', { rows: 5, maxlength: 600, placeholder: frage.platzhalter, 'aria-labelledby': 'question' });
+      feld.value = zustand.antworten[frage.nr] || '';
+      feld.addEventListener('input', () => { zustand.antworten[frage.nr] = feld.value; });
+      bereich.append(feld);
+      $('next').hidden = false; // Freitext braucht den Knopf, um weiterzukommen
+    }
+
+    animiere($('quiz-card'));
+    $('question').focus({ preventScroll: true });
+  }
+
+  function waehle(i) {
+    const frage = FRAGEN[zustand.index];
+    zustand.antworten[frage.nr] = i;
+    $('answer-area').querySelectorAll('.answer').forEach((knopf, j) => knopf.setAttribute('aria-pressed', String(i === j)));
+    clearTimeout(weiterTimer);
+    weiterTimer = setTimeout(weiter, 320); // kurz zeigen, was gewählt wurde, dann weiter
+  }
+
+  function weiter() {
+    clearTimeout(weiterTimer);
+    const frage = FRAGEN[zustand.index];
+    if (istMultipleChoice(frage) && zustand.antworten[frage.nr] === undefined) return;
+    if (zustand.index < FRAGEN.length - 1) {
+      zustand.index++;
+      zeigeFrage();
+    } else {
+      zeigeErgebnis();
+    }
+  }
+
+  function zurueck() {
+    clearTimeout(weiterTimer);
+    if (zustand.index === 0) return zeige('start');
+    zustand.index--;
+    zeigeFrage();
+  }
+
+  // ---------- Ergebnis ----------
+
+  function zeigeErgebnis() {
+    const erg = auswerten(zustand.antworten);
+    const inhalt = $('result-content');
+    inhalt.replaceChildren();
+
+    // Kopf + persönlicher Text
+    const topAnzeige = erg.top.slice(0, REGELN.topAnzeige);
+    const lead = [];
+    if (topAnzeige.length) lead.push(`Du ${aufzaehlen(topAnzeige.map(t => EIGENSCHAFTEN[t.eig].satzteil))}.`);
+    if (erg.geldSatz) lead.push(erg.geldSatz);
+    inhalt.append(
+      el('p', { class: 'eyebrow' }, 'Dein Ergebnis'),
+      el('h1', {}, 'Das passt zu dir'),
+      el('p', { class: 'lead' }, lead.join(' ')));
+
+    // Stärkste Eigenschaften
+    const eigenschaften = el('div', { class: 'section' }, el('h2', {}, 'Deine stärksten Eigenschaften'));
+    if (topAnzeige.length) {
+      eigenschaften.append(el('div', { class: 'traits' }, topAnzeige.map(t =>
+        el('div', { class: 'trait' },
+          el('div', { class: 'trait-name' }, t.eig),
+          el('div', { class: 'trait-dim' }, t.dimension),
+          el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: `width:${t.prozent}%` }))))));
+      const weitere = erg.top.slice(REGELN.topAnzeige).map(t => t.eig);
+      if (weitere.length) eigenschaften.append(el('p', { class: 'also small muted' }, `Außerdem typisch für dich: ${aufzaehlen(weitere)}`));
+    } else {
+      eigenschaften.append(el('p', { class: 'muted' }, 'Deine Antworten sind sehr ausgeglichen – du bist ziemlich vielseitig.'));
+    }
+    inhalt.append(eigenschaften);
+
+    // Zitat Traumtag (Frage 19)
+    if (erg.traumtag) {
+      inhalt.append(el('div', { class: 'section' },
+        el('h2', {}, 'Dein Traumtag bei der Arbeit'),
+        el('blockquote', { class: 'quote' }, `„${erg.traumtag}“`),
+        el('p', { class: 'small muted' }, 'Schau mal, welcher der Vorschläge unten am ehesten nach so einem Tag klingt.')));
+    }
+
+    // Berufsvorschläge
+    const berufe = el('div', { class: 'section' },
+      el('h2', {}, 'Berufe, die zu dir passen könnten'),
+      el('ol', { class: 'jobs' }, erg.vorschlaege.map(v =>
+        el('li', { class: 'job' },
+          el('div', { class: 'job-head' },
+            el('h3', { class: 'job-name' }, v.beruf.name.replaceAll('/-', '/‑')), // kein Zeilenumbruch nach „/-“
+            el('span', { class: 'job-area' }, v.beruf.bereich)),
+          v.beruf.beschreibung && el('p', { class: 'job-desc' }, v.beruf.beschreibung),
+          v.beruf.vorlaeufig && el('p', { class: 'job-flag' }, 'Profil noch vorläufig'),
+          v.treffer.length > 0 && el('div', { class: 'chips' },
+            el('span', { class: 'chips-label' }, 'Passt zu dir:'),
+            v.treffer.map(m => el('span', { class: 'chip' }, m))),
+          v.gegensaetze.length > 0 && el('div', { class: 'chips' },
+            el('span', { class: 'chips-label' }, 'Anders als bei dir:'),
+            v.gegensaetze.map(m => el('span', { class: 'chip contrast' }, m))),
+          el('div', { class: 'fit' },
+            el('span', {}, 'Passung'),
+            el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: `width:${v.passung}%` })),
+            el('strong', { class: 'fit-wert' }, prozentText(v.passung)))))));
+    if (erg.vorschlaege[0].passung < 50) {
+      berufe.append(el('p', { class: 'note' }, 'Deine Antworten verteilen sich ziemlich gleichmäßig – du bist vielseitig. Deshalb sind die Prozentwerte eher niedrig. Die Reihenfolge zeigt trotzdem, was am ehesten zu dir passt.'));
+    }
+    if (erg.topSet.has('Draußen') && !erg.vorschlaege.some(v => v.beruf.merkmale.includes('Draußen'))) {
+      berufe.append(el('p', { class: 'note' }, 'Du bist gern draußen – bei den Vorschlägen oben ist man aber eher drinnen, weil der Rest deiner Antworten besser dazu passt. In der Liste darunter findest du auch Berufe, bei denen man viel draußen ist.'));
+    }
+    // Aufklappbar: alle weiteren Berufe mit ihrer Passung
+    const weitere = erg.rangliste.slice(erg.vorschlaege.length);
+    if (weitere.length) {
+      berufe.append(el('details', { class: 'more' },
+        el('summary', {}, `Alle weiteren ${weitere.length} Berufe mit Prozentzahl`),
+        el('ul', { class: 'more-list' }, weitere.map((r, i) =>
+          el('li', { class: 'more-row' },
+            el('span', { class: 'more-rank' }, erg.vorschlaege.length + i + 1),
+            el('span', { class: 'more-name' }, r.beruf.name.replaceAll('/-', '/‑')),
+            el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: `width:${r.passung}%` })),
+            el('span', { class: 'more-pct' }, prozentText(r.passung)))))));
+    }
+    inhalt.append(berufe);
+
+    // Zitat Wunschberuf (Frage 20)
+    if (erg.wunschberuf) {
+      inhalt.append(el('div', { class: 'section' },
+        el('h2', {}, 'Das reizt dich schon'),
+        el('blockquote', { class: 'quote' }, `„${erg.wunschberuf}“`),
+        el('p', { class: 'small muted' }, 'Gut, dass du schon eine Idee hast! Findest du davon etwas in den Vorschlägen oben wieder?')));
+    }
+
+    inhalt.append(rechenweg(erg));
+
+    zeige('ergebnis');
+    animiere($('result-card'));
+  }
+
+  // Aufklappbarer Bereich zum Nachvollziehen und Testen der Auswertung.
+  function rechenweg(erg) {
+    const gezeigt = new Set(erg.vorschlaege.map(v => v.beruf.name));
+    const details = el('details', { class: 'calc' }, el('summary', {}, 'So wurde gerechnet'));
+
+    details.append(
+      el('p', { class: 'small muted' },
+        `In dieser Testversion fließen ${erg.gewerteteFragen.length} von ${FRAGEN.length} Fragen in die Punkte ein ` +
+        `(Nr. ${erg.gewerteteFragen.join(', ')}). Die übrigen geben bewusst keine Punkte: Frage 7 wird zu einem Satz im Ergebnis, Frage 19 und 20 werden zitiert, Frage 12 passt zu keiner Eigenschaft.`),
+      el('p', { class: 'small muted' }, `Verglichen werden ${BERUFE.length} Berufe. Bei ${BERUFE_VORLAEUFIG.length} davon ist das Profil noch vorläufig – eine erste Einschätzung pro Beruf, noch nicht fachlich geprüft.`),
+      el('h3', {}, 'Die Regeln'),
+      el('ol', { class: 'small' },
+        el('li', {}, 'Jede Antwort gibt Punkte für bestimmte Eigenschaften.'),
+        el('li', {}, 'Die Punkte werden in Prozent der maximal möglichen Punkte umgerechnet.'),
+        el('li', {}, `Pro Bereich gewinnt die Eigenschaft mit dem höchsten Prozentwert. Sie gilt als deutlich, wenn sie mindestens ${REGELN.mindestProzent} % hat und die Gegenseite um mehr als ${REGELN.mindestVorsprung} Prozentpunkte übertrifft (Verantwortung: ab ${REGELN.mindestProzent} %).`),
+        el('li', {}, `Sind weniger als ${REGELN.mindestTop} Eigenschaften deutlich, rücken die nächststärksten nach.`),
+        el('li', {}, 'Jeder Beruf hat ein Profil in Prozent, zum Beispiel 85 % Dinge, 95 % drinnen, 45 % Verantwortung. Werte ab 60 % gelten als Merkmal des Berufs.'),
+        el('li', {}, 'Aus deinen Antworten entsteht dein eigenes Profil im selben Format. Die Passung zeigt, wie nah dein Profil am Profil des Berufs liegt: 100 % heißt gleich. Am stärksten zählt, womit du arbeitest (30 %), dann drinnen/draußen (25 %), Arbeitsweise (20 %), Verantwortung (15 %) und Sichtbarkeit (10 %).'),
+        el('li', {}, 'Höhere Passung = weiter oben. Bei exakt gleicher Passung kommen zuerst die Berufe, die mehr deiner stärksten Eigenschaften treffen, dann die geprüften Berufe, darunter wird zufällig ausgewählt.'),
+        el('li', {}, `Vorgeschlagen werden die Berufe, die höchstens ${REGELN.passungAbstand} Prozentpunkte unter dem besten liegen – mindestens ${REGELN.minBerufe}, höchstens ${REGELN.maxBerufe}.`)),
+      el('h3', {}, 'Dein Profil'),
+      el('p', { class: 'small muted' },
+        `Menschen ${Math.round(erg.profil.Menschen)} % · Dinge ${Math.round(erg.profil.Dinge)} % · Infos ${Math.round(erg.profil.Infos)} % · ` +
+        `Drinnen ${Math.round(erg.profil.Drinnen)} % · Struktur ${Math.round(erg.profil.Struktur)} % · ` +
+        `Verantwortung ${Math.round(erg.profil.Verantwortung)} % · Vorne ${Math.round(erg.profil.Vorne)} %`),
+      el('h3', {}, 'Deine Punkte'));
+
+    for (const dim of DIMENSIONEN) {
+      const gruppe = el('div', { class: 'bar-group' }, el('p', { class: 'bar-dim' }, dim.name));
+      for (const eig of dim.pole) {
+        const t = erg.top.find(x => x.eig === eig);
+        gruppe.append(el('div', { class: 'bar-row' },
+          el('span', {}, eig, t && el('span', { class: t.nachgerueckt ? 'mark alt' : 'mark', title: t.nachgerueckt ? 'nachgerückt' : 'deutlich' }, t.nachgerueckt ? '↑' : '✓')),
+          el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: `width:${erg.prozente[eig]}%` })),
+          el('span', { class: 'bar-val' }, `${erg.punkte[eig]}/${erg.max[eig]} P. · ${Math.round(erg.prozente[eig])} %`)));
+      }
+      details.append(gruppe);
+    }
+    details.append(el('p', { class: 'small muted' }, '✓ = deutlich, zählt fürs Matching · ↑ = nachgerückt'));
+
+    details.append(
+      el('h3', {}, 'Alle Berufe im Vergleich'),
+      el('div', { class: 'table-scroll' },
+        el('table', {},
+          el('thead', {}, el('tr', {},
+            el('th', { class: 'num' }, '#'), el('th', {}, 'Beruf'), el('th', { class: 'num' }, 'Treffer'), el('th', { class: 'num' }, 'Passung'))),
+          el('tbody', {}, erg.rangliste.slice(0, REGELN.tabelleMax).map((r, i) =>
+            el('tr', { class: gezeigt.has(r.beruf.name) ? 'is-shown' : null },
+              el('td', { class: 'num' }, i + 1),
+              el('td', {}, r.beruf.name),
+              el('td', { class: 'num' }, `${r.treffer.length}/${erg.top.length}`),
+              el('td', { class: 'num' }, prozentText(r.passung))))))),
+      el('p', { class: 'small muted' }, `Hervorgehoben = wird dir oben vorgeschlagen. Gezeigt sind die besten ${Math.min(REGELN.tabelleMax, erg.rangliste.length)} von ${erg.rangliste.length} Berufen.`));
+
+    return details;
+  }
+
+  // ---------- Steuerung ----------
+
+  $('start').addEventListener('click', () => {
+    zustand.index = 0;
+    zustand.antworten = {};
+    zeige('quiz');
+    zeigeFrage();
+  });
+  $('back').addEventListener('click', zurueck);
+  $('next').addEventListener('click', weiter);
+  $('edit').addEventListener('click', () => {
+    zustand.index = FRAGEN.length - 1;
+    zeige('quiz');
+    zeigeFrage();
+  });
+  $('restart').addEventListener('click', () => zeige('start'));
+
+  // Tastatur: A–D oder 1–4 wählt eine Antwort
+  document.addEventListener('keydown', e => {
+    if (bildschirme.quiz.hidden || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.target instanceof HTMLTextAreaElement) return;
+    const frage = FRAGEN[zustand.index];
+    if (!istMultipleChoice(frage)) return;
+    const taste = e.key.toUpperCase();
+    let i = BUCHSTABEN.indexOf(taste);
+    if (i < 0 && /^[1-9]$/.test(taste)) i = Number(taste) - 1;
+    if (i >= 0 && i < frage.antworten.length) {
+      e.preventDefault();
+      waehle(i);
+    }
+  });
+}
+
+if (typeof document !== 'undefined') starteApp();
+</script>
+</body>
+</html>
