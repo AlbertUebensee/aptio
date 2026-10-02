@@ -45,7 +45,8 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 - `Drinnen`, `Struktur`, `Vorne`: je eine Seite (0–100), die Gegenseite ergibt sich als 100 minus Wert.
 - `Verantwortung`: 0–100.
 - Werte ab 60 (`REGELN.profilDeutlich`) gelten als Merkmal („Passt zu dir“).
-- `BERUFE_GEPRUEFT` haben eine `beschreibung`; `BERUFE_VORLAEUFIG` (BIBB 2026) haben `vorlaeufig: true` und noch keine Beschreibung. Ist ein Profil fachlich geprüft, `vorlaeufig: true` entfernen.
+- `BERUFE_GEPRUEFT` haben eine `beschreibung`; `BERUFE_VORLAEUFIG` (BIBB 2026) noch keine.
+- Das Kennzeichen `vorlaeufig` steht **nicht** in den einzelnen Einträgen, sondern wird pro Liste per `.map(b => ({ ...b, vorlaeufig: … }))` gesetzt. Ist ein Profil fachlich geprüft, den Eintrag (mit `beschreibung`) nach `BERUFE_GEPRUEFT` verschieben.
 - Keine Dubletten zwischen beiden Listen (siehe „Doppelte Berufe“ in `LIESMICH.md`).
 
 ## Prüfen nach Änderungen
