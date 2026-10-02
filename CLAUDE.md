@@ -1,7 +1,7 @@
 # CLAUDE.md – Hinweise für Claude Code
 
 Aptio ist ein Berufsorientierungs-Quiz für Jugendliche („Welcher Job passt zu dir?“).
-Aktueller Stand: **Prototyp v0.5**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
+Aktueller Stand: **Prototyp v0.6**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
 
 ## Sprache und Ton
 
@@ -21,8 +21,9 @@ Aktueller Stand: **Prototyp v0.5**. Ausführliche Beschreibung, Rechenweg und of
 ## Grundregeln
 
 - **Alles bleibt in einer Datei.** Keine Build-Tools, kein npm, keine externen Skripte, Schriften oder Bilder. Die App muss per Doppelklick offline im Browser laufen.
-- **Nichts wird gespeichert** (Stand v0.5). Speichern/Mitnehmen ist für Version 1 geplant – vorher mit dem Projektinhaber klären, wie.
-- **Fragetexte nicht umformulieren.** Sie stammen 1:1 aus `TiP_Quizfragen_Entwurf_2026-08-28`. Nur typografische Apostrophe (’).
+- **Antworten werden nicht gespeichert.** Nur die Einstellungen liegen im Browser (`localStorage`, Schlüssel `aptio-einstellungen`, immer in try/catch). Speichern/Mitnehmen der Ergebnisse ist für Version 1 geplant – vorher mit dem Projektinhaber klären, wie.
+- **Fragetexte und Originalantworten nicht umformulieren.** Sie stammen 1:1 aus `TiP_Quizfragen_Entwurf_2026-08-28`. Nur typografische Apostrophe (’). Seit v0.6 hat jede Antwortfrage 5 Antworten: die Originale vorn, die neuen dahinter (Tabelle in `LIESMICH.md`).
+- Hell und dunkel: Farben nur über die CSS-Variablen in `:root` ändern, und zwar in allen drei Blöcken (dunkel, `[data-theme="light"]`, `prefers-color-scheme: light`).
 - Bei jeder inhaltlichen Änderung **`LIESMICH.md` mitpflegen** (Rechenweg, Tabellen, Offene Punkte abhaken) und im Footer von `Aptio.html` Version/Datum anpassen („Aptio · Prototyp v0.5 · Stand …“).
 
 ## Aufbau von `Aptio.html` (im `<script>`-Teil)
@@ -45,7 +46,7 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 - `Drinnen`, `Struktur`, `Vorne`: je eine Seite (0–100), die Gegenseite ergibt sich als 100 minus Wert.
 - `Verantwortung`: 0–100.
 - Werte ab 60 (`REGELN.profilDeutlich`) gelten als Merkmal („Passt zu dir“).
-- `BERUFE_GEPRUEFT` haben eine `beschreibung`; `BERUFE_VORLAEUFIG` (BIBB 2026) noch keine.
+- `BERUFE_GEPRUEFT` haben die `beschreibung` direkt im Eintrag; für `BERUFE_VORLAEUFIG` (BIBB 2026) steht sie in `BESCHREIBUNGEN_VORLAEUFIG` (Schlüssel = Berufsname, ebenfalls vorläufig).
 - Das Kennzeichen `vorlaeufig` steht **nicht** in den einzelnen Einträgen, sondern wird pro Liste per `.map(b => ({ ...b, vorlaeufig: … }))` gesetzt. Ist ein Profil fachlich geprüft, den Eintrag (mit `beschreibung`) nach `BERUFE_GEPRUEFT` verschieben.
 - Keine Dubletten zwischen beiden Listen (siehe „Doppelte Berufe“ in `LIESMICH.md`).
 
@@ -53,12 +54,13 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 
 - `datenPruefen()` läuft beim Öffnen und meldet Profilfehler in der **Browser-Konsole** – nach Datenänderungen kontrollieren.
 - Logikänderungen mit vielen zufälligen Antwort-Kombinationen gegenprüfen (wie in `LIESMICH.md` unter „Gegenprobe“: keine Fehler, immer 3–5 Vorschläge, Anzahl erreichbarer Berufe, Spanne der besten Passung) und die Zahlen dort aktualisieren.
-- Das Quiz einmal komplett durchklicken, auch auf schmalem Bildschirm (Handy).
+- Das Quiz einmal komplett durchklicken, auch auf schmalem Bildschirm (Handy), in hell und dunkel. Die Seite darf nie seitlich scrollen.
 
 ## Offene Punkte (Kurzfassung, Details in `LIESMICH.md`)
 
 - 309 vorläufige Berufsprofile prüfen
-- Beschreibungen für die BIBB-Berufe
+- Beschreibungen der BIBB-Berufe fachlich prüfen
+- Die 33 neuen Antworten aus v0.6 gegenlesen
 - Speichern/Mitnehmen (PDF, Link oder Screenshot) – Pflicht für Version 1
 - Begründung (1–2 Sätze) pro Berufsvorschlag
 - Frage 12 (Kritik): Ergebnissatz oder streichen

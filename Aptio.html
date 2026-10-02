@@ -2,10 +2,12 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
 <title>Aptio – Welcher Job passt zu dir?</title>
 <style>
+  /* Farben: dunkel ist der Grundzustand. Hell gilt bei Einstellung „Hell“
+     oder bei „Wie Gerät“, wenn das Gerät hell eingestellt ist. */
   :root {
     color-scheme: dark;
     --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -22,22 +24,83 @@
     --accent: #fafafa;
     --accent-hover: #d4d4d8;
     --on-accent: #09090b;
+    --glow: rgb(255 255 255 / .07);
+    --selection: rgb(255 255 255 / .22);
+    --ring: rgb(255 255 255 / .06);
+    --shadow: 0 18px 48px rgb(0 0 0 / .55), 0 2px 8px rgb(0 0 0 / .4);
+    --backdrop: rgb(0 0 0 / .6);
+    --ok: #4ade80;
+    --teils: #facc15;
+    --anders: #f87171;
     --radius: 14px;
   }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f6f6f7;
+    --surface: #ffffff;
+    --surface-2: #f0f0f2;
+    --surface-3: #e6e6e9;
+    --text: #18181b;
+    --muted: #52525b;
+    --subtle: #686871;
+    --line: #e2e2e6;
+    --line-strong: #c9c9cf;
+    --accent: #18181b;
+    --accent-hover: #3f3f46;
+    --on-accent: #fafafa;
+    --glow: rgb(0 0 0 / .035);
+    --selection: rgb(0 0 0 / .14);
+    --ring: rgb(0 0 0 / .06);
+    --shadow: 0 18px 48px rgb(24 24 27 / .16), 0 2px 8px rgb(24 24 27 / .08);
+    --backdrop: rgb(24 24 27 / .35);
+    --ok: #15803d;
+    --teils: #a16207;
+    --anders: #b91c1c;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) {
+      color-scheme: light;
+      --bg: #f6f6f7;
+      --surface: #ffffff;
+      --surface-2: #f0f0f2;
+      --surface-3: #e6e6e9;
+      --text: #18181b;
+      --muted: #52525b;
+      --subtle: #686871;
+      --line: #e2e2e6;
+      --line-strong: #c9c9cf;
+      --accent: #18181b;
+      --accent-hover: #3f3f46;
+      --on-accent: #fafafa;
+      --glow: rgb(0 0 0 / .035);
+      --selection: rgb(0 0 0 / .14);
+      --ring: rgb(0 0 0 / .06);
+      --shadow: 0 18px 48px rgb(24 24 27 / .16), 0 2px 8px rgb(24 24 27 / .08);
+      --backdrop: rgb(24 24 27 / .35);
+      --ok: #15803d;
+      --teils: #a16207;
+      --anders: #b91c1c;
+    }
+  }
+  /* Textgröße „Groß“ */
+  :root[data-text="gross"] { font-size: 112.5%; }
 
   *, *::before, *::after { box-sizing: border-box; }
+  /* Abstand zu den Systemleisten am Handy (am Rechner 0) */
+  :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
   [hidden] { display: none !important; }
   html { -webkit-text-size-adjust: 100%; background: var(--bg); }
   body {
     margin: 0;
-    background: radial-gradient(900px 460px at 50% -180px, rgb(255 255 255 / .07), transparent 70%) no-repeat, var(--bg);
+    background: radial-gradient(900px 460px at 50% -180px, var(--glow), transparent 70%) no-repeat, var(--bg);
     color: var(--text);
-    font: 16px/1.6 var(--font);
+    font: 1rem/1.6 var(--font);
     min-height: 100vh;
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
   }
-  ::selection { background: rgb(255 255 255 / .22); }
+  ::selection { background: var(--selection); }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
   .wrap { max-width: 640px; margin: 0 auto; padding: 20px 20px 48px; }
@@ -68,6 +131,7 @@
   .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
   .btn-outline { background: transparent; color: var(--text); border-color: var(--line-strong); }
   .btn-outline:hover { border-color: var(--muted); }
+  .btn:disabled { opacity: .4; cursor: default; }
   .btn-lg { font-size: 1rem; padding: .85rem 1.8rem; min-height: 52px; }
 
   /* Start */
@@ -112,7 +176,7 @@
     background: var(--surface); color: var(--text); font: inherit;
   }
   textarea::placeholder { color: var(--subtle); }
-  textarea:focus { outline: none; border-color: var(--muted); box-shadow: 0 0 0 4px rgb(255 255 255 / .06); }
+  textarea:focus { outline: none; border-color: var(--muted); box-shadow: 0 0 0 4px var(--ring); }
   .quiz-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 32px; }
 
   /* Ergebnis */
@@ -137,7 +201,7 @@
   .jobs { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
   .job { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; background: var(--surface); }
   .job-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-  .job-name { font-family: var(--font-display); font-size: 1.18rem; font-weight: 650; line-height: 1.3; letter-spacing: -.025em; margin: 0; }
+  .job-name { font-family: var(--font-display); font-size: 1.18rem; font-weight: 650; line-height: 1.3; letter-spacing: -.025em; margin: 0; min-width: 0; hyphens: auto; overflow-wrap: anywhere; }
   .job-area { flex: none; font-size: .72rem; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 99px; padding: .12rem .6rem; margin-top: .22rem; }
   .job-desc { color: var(--muted); margin: .4rem 0 1rem; }
   .job-flag { display: inline-block; font-size: .72rem; color: var(--subtle); border: 1px dashed var(--line-strong); border-radius: 99px; padding: .1rem .6rem; margin: 0 0 .9rem; }
@@ -160,7 +224,7 @@
   .more-rank { color: var(--subtle); font-size: .78rem; font-variant-numeric: tabular-nums; text-align: right; }
   .more-row { display: grid; grid-template-columns: 2.4rem 1fr 64px 3.1rem; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .88rem; }
   .more-list li:last-child { border-bottom: 0; }
-  .more-name { color: var(--muted); }
+  .more-name { color: var(--muted); min-width: 0; hyphens: auto; overflow-wrap: anywhere; }
   .more-pct { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
   @media (max-width: 420px) {
     .more-row { grid-template-columns: 1.9rem 1fr 3.1rem; gap: 8px; }
@@ -196,13 +260,116 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
+  /* Einstellung „Bewegungen reduzieren“ */
+  :root[data-motion="ruhig"] *, :root[data-motion="ruhig"] *::before, :root[data-motion="ruhig"] *::after { animation: none !important; transition: none !important; }
+
+  /* Kopfzeile: Einstellungen */
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    appearance: none; display: grid; place-items: center; width: 40px; height: 40px; padding: 0;
+    border: 1px solid var(--line-strong); border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer;
+    transition: color .15s, border-color .15s, background-color .15s;
+  }
+  .icon-btn:hover { color: var(--text); border-color: var(--muted); background: var(--surface-2); }
+  .icon-btn svg { width: 19px; height: 19px; }
+
+  /* Einstellungen-Fenster */
+  .settings {
+    width: min(440px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow-y: auto;
+    padding: 24px; border: 1px solid var(--line-strong); border-radius: 20px;
+    background: var(--surface); color: var(--text); box-shadow: var(--shadow);
+  }
+  .settings::backdrop { background: var(--backdrop); }
+  .settings[open] { animation: enter .25s cubic-bezier(.2, .8, .2, 1) both; }
+  .settings-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .settings-head h2 { font-family: var(--font-display); font-size: 1.35rem; letter-spacing: -.025em; margin: 0; }
+  .setting { border: 0; margin: 0; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .setting:last-of-type { border-bottom: 0; }
+  .setting legend { float: left; width: 100%; font-weight: 600; font-size: .95rem; padding: 0; margin: 0 0 10px; }
+  .setting legend + * { clear: both; }
+  .setting p { margin: 0; font-size: .85rem; color: var(--subtle); }
+  .setting p.setting-name { font-weight: 600; font-size: .95rem; color: var(--text); margin-bottom: 2px; }
+  .segments { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-2); }
+  .segments label { position: relative; }
+  .segments input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .segments span {
+    display: block; text-align: center; padding: .5rem .4rem; border-radius: 9px; font-size: .88rem; color: var(--muted);
+    transition: background-color .15s, color .15s;
+  }
+  .segments input:checked + span { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px rgb(0 0 0 / .18); }
+  .segments input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .switch { position: relative; flex: none; width: 46px; height: 28px; }
+  .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+  .switch span { position: absolute; inset: 0; border-radius: 99px; background: var(--surface-3); border: 1px solid var(--line-strong); transition: background-color .15s; }
+  .switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--muted); transition: transform .18s, background-color .15s; }
+  .switch input:checked + span { background: var(--accent); border-color: var(--accent); }
+  .switch input:checked + span::after { transform: translateX(18px); background: var(--on-accent); }
+  .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .settings-foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; }
+
+  /* Berufsdetails beim Drüberfahren / Antippen */
+  .job[data-tip], .more-row[data-tip] { cursor: pointer; }
+  .job[data-tip]:hover, .job[data-tip].is-active { border-color: var(--line-strong); }
+  .more-row[data-tip]:hover .more-name, .more-row[data-tip].is-active .more-name { color: var(--text); }
+  .tip-hint { margin: -4px 0 14px; }
+  .tip-hint .touch { display: none; }
+  @media (hover: none) { .tip-hint .mouse { display: none; } .tip-hint .touch { display: inline; } }
+  .job-tip {
+    position: fixed; z-index: 50; width: min(360px, calc(100vw - 24px)); padding: 18px;
+    border: 1px solid var(--line-strong); border-radius: 16px; background: var(--surface); color: var(--text);
+    box-shadow: var(--shadow); font-size: .9rem; line-height: 1.5;
+    animation: tip-in .16s ease-out both;
+  }
+  @keyframes tip-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .job-tip h3 { hyphens: auto; overflow-wrap: anywhere; font-family: var(--font-display); font-size: 1.08rem; letter-spacing: -.02em; line-height: 1.3; margin: 0 2rem 4px 0; }
+  .job-tip .tip-desc { color: var(--muted); margin: 0 0 14px; }
+  .job-tip .tip-label { font-size: .78rem; font-weight: 600; color: var(--subtle); margin: 0 0 6px; }
+  .tip-rows { list-style: none; margin: 0; padding: 0; }
+  .tip-rows li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+  .tip-dim { font-weight: 600; font-size: .84rem; }
+  .tip-vs { grid-column: 1 / -1; color: var(--muted); font-size: .82rem; }
+  .tip-badge { font-size: .74rem; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+  .tip-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .tip-badge.ok { color: var(--ok); }
+  .tip-badge.teils { color: var(--teils); }
+  .tip-badge.anders { color: var(--anders); }
+  .tip-fit { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--subtle); font-size: .82rem; }
+  .tip-fit strong { color: var(--text); font-size: 1rem; font-variant-numeric: tabular-nums; }
+  .tip-flag { margin: 10px 0 0; font-size: .76rem; color: var(--subtle); }
+  .tip-close { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; }
+  .tip-close svg { width: 15px; height: 15px; }
+  @media (hover: none), (max-width: 560px) {
+    .job-tip {
+      left: 12px !important; right: 12px; top: auto !important;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: auto; max-height: 70dvh; overflow-y: auto;
+    }
+  }
+  :root[data-tips="aus"] .tip-hint { display: none; }
+  :root[data-tips="aus"] .job[data-tip], :root[data-tips="aus"] .more-row[data-tip] { cursor: auto; }
 </style>
+<script>
+  // Gespeicherte Einstellungen sofort anwenden (vor dem ersten Zeichnen).
+  try {
+    const e = JSON.parse(localStorage.getItem('aptio-einstellungen') || '{}');
+    const r = document.documentElement;
+    if (e.theme === 'light' || e.theme === 'dark') r.dataset.theme = e.theme;
+    if (e.text === 'gross') r.dataset.text = 'gross';
+    if (e.ruhig) r.dataset.motion = 'ruhig';
+    if (e.details === false) r.dataset.tips = 'aus';
+  } catch (_) { /* ohne Speicher: Standard */ }
+</script>
 </head>
 <body>
 <div class="wrap">
   <header class="topbar">
     <span class="wordmark">Aptio<i aria-hidden="true"></i></span>
-    <span class="pill">Testversion</span>
+    <div class="topbar-right">
+      <span class="pill">Testversion</span>
+      <button class="icon-btn" id="open-settings" type="button" aria-label="Einstellungen" title="Einstellungen" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
   </header>
 
   <main>
@@ -253,14 +420,64 @@
     </section>
   </main>
 
-  <p class="footer">Aptio · Prototyp v0.5 · Stand 30.09.2026</p>
+  <!-- Einstellungen -->
+  <dialog class="settings" id="settings" aria-labelledby="settings-title">
+    <div class="settings-head">
+      <h2 id="settings-title">Einstellungen</h2>
+      <button class="icon-btn" id="close-settings" type="button" aria-label="Schließen" title="Schließen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <fieldset class="setting">
+      <legend>Aussehen</legend>
+      <div class="segments">
+        <label><input type="radio" name="theme" value="system"><span>Wie Gerät</span></label>
+        <label><input type="radio" name="theme" value="light"><span>Hell</span></label>
+        <label><input type="radio" name="theme" value="dark"><span>Dunkel</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="setting">
+      <legend>Schriftgröße</legend>
+      <div class="segments">
+        <label><input type="radio" name="text" value="normal"><span>Normal</span></label>
+        <label><input type="radio" name="text" value="gross"><span>Groß</span></label>
+      </div>
+    </fieldset>
+    <div class="setting switch-row">
+      <div>
+        <p class="setting-name" id="lbl-auto">Nach dem Antippen automatisch weiter</p>
+        <p>Aus: Du gehst selbst mit „Weiter“ zur nächsten Frage.</p>
+      </div>
+      <label class="switch"><input type="checkbox" id="set-auto" aria-labelledby="lbl-auto"><span></span></label>
+    </div>
+    <div class="setting switch-row">
+      <div>
+        <p class="setting-name" id="lbl-motion">Bewegungen reduzieren</p>
+        <p>Schaltet Animationen und Übergänge aus.</p>
+      </div>
+      <label class="switch"><input type="checkbox" id="set-motion" aria-labelledby="lbl-motion"><span></span></label>
+    </div>
+    <div class="setting switch-row">
+      <div>
+        <p class="setting-name" id="lbl-tips">Details zu Berufen anzeigen</p>
+        <p>Beim Drüberfahren oder Antippen: was man macht und wie gut es zu dir passt.</p>
+      </div>
+      <label class="switch"><input type="checkbox" id="set-tips" aria-labelledby="lbl-tips"><span></span></label>
+    </div>
+    <div class="settings-foot">
+      <button class="btn btn-ghost" id="reset-settings" type="button">Zurücksetzen</button>
+      <button class="btn btn-primary" id="done-settings" type="button">Fertig</button>
+    </div>
+  </dialog>
+
+  <p class="footer">Aptio · Prototyp v0.6 · Stand 02.10.2026</p>
 </div>
 
 <script>
 'use strict';
 
 /* =============================================================================
-   APTIO – Prototyp v0.5
+   APTIO – Prototyp v0.6
    Diese Datei hat drei Teile:
      1. DATEN       – Eigenschaften, Fragen mit Punkten, Berufe, Regeln
      2. AUSWERTUNG  – Punkte zählen, Top-Eigenschaften bestimmen, Berufe zuordnen
@@ -325,6 +542,7 @@ const FRAGEN = [
       { text: 'Ich mach was mit meinen Händen (basteln, bauen, kochen...)', punkte: { Dinge: 2 } },
       { text: 'Ich zock, lese oder schau was – Zeit für mich allein',       punkte: { Infos: 2 } },
       { text: 'Ich bin draußen unterwegs, Sport oder einfach raus',         punkte: { Draußen: 2 } },
+      { text: 'Ich organisier was mit anderen, zum Beispiel einen Ausflug', punkte: { Menschen: 1, Verantwortung: 1 } },
     ],
   },
   {
@@ -335,6 +553,7 @@ const FRAGEN = [
       { text: 'Ich mach den Teil, der am meisten Köpfchen braucht', punkte: { Infos: 2 } },
       { text: 'Ich sorg dafür, dass alle gut zusammenarbeiten',   punkte: { Menschen: 2 } },
       { text: 'Ich mach einfach meins und liefer ab',             punkte: { Hintergrund: 2 } },
+      { text: 'Ich stell am Ende das Ergebnis vor',               punkte: { Vorne: 2 } },
     ],
   },
   {
@@ -344,6 +563,8 @@ const FRAGEN = [
       { text: 'Kein Plan – ich brauch Struktur',                                     punkte: { Struktur: 2 } },
       { text: 'Zu viel Plan – ich mag’s spontan',                                    punkte: { Spontan: 2 } },
       { text: 'Beides geht, Hauptsache ich weiß, was am Ende rauskommen soll',       punkte: { Struktur: 1, Spontan: 1 } },
+      { text: 'Eher kein Plan – ein bisschen Freiraum muss aber sein',               punkte: { Struktur: 1 } },
+      { text: 'Eher zu viel Plan – ein grober Plan hilft mir aber',                  punkte: { Spontan: 1 } },
     ],
   },
   {
@@ -354,6 +575,7 @@ const FRAGEN = [
       { text: 'Ich les mich erst mal schlau',               punkte: { Infos: 2 } },
       { text: 'Ich probier einfach direkt rum, bis es klappt', punkte: { Dinge: 2 } },
       { text: 'Ich frag jemanden, der’s schon kann',        punkte: { Menschen: 2 } },
+      { text: 'Ich schau mir ein Video oder eine Anleitung an und probier’s dann selbst', punkte: { Infos: 1, Dinge: 1 } },
     ],
   },
   {
@@ -363,6 +585,8 @@ const FRAGEN = [
       { text: 'Menschen – reden, helfen, erklären',                punkte: { Menschen: 2 } },
       { text: 'Dinge – bauen, reparieren, gestalten',              punkte: { Dinge: 2 } },
       { text: 'Zahlen oder Infos – ordnen, auswerten, verstehen',  punkte: { Infos: 2 } },
+      { text: 'Menschen und Dinge – zum Beispiel pflegen, frisieren, bedienen', punkte: { Menschen: 1, Dinge: 1 } },
+      { text: 'Dinge und Infos – zum Beispiel Technik verstehen und einstellen', punkte: { Dinge: 1, Infos: 1 } },
     ],
   },
   {
@@ -372,6 +596,8 @@ const FRAGEN = [
       { text: 'Bleib cool, pass mich an',                          punkte: { Spontan: 2 } },
       { text: 'Brauch kurz, um umzudenken, dann geht’s',           punkte: { Struktur: 1, Spontan: 1 } },
       { text: 'Stresst mich ziemlich, ich mag’s lieber vorhersehbar', punkte: { Struktur: 2 } },
+      { text: 'Ich überleg kurz und sag den anderen, wie wir’s jetzt machen', punkte: { Spontan: 1, Verantwortung: 1 } },
+      { text: 'Ich mach mir schnell einen neuen Plan',                punkte: { Struktur: 1 } },
     ],
   },
   {
@@ -383,6 +609,8 @@ const FRAGEN = [
       { text: 'Bezahlung geht vor',                                punkte: {}, ergebnisSatz: 'Dir ist wichtig, dass sich die Arbeit lohnt.' },
       { text: 'Spaß geht vor, auch wenn’s weniger ist',            punkte: {}, ergebnisSatz: 'Dir ist wichtig, dass die Arbeit dir wirklich Spaß macht.' },
       { text: 'Beides muss stimmen, keins von beiden allein reicht', punkte: {}, ergebnisSatz: 'Dir ist wichtig, dass beides stimmt: Die Arbeit soll Spaß machen und sich lohnen.' },
+      { text: 'Am wichtigsten ist mir ein sicherer Job',            punkte: {}, ergebnisSatz: 'Dir ist wichtig, dass deine Arbeit sicher ist.' },
+      { text: 'Am wichtigsten ist mir, dass ich was Sinnvolles mache', punkte: {}, ergebnisSatz: 'Dir ist wichtig, dass deine Arbeit einen Sinn hat.' },
     ],
   },
   {
@@ -392,6 +620,8 @@ const FRAGEN = [
       { text: 'Vorne, ich rede gern vor anderen',                        punkte: { Vorne: 2 } },
       { text: 'Hintergrund, ich mach lieber die Arbeit, die man nicht sieht', punkte: { Hintergrund: 2 } },
       { text: 'Kommt drauf an, mit wem',                                 punkte: { Vorne: 1, Hintergrund: 1 } },
+      { text: 'Eher vorne, aber nicht jeden Tag',                        punkte: { Vorne: 1 } },
+      { text: 'Eher im Hintergrund, aber kurz was erklären geht',        punkte: { Hintergrund: 1 } },
     ],
   },
   {
@@ -402,6 +632,8 @@ const FRAGEN = [
       { text: 'Ordentlich, alles hat seinen Platz',        punkte: { Struktur: 1 } },
       { text: 'Kreatives Chaos, ich find trotzdem alles',  punkte: {} },
       { text: 'Ehrlich? Eher chaotisch',                   punkte: { Spontan: 1 } },
+      { text: 'Meistens ordentlich, nur manchmal liegt was rum', punkte: { Struktur: 1 } },
+      { text: 'Wechselt ständig – mal top aufgeräumt, mal Chaos', punkte: { Spontan: 1 } },
     ],
   },
   {
@@ -411,6 +643,8 @@ const FRAGEN = [
       { text: 'Gerät reparieren',                       punkte: { Dinge: 2 } },
       { text: 'Streit schlichten',                      punkte: { Menschen: 2, Verantwortung: 1 } },
       { text: 'Beides nicht so meins, ehrlich gesagt',  punkte: { Infos: 1 } }, // weder Dinge noch Menschen: eher Kopfarbeit
+      { text: 'Beides, ich pack überall gern mit an',   punkte: { Menschen: 1, Dinge: 1 } },
+      { text: 'Ich würd erst mal rausfinden, woran es eigentlich liegt', punkte: { Infos: 1 } },
     ],
   },
   {
@@ -420,6 +654,8 @@ const FRAGEN = [
       { text: 'Drinnen',                   punkte: { Drinnen: 2 } },
       { text: 'Draußen',                   punkte: { Draußen: 2 } },
       { text: 'Mix aus beidem wäre ideal', punkte: { Drinnen: 1, Draußen: 1 } },
+      { text: 'Eher drinnen, ab und zu raus ist okay',    punkte: { Drinnen: 1 } },
+      { text: 'Eher draußen, bei Regen auch mal drinnen', punkte: { Draußen: 1 } },
     ],
   },
   {
@@ -431,6 +667,8 @@ const FRAGEN = [
       { text: 'Nehm ich an, wenn sie fair ist, und mach weiter', punkte: {} },
       { text: 'Trifft mich erstmal, aber ich komm drüber weg',   punkte: {} },
       { text: 'Fällt mir schwer, damit umzugehen',               punkte: {} },
+      { text: 'Ich frag nach, was ich besser machen kann',       punkte: {} },
+      { text: 'Kommt drauf an, von wem sie kommt',               punkte: {} },
     ],
   },
   {
@@ -441,6 +679,8 @@ const FRAGEN = [
       { text: 'Sehr wichtig, ich will was gestalten',                 punkte: { Dinge: 1, Spontan: 1 } },
       { text: 'Ist okay, muss aber nicht im Vordergrund stehen',      punkte: {} },
       { text: 'Eher unwichtig, ich mag klare Abläufe',                punkte: { Struktur: 1 } },
+      { text: 'Wichtig, aber eher beim Tüfteln an neuen Lösungen',    punkte: { Infos: 1, Spontan: 1 } },
+      { text: 'Ein bisschen, zum Beispiel eigene Ideen einbringen',   punkte: {} },
     ],
   },
   {
@@ -450,6 +690,8 @@ const FRAGEN = [
       { text: 'Ja, mach ich gern',                                   punkte: { Verantwortung: 2 } },
       { text: 'Käme drauf an, aber grundsätzlich schon',             punkte: { Verantwortung: 1 } },
       { text: 'Eher nicht, ich bin lieber für mich verantwortlich',  punkte: {} }, // +0 (bewusst)
+      { text: 'Für eine Person ja, für eine ganze Gruppe eher nicht', punkte: { Verantwortung: 1 } },
+      { text: 'Lieber nicht, ich unterstütz lieber im Team',        punkte: {} },
     ],
   },
   {
@@ -459,6 +701,8 @@ const FRAGEN = [
       { text: 'Ständiger Wechsel stresst mich', punkte: { Struktur: 2 } },
       { text: 'Immer dasselbe stresst mich',    punkte: { Spontan: 2 } },
       { text: 'Beides in Maßen ist okay',       punkte: { Struktur: 1, Spontan: 1 } },
+      { text: 'Eher der ständige Wechsel',      punkte: { Struktur: 1 } },
+      { text: 'Eher, wenn jeden Tag dasselbe ansteht', punkte: { Spontan: 1 } },
     ],
   },
   {
@@ -469,6 +713,8 @@ const FRAGEN = [
       { text: 'Richtig gut, das ist meins',           punkte: { Infos: 2, Drinnen: 1 } },
       { text: 'Geht so, im Alltag komm ich klar',     punkte: {} },
       { text: 'Eher nicht mein Ding',                 punkte: {} },
+      { text: 'Ganz gut, ich helf anderen oft dabei', punkte: { Infos: 1, Menschen: 1 } },
+      { text: 'Lieber Technik zum Anfassen – Motoren, Werkzeug, Maschinen', punkte: { Dinge: 1 } },
     ],
   },
   {
@@ -478,6 +724,8 @@ const FRAGEN = [
       { text: 'Jemandem geholfen zu haben',        punkte: { Menschen: 2 } },
       { text: 'Ein sichtbares Ergebnis / Produkt', punkte: { Dinge: 2 } },
       { text: 'Beides gleich wichtig',             punkte: { Menschen: 1, Dinge: 1 } },
+      { text: 'Wenn ich was Schwieriges verstanden oder rausgefunden hab', punkte: { Infos: 1 } },
+      { text: 'Wenn ich was besser hinkrieg als beim letzten Mal', punkte: {} },
     ],
   },
   {
@@ -488,6 +736,8 @@ const FRAGEN = [
       { text: 'Ich geh auch mal ein Risiko ein',  punkte: { Spontan: 1 } },
       { text: 'Ich geh lieber auf Nummer sicher', punkte: { Struktur: 1 } },
       { text: 'Kommt auf die Situation an',       punkte: {} },
+      { text: 'Bei kleinen Sachen Risiko, bei großen lieber sicher', punkte: {} },
+      { text: 'Ich überleg vorher genau, dann entscheid ich', punkte: { Struktur: 1 } },
     ],
   },
   {
@@ -573,6 +823,321 @@ const BERUFE_GEPRUEFT = [
     beschreibung: 'Plant Transportwege und wickelt Frachtaufträge ab.',
     profil: { Menschen: 30, Dinge: 0, Infos: 70, Drinnen: 90, Struktur: 75, Verantwortung: 65, Vorne: 30 } },
 ].map(b => ({ ...b, vorlaeufig: false }));
+
+// Kurzbeschreibung „Was man dort tut“ für die BIBB-Berufe (Stand 02.10.2026).
+// Ebenfalls VORLAEUFIG: eine erste Einschätzung, noch nicht fachlich geprüft.
+// Wird ein Beruf geprüft, wandert die Beschreibung mit dem Beruf nach BERUFE_GEPRUEFT.
+const BESCHREIBUNGEN_VORLAEUFIG = {
+  "Änderungsschneider/in":                                                           "Ändert und repariert Kleidung, kürzt Hosen, passt Kleider an und berät Kund:innen.",
+  "Anlagenmechaniker/in":                                                            "Baut, montiert und wartet Rohrleitungen, Behälter und technische Anlagen in der Industrie.",
+  "Anlagenmechaniker/in für Sanitär-, Heizungs- und Klimatechnik":                   "Installiert Bäder, Heizungen, Wärmepumpen und Lüftungen bei Kund:innen und hält sie in Schuss.",
+  "Asphaltbauer/in":                                                                 "Baut und repariert Straßen, Wege und Plätze aus Asphalt, meist draußen auf der Baustelle.",
+  "Aufbereitungsmechaniker/in":                                                      "Bedient Anlagen, die Rohstoffe wie Kies, Kohle oder Erz zerkleinern, sortieren und aufbereiten.",
+  "Augenoptiker/in":                                                                 "Misst die Sehstärke, berät bei der Brillenwahl und passt Brillen und Kontaktlinsen an.",
+  "Ausbaufacharbeiter/in":                                                           "Arbeitet beim Innenausbau mit: Trockenbau, Fliesen, Estrich, Dämmung oder Holzarbeiten.",
+  "Automatenfachmann/-frau":                                                         "Stellt Spiel-, Verkaufs- und Dienstleistungsautomaten auf, wartet und repariert sie.",
+  "Automobilkaufmann/-frau":                                                         "Verkauft Autos, berät Kund:innen, plant Werkstatttermine und kümmert sich um Ersatzteile.",
+  "Bäcker/in":                                                                       "Backt frühmorgens Brot, Brötchen und Kuchen – von Hand und mit Maschinen.",
+  "Bankkaufmann/-frau":                                                              "Berät Kund:innen zu Konten, Krediten und Geldanlagen und bearbeitet Bankgeschäfte.",
+  "Baugeräteführer/in":                                                              "Fährt und bedient Bagger, Radlader und Kräne auf Baustellen und wartet die Maschinen.",
+  "Baustoffprüfer/in":                                                               "Prüft im Labor und auf der Baustelle, ob Beton, Asphalt oder Boden die nötige Qualität haben.",
+  "Bauwerksabdichter/in":                                                            "Dichtet Keller, Dächer, Brücken und Tunnel gegen Wasser und Feuchtigkeit ab.",
+  "Bauwerksmechaniker/in für Abbruch und Betontrenntechnik":                         "Reißt Gebäude kontrolliert ab und schneidet oder bohrt Beton mit Spezialmaschinen.",
+  "Bauzeichner/in":                                                                  "Erstellt am Computer Baupläne und Zeichnungen für Gebäude, Straßen oder Brücken.",
+  "Behälter- und Apparatebauer/in":                                                  "Fertigt Tanks, Kessel und Behälter aus Metall, schweißt und montiert sie.",
+  "Berg- und Maschinenmann/-frau":                                                   "Arbeitet im Bergbau unter oder über Tage, bedient Maschinen und sichert Abbaustellen.",
+  "Bergbautechnologe/-in":                                                           "Steuert und überwacht Abbau und Förderung von Rohstoffen und die Technik im Bergwerk.",
+  "Berufskraftfahrer/in":                                                            "Fährt Lkw oder Busse, bringt Waren oder Fahrgäste ans Ziel und prüft das Fahrzeug.",
+  "Bestattungsfachkraft":                                                            "Organisiert Bestattungen, berät trauernde Angehörige und versorgt Verstorbene.",
+  "Beton- und Stahlbetonbauer/in":                                                   "Baut Schalungen, verlegt Bewehrung und betoniert Wände, Decken und Fundamente.",
+  "Betonfertigteilbauer/in":                                                         "Stellt im Werk Bauteile aus Beton her, zum Beispiel Treppen, Wände oder Rohre.",
+  "Binnenschiffer/in":                                                               "Arbeitet an Bord von Frachtschiffen auf Flüssen und Kanälen, lädt, steuert und wartet.",
+  "Binnenschifffahrtskapitän/in":                                                    "Führt ein Binnenschiff, plant die Fahrt und trägt die Verantwortung für Schiff und Crew.",
+  "Biologielaborant/in":                                                             "Führt im Labor Versuche mit Zellen, Bakterien, Pflanzen oder Tieren durch und wertet sie aus.",
+  "Biologiemodellmacher/in":                                                         "Baut naturgetreue Modelle von Tieren, Pflanzen und Organen für Museen und Schulen.",
+  "Bodenleger/in":                                                                   "Verlegt Teppich, Vinyl, Linoleum und andere Bodenbeläge in Wohnungen und Gebäuden.",
+  "Bogenmacher/in":                                                                  "Fertigt und repariert in Handarbeit Bögen für Geigen, Bratschen und Celli.",
+  "Bootsbauer/in":                                                                   "Baut, repariert und wartet Boote und Yachten aus Holz, Kunststoff oder Metall.",
+  "Böttcher/in":                                                                     "Stellt in Handarbeit Fässer und Bottiche aus Holz her, zum Beispiel für Wein.",
+  "Brauer/in und Mälzer/in":                                                         "Braut Bier, steuert die Anlagen in der Brauerei und prüft die Qualität.",
+  "Brenner/in":                                                                      "Stellt Spirituosen her, bedient Brennanlagen und überwacht die Herstellung.",
+  "Brunnenbauer/in":                                                                 "Bohrt Brunnen für Trinkwasser und Erdwärme und baut die Technik dafür ein.",
+  "Buchbinder/in":                                                                   "Bindet Bücher, stellt Mappen und Schachteln her und restauriert alte Bücher.",
+  "Buchhändler/in":                                                                  "Berät Kund:innen im Buchladen, bestellt Bücher und gestaltet das Sortiment.",
+  "Büchsenmacher/in":                                                                "Baut, repariert und wartet Jagd- und Sportwaffen in der Werkstatt.",
+  "Bühnenmaler/in und -plastiker/in":                                                "Malt Kulissen und baut Figuren und Dekorationen für Theater, Film und Fernsehen.",
+  "Bürsten- und Pinselmacher/in":                                                    "Stellt Bürsten, Besen und Pinsel von Hand und mit Maschinen her.",
+  "Chemielaborant/in":                                                               "Untersucht Stoffe im Labor, führt chemische Analysen durch und dokumentiert die Ergebnisse.",
+  "Chemielaborjungwerker/in":                                                        "Unterstützt im Labor bei Versuchen, bereitet Proben vor und reinigt Geräte.",
+  "Chemikant/in":                                                                    "Steuert und überwacht Anlagen, in denen chemische Produkte hergestellt werden.",
+  "Chirurgiemechaniker/in":                                                          "Fertigt feine medizinische Instrumente wie Scheren und Zangen aus Metall.",
+  "Dachdecker/in":                                                                   "Deckt und dichtet Dächer ab, baut Dämmung und Solaranlagen ein – meist in luftiger Höhe.",
+  "Destillateur/in":                                                                 "Stellt Liköre und Spirituosen her, mischt Zutaten und prüft Geschmack und Qualität.",
+  "Drechsler/in (Elfenbeinschnitzer/in)":                                            "Dreht und schnitzt Gegenstände aus Holz oder anderen Materialien an der Drehbank.",
+  "Drogist/in":                                                                      "Berät in der Drogerie zu Pflege, Gesundheit und Haushalt und kümmert sich um die Ware.",
+  "Edelsteinfasser/in":                                                              "Setzt Edelsteine in Ringe, Ketten und anderen Schmuck ein – millimetergenaue Feinarbeit.",
+  "Edelsteinschleifer/in":                                                           "Schleift und poliert Edelsteine so, dass sie ihre Form und ihren Glanz bekommen.",
+  "Eisenbahner/in im Betriebsdienst Lokführer/in und Transport":                     "Fährt Züge, prüft die Technik vor der Fahrt und sorgt für sicheren Bahnverkehr.",
+  "Eisenbahner/in in der Zugverkehrssteuerung":                                      "Stellt im Stellwerk Weichen und Signale und steuert den Zugverkehr.",
+  "Elektroanlagenmonteur/in":                                                        "Montiert und verdrahtet elektrische Anlagen, Schaltschränke und Maschinen.",
+  "Elektroniker/in":                                                                 "Installiert und repariert elektrische Anlagen, Geräte und Gebäudetechnik.",
+  "Elektroniker/in für Automatisierungstechnik":                                     "Programmiert und baut automatische Anlagen und Roboter in Fabriken auf.",
+  "Elektroniker/in für Betriebstechnik":                                             "Sorgt dafür, dass Strom und Maschinen in Betrieben zuverlässig laufen, und behebt Störungen.",
+  "Elektroniker/in für Gebäude- und Infrastruktursysteme":                           "Betreut die Technik großer Gebäude wie Aufzüge, Lüftung, Licht und Sicherheitsanlagen.",
+  "Elektroniker/in für Gebäudesystemintegration":                                    "Vernetzt die Technik in Gebäuden – Licht, Heizung, Rollläden – zu einem smarten System.",
+  "Elektroniker/in für Geräte und Systeme":                                          "Baut und prüft elektronische Geräte und Bauteile, zum Beispiel für Medizin oder Kommunikation.",
+  "Elektroniker/in für Informations- und Systemtechnik":                             "Entwickelt und baut Systeme aus Hard- und Software auf und richtet Netzwerke ein.",
+  "Elektroniker/in für Maschinen und Antriebstechnik nach dem Berufsbildungsgesetz": "Baut und repariert Elektromotoren, Generatoren und Antriebe in der Industrie.",
+  "Elektroniker/in für Maschinen und Antriebstechnik nach der Handwerksordnung":     "Repariert und wartet Elektromotoren und Antriebe im Handwerksbetrieb.",
+  "Estrichleger/in":                                                                 "Bringt den glatten Unterboden in Gebäuden ein, auf den später Fliesen oder Parkett kommen.",
+  "Fachangestellte/r für Arbeitsmarktdienstleistungen":                              "Berät bei der Arbeitsagentur oder im Jobcenter Menschen zu Arbeit und Leistungen.",
+  "Fachangestellte/r für Bäderbetriebe":                                             "Beaufsichtigt Badegäste, rettet im Notfall, gibt Schwimmkurse und betreut die Bädertechnik.",
+  "Fachangestellte/r für Markt- und Sozialforschung":                                "Plant Umfragen, sammelt Daten und wertet sie am Computer aus.",
+  "Fachangestellte/r für Medien- und Informationsdienste":                           "Ordnet und recherchiert Bücher, Daten und Medien, zum Beispiel in Bibliotheken oder Archiven.",
+  "Fachkraft Agrarservice":                                                          "Fährt große Landmaschinen und erledigt Feldarbeiten wie Säen, Spritzen und Ernten.",
+  "Fachkraft für Fruchtsafttechnik":                                                 "Stellt Säfte und Getränke aus Obst her und bedient die Anlagen dafür.",
+  "Fachkraft für Gastronomie":                                                       "Bedient Gäste, deckt Tische, berät bei Speisen und Getränken und hilft am Buffet.",
+  "Fachkraft für Hafenlogistik":                                                     "Belädt und entlädt Schiffe, bedient Kräne und organisiert den Warenumschlag im Hafen.",
+  "Fachkraft für Holz- und Bautenschutzarbeiten":                                    "Schützt Gebäude vor Feuchtigkeit, Schimmel und Schädlingen und saniert Schäden.",
+  "Fachkraft für Kurier-, Express- und Postdienstleistungen":                        "Sortiert und stellt Briefe und Pakete zu und berät Kund:innen.",
+  "Fachkraft für Lebensmitteltechnik":                                               "Stellt Lebensmittel in großen Mengen her, bedient Maschinen und prüft die Qualität.",
+  "Fachkraft für Lederherstellung und Gerbereitechnik":                              "Verarbeitet Tierhäute in der Gerberei zu Leder.",
+  "Fachkraft für Lederverarbeitung":                                                 "Schneidet Leder zu und fertigt daraus Taschen, Gürtel oder Autositze.",
+  "Fachkraft für Metalltechnik":                                                     "Bearbeitet Metallteile mit Maschinen, baut Bauteile zusammen und prüft sie.",
+  "Fachkraft für Möbel-, Küchen- und Umzugsservice":                                 "Baut Möbel und Küchen bei Kund:innen auf und plant und erledigt Umzüge.",
+  "Fachkraft für Schutz und Sicherheit":                                             "Bewacht Gebäude und Veranstaltungen, kontrolliert Zugänge und greift im Notfall ein.",
+  "Fachkraft für Straßen- und Verkehrstechnik":                                      "Plant und überwacht Straßen, Ampeln und Verkehrsanlagen, oft am Computer.",
+  "Fachkraft für Veranstaltungstechnik":                                             "Baut Bühnen, Licht und Ton für Konzerte, Messen und Theater auf und bedient die Technik.",
+  "Fachkraft für Wasserwirtschaft":                                                  "Überwacht Gewässer, Deiche und Messstellen und sorgt für Hochwasserschutz.",
+  "Fachkraft im Fahrbetrieb":                                                        "Fährt Bus oder Straßenbahn im Nahverkehr und berät Fahrgäste.",
+  "Fachkraft Küche":                                                                 "Bereitet in der Küche Speisen vor, kocht nach Rezept und hält die Hygiene ein.",
+  "Fachlagerist/in":                                                                 "Nimmt im Lager Waren an, lagert sie ein und stellt Lieferungen zusammen.",
+  "Fachmann/-frau für Restaurants und Veranstaltungsgastronomie":                    "Betreut Gäste im Restaurant, plant Feiern und Events und organisiert den Service.",
+  "Fachmann/-frau für Systemgastronomie":                                            "Organisiert Abläufe in Restaurantketten, plant Personal und kümmert sich um Gäste.",
+  "Fachverkäufer/in im Lebensmittelhandwerk":                                        "Verkauft und berät in Bäckerei, Konditorei oder Metzgerei und bereitet Snacks zu.",
+  "Fahrradmonteur/in":                                                               "Baut Fahrräder und E-Bikes zusammen, repariert und wartet sie.",
+  "Fahrzeuginterieur-Mechaniker/in":                                                 "Baut und repariert Innenausstattung von Autos, Bussen und Bahnen – Sitze, Verkleidungen, Polster.",
+  "Fahrzeuglackierer/in":                                                            "Lackiert Autos und andere Fahrzeuge, beseitigt Lackschäden und gestaltet Designs.",
+  "Fassadenmonteur/in":                                                              "Montiert Fassaden aus Metall, Glas oder Platten an Gebäuden, oft auf dem Gerüst.",
+  "Feinoptiker/in":                                                                  "Stellt hochgenaue Linsen und Prismen für Kameras, Mikroskope und Laser her.",
+  "Feinpolierer/in":                                                                 "Poliert Schmuck, Uhren und Metallteile auf Hochglanz.",
+  "Feinwerkmechaniker/in":                                                           "Fertigt sehr genaue Bauteile und Werkzeuge aus Metall, oft an computergesteuerten Maschinen.",
+  "Fertigungsmechaniker/in":                                                         "Montiert in der Serienfertigung Bauteile zu Maschinen oder Fahrzeugen und prüft sie.",
+  "Feuerungs- und Schornsteinbauer/in":                                              "Baut Industrieöfen, Schornsteine und Feuerungsanlagen aus feuerfesten Materialien.",
+  "Figurenkeramformer/in":                                                           "Formt Figuren aus Keramik und Porzellan und stellt Gussformen dafür her.",
+  "Fischwirt/in":                                                                    "Züchtet Fische in Teichen oder Anlagen oder fängt sie auf Seen und Flüssen und verarbeitet sie.",
+  "Flachglastechnologe/-in":                                                         "Stellt Glasscheiben her und bearbeitet sie, zum Beispiel für Fenster und Fassaden.",
+  "Flechtwerkgestalter/in":                                                          "Flechtet aus Weide, Rattan und anderen Materialien Körbe, Möbel und Objekte.",
+  "Fleischer/in":                                                                    "Zerlegt Fleisch, stellt Wurst und Fleischwaren her und verkauft sie teils auch.",
+  "Fliesen-, Platten- und Mosaikleger/in":                                           "Verlegt Fliesen und Platten in Bädern, Küchen und auf Terrassen.",
+  "Florist/in":                                                                      "Bindet Sträuße und Gestecke, dekoriert Räume und berät Kund:innen im Blumenladen.",
+  "Fluggerätelektroniker/in":                                                        "Prüft, wartet und repariert die Elektronik in Flugzeugen und Hubschraubern.",
+  "Fluggerätmechaniker/in":                                                          "Wartet und repariert Flugzeuge, Triebwerke und Hubschrauber.",
+  "Forstwirt/in":                                                                    "Pflegt den Wald, fällt Bäume, pflanzt neue und arbeitet bei jedem Wetter draußen.",
+  "Fotomedienfachmann/-frau":                                                        "Berät zu Fotos und Kameras, bearbeitet Bilder und macht Passfotos und Aufnahmen.",
+  "Friseur/in":                                                                      "Schneidet, färbt und stylt Haare, berät Kund:innen und pflegt sie.",
+  "Gärtner/in":                                                                      "Pflanzt, pflegt und verkauft Pflanzen oder legt Gärten und Parks an.",
+  "Gebäudereiniger/in":                                                              "Reinigt und pflegt Gebäude, Fenster und Fassaden, oft mit Maschinen und Spezialtechnik.",
+  "Geigenbauer/in":                                                                  "Baut und repariert in Handarbeit Geigen, Bratschen und Celli.",
+  "Geomatiker/in":                                                                   "Sammelt Geodaten, erstellt digitale Karten und 3D-Modelle am Computer.",
+  "Gerüstbauer/in":                                                                  "Baut Gerüste an Gebäuden auf und ab und sorgt für ihre Sicherheit.",
+  "Gestalter/in für immersive Medien":                                               "Gestaltet virtuelle Welten, 3D-Inhalte und interaktive Anwendungen am Computer.",
+  "Gestalter/in für visuelles Marketing":                                            "Dekoriert Schaufenster und Verkaufsräume und plant Messestände.",
+  "Gießereimechaniker/in":                                                           "Stellt Formen her und gießt flüssiges Metall zu Bauteilen.",
+  "Glas- und Porzellanmaler/in":                                                     "Bemalt Glas und Porzellan von Hand mit Mustern und Bildern.",
+  "Glasapparatebauer/in":                                                            "Formt aus Glasröhren Laborgeräte und technische Glasteile.",
+  "Glasbläser/in":                                                                   "Formt heißes Glas mit der Glasmacherpfeife zu Vasen, Gläsern und Kunstobjekten.",
+  "Glaser/in":                                                                       "Schneidet und setzt Glasscheiben in Fenster, Türen und Fassaden ein.",
+  "Glasmacher/in":                                                                   "Stellt Glas her und formt es von Hand oder mit Maschinen.",
+  "Glasveredler/in":                                                                 "Verziert Glas durch Schleifen, Gravieren oder Malen.",
+  "Gleisbauer/in":                                                                   "Baut und repariert Gleise für Bahn und Straßenbahn, meist draußen und oft nachts.",
+  "Gold- und Silberschmied/in":                                                      "Entwirft und fertigt Schmuck aus Gold und Silber und repariert ihn.",
+  "Graveur/in":                                                                      "Graviert Schriften und Muster in Metall, Glas oder Kunststoff, von Hand oder mit Laser.",
+  "Hafenschiffer/in":                                                                "Steuert Schiffe und Boote im Hafen und hilft beim An- und Ablegen großer Schiffe.",
+  "Handzuginstrumentenmacher/in":                                                    "Baut und repariert Akkordeons und Mundharmonikas.",
+  "Hauswirtschafter/in":                                                             "Versorgt und betreut Menschen, kocht, reinigt und organisiert Haushalte, zum Beispiel in Heimen.",
+  "Hochbaufacharbeiter/in":                                                          "Mauert, betoniert und baut beim Errichten von Gebäuden mit.",
+  "Holz- und Bautenschützer/in":                                                     "Schützt und saniert Holz und Gebäude gegen Feuchtigkeit, Pilze und Schädlinge.",
+  "Holzbearbeitungsmechaniker/in":                                                   "Bedient Maschinen, die Holz sägen, hobeln und zu Bauteilen verarbeiten.",
+  "Holzbildhauer/in":                                                                "Schnitzt Figuren, Reliefs und Verzierungen aus Holz.",
+  "Holzblasinstrumentenmacher/in":                                                   "Baut und repariert Klarinetten, Flöten, Oboen und Fagotte.",
+  "Holzmechaniker/in":                                                               "Stellt in der Industrie Möbel, Fenster, Treppen und Holzteile mit Maschinen her.",
+  "Holzspielzeugmacher/in":                                                          "Entwirft und fertigt Spielzeug aus Holz.",
+  "Hörakustiker/in":                                                                 "Misst das Gehör, berät und passt Hörgeräte an.",
+  "Hotelfachmann/-frau":                                                             "Arbeitet an der Rezeption, im Restaurant und in der Verwaltung eines Hotels und betreut Gäste.",
+  "Immobilienkaufmann/-frau":                                                        "Vermietet und verkauft Wohnungen und Häuser und verwaltet Immobilien.",
+  "Industrieelektriker/in":                                                          "Installiert und prüft elektrische Anlagen und Maschinen in der Industrie.",
+  "Industrie-Isolierer/in":                                                          "Dämmt Rohre, Anlagen und Behälter in Industrieanlagen gegen Wärme, Kälte und Lärm.",
+  "Industriekaufmann/-frau":                                                         "Kümmert sich in Firmen um Einkauf, Verkauf, Personal und Buchhaltung.",
+  "Industriekeramiker/in Anlagentechnik":                                            "Steuert die Maschinen und Brennöfen, mit denen Keramikprodukte hergestellt werden.",
+  "Industriekeramiker/in Dekorationstechnik":                                        "Verziert Porzellan und Keramik mit Dekoren, von Hand oder maschinell.",
+  "Industriekeramiker/in Modelltechnik":                                             "Baut Modelle und Formen, aus denen Keramikprodukte gegossen werden.",
+  "Industriekeramiker/in Verfahrenstechnik":                                         "Stellt Keramikprodukte wie Geschirr, Fliesen oder Technikteile her und überwacht den Prozess.",
+  "Industriemechaniker/in":                                                          "Baut, wartet und repariert Maschinen und Produktionsanlagen.",
+  "Informationselektroniker/in":                                                     "Installiert und repariert IT-Geräte, Netzwerke und Unterhaltungselektronik bei Kund:innen.",
+  "Investmentfondskaufmann/-frau":                                                   "Betreut Investmentfonds, wertet Finanzdaten aus und arbeitet viel am Computer.",
+  "Isolierfacharbeiter/in":                                                          "Dämmt Rohre und Anlagen gegen Wärme, Kälte und Schall.",
+  "Justizfachangestellte/r":                                                         "Arbeitet an Gerichten oder Staatsanwaltschaften, bearbeitet Akten und organisiert Termine.",
+  "Kanalbauer/in":                                                                   "Baut und repariert Abwasserkanäle und Rohrleitungen unter der Straße.",
+  "Karosserie- und Fahrzeugbaumechaniker/in":                                        "Repariert Unfallschäden an Autos und baut Fahrzeuge um oder auf.",
+  "Kaufmann/-frau für audiovisuelle Medien":                                         "Plant und organisiert Film-, TV- und Medienproduktionen kaufmännisch.",
+  "Kaufmann/-frau für Dialogmarketing":                                              "Betreut Kund:innen am Telefon, per Chat oder Mail und organisiert Kundenservice.",
+  "Kaufmann/-frau für Digitalisierungsmanagement":                                   "Hilft Firmen, digitale Lösungen einzuführen, und analysiert Daten und Abläufe.",
+  "Kaufmann/-frau für Groß- und Außenhandelsmanagement":                             "Kauft Waren in großen Mengen ein, verkauft sie an Firmen und organisiert den Handel.",
+  "Kaufmann/-frau für Hotelmanagement":                                              "Plant und organisiert Abläufe im Hotel, von Buchungen bis Personal und Finanzen.",
+  "Kaufmann/-frau für IT-System-Management":                                         "Berät Kund:innen zu IT-Lösungen, verkauft sie und richtet Systeme ein.",
+  "Kaufmann/-frau für Kurier-, Express- und Postdienstleistungen":                   "Organisiert den Versand von Briefen und Paketen und berät Geschäftskund:innen.",
+  "Kaufmann/-frau für Marketingkommunikation":                                       "Plant Werbekampagnen, betreut Kund:innen und koordiniert Agenturen.",
+  "Kaufmann/-frau für Tourismus und Freizeit":                                       "Entwickelt Freizeit- und Reiseangebote und berät Gäste, zum Beispiel in Touristinfos.",
+  "Kaufmann/-frau für Verkehrsservice":                                              "Betreut Fahrgäste im Zug oder am Bahnhof, verkauft Tickets und informiert.",
+  "Kaufmann/-frau für Versicherungen und Finanzanlagen":                             "Berät Kund:innen zu Versicherungen und Geldanlagen und bearbeitet Schadensfälle.",
+  "Kaufmann/-frau im E-Commerce":                                                    "Betreut Onlineshops, plant Angebote und Werbung und wertet Verkaufszahlen aus.",
+  "Kaufmann/-frau im Eisenbahn- und Straßenverkehr":                                 "Plant Fahrpläne und Transporte bei Verkehrsunternehmen und berät Kund:innen.",
+  "Kaufmann/-frau im Gesundheitswesen":                                              "Organisiert die Verwaltung in Kliniken oder Praxen und rechnet Leistungen ab.",
+  "Keramiker/in":                                                                    "Formt Gefäße und Objekte aus Ton an der Töpferscheibe, glasiert und brennt sie.",
+  "Kerzenhersteller/in und Wachsbildner/in":                                         "Stellt Kerzen und Figuren aus Wachs her und verziert sie.",
+  "Klavier- und Cembalobauer/in":                                                    "Baut, repariert und stimmt Klaviere, Flügel und Cembali.",
+  "Klempner/in":                                                                     "Verarbeitet Blech, zum Beispiel für Dachrinnen und Fassaden, und montiert es am Gebäude.",
+  "Koch / Köchin":                                                                   "Bereitet Speisen zu, plant Menüs und arbeitet im Team in der Küche.",
+  "Konditor/in":                                                                     "Stellt Torten, Pralinen und feines Gebäck her und verziert sie kunstvoll.",
+  "Konstruktionsmechaniker/in":                                                      "Baut große Metallkonstruktionen wie Stahlträger, Kräne oder Schiffsteile und schweißt sie.",
+  "Kosmetiker/in":                                                                   "Pflegt Haut, Hände und Füße, schminkt und berät zu Kosmetik.",
+  "Kunststoff- und Kautschuktechnologe/-in":                                         "Stellt Bauteile aus Kunststoff und Gummi her und bedient die Maschinen dafür.",
+  "Kürschner/in":                                                                    "Verarbeitet Pelze und Felle zu Kleidung und repariert sie.",
+  "Lacklaborant/in":                                                                 "Entwickelt und prüft im Labor Lacke und Farben.",
+  "Land- und Baumaschinenmechatroniker/in":                                          "Wartet und repariert Traktoren, Mähdrescher und Baumaschinen.",
+  "Landwirt/in":                                                                     "Bestellt Felder, versorgt Tiere und führt einen landwirtschaftlichen Betrieb.",
+  "Leichtflugzeugbauer/in":                                                          "Baut und repariert Segelflugzeuge und leichte Motorflugzeuge.",
+  "Leuchtröhrenglasbläser/in":                                                       "Formt Glasröhren zu Leuchtschriften und Lichtobjekten.",
+  "Maler/in und Lackierer/in":                                                       "Streicht und tapeziert Räume, gestaltet Fassaden und lackiert Oberflächen.",
+  "Manufakturporzellanmaler/in":                                                     "Bemalt hochwertiges Porzellan von Hand mit feinen Motiven.",
+  "Maschinen- und Anlagenführer/in":                                                 "Richtet Produktionsmaschinen ein, bedient sie und überwacht die Herstellung.",
+  "Maskenbildner/in":                                                                "Schminkt und frisiert Darsteller:innen für Theater, Film und Fernsehen und baut Masken.",
+  "Maßschneider/in":                                                                 "Fertigt Kleidung nach Maß für Kund:innen an und berät sie dabei.",
+  "Maßschuhmacher/in":                                                               "Fertigt Schuhe in Handarbeit genau nach dem Fuß der Kund:innen.",
+  "Mathematisch-technische/r Softwareentwickler/in":                                 "Entwickelt Programme und löst mathematische Probleme mit Software.",
+  "Maurer/in":                                                                       "Mauert Wände, betoniert und baut Häuser vom Fundament an mit auf.",
+  "Mechaniker/in für Reifen- und Vulkanisationstechnik":                             "Wechselt und repariert Reifen und erneuert Gummiteile an Fahrzeugen.",
+  "Mechatroniker/in für Kältetechnik":                                               "Baut und wartet Kühlanlagen, Klimaanlagen und Wärmepumpen.",
+  "Mediengestalter/in Bild und Ton":                                                 "Filmt, nimmt Ton auf und schneidet Videos für Fernsehen, Web und Film.",
+  "Medienkaufmann/-frau Digital und Print":                                          "Plant und vermarktet Zeitschriften, Bücher und digitale Medien kaufmännisch.",
+  "Medientechnologe/-in Druck":                                                      "Bereitet Druckaufträge vor und bedient große Druckmaschinen.",
+  "Medientechnologe/-in Druckverarbeitung":                                          "Verarbeitet Gedrucktes weiter zu Büchern, Broschüren oder Verpackungen.",
+  "Medientechnologe/-in Siebdruck":                                                  "Bedruckt im Siebdruck T-Shirts, Schilder, Glas und andere Materialien.",
+  "Medizinische/r Fachangestellte/r":                                                "Betreut Patient:innen in der Arztpraxis, nimmt Blut ab und organisiert Termine.",
+  "Metall- und Glockengießer/in":                                                    "Gießt Glocken, Skulpturen und Bauteile aus Metall.",
+  "Metallbauer/in":                                                                  "Fertigt und montiert Tore, Geländer, Treppen und Konstruktionen aus Metall.",
+  "Metallbildner/in":                                                                "Gestaltet kunstvolle Gegenstände aus Metall, zum Beispiel durch Schmieden oder Treiben.",
+  "Metallblasinstrumentenmacher/in":                                                 "Baut und repariert Trompeten, Posaunen, Hörner und Tuben.",
+  "Mikrotechnologe/-in":                                                             "Stellt winzige Bauteile wie Mikrochips und Sensoren im Reinraum her.",
+  "Milchtechnologe/-in":                                                             "Verarbeitet Milch zu Käse, Joghurt und Butter und steuert die Anlagen.",
+  "Milchwirtschaftliche/r Laborant/in":                                              "Untersucht Milch und Milchprodukte im Labor auf Qualität.",
+  "Modist/in":                                                                       "Entwirft und fertigt Hüte und Kopfschmuck in Handarbeit.",
+  "Musikfachhändler/in":                                                             "Berät und verkauft Instrumente, Noten und Musiktechnik.",
+  "Naturwerksteinmechaniker/in":                                                     "Bearbeitet Natursteine mit Maschinen zu Platten, Treppen oder Arbeitsplatten.",
+  "Oberflächenbeschichter/in":                                                       "Beschichtet Metall und Kunststoff, zum Beispiel durch Verchromen oder Lackieren.",
+  "Ofen- und Luftheizungsbauer/in":                                                  "Baut Kachelöfen, Kamine und Heizungsanlagen bei Kund:innen ein.",
+  "Orgelbauer/in":                                                                   "Baut, restauriert und stimmt Orgeln, oft in Kirchen.",
+  "Orthopädieschuhmacher/in":                                                        "Fertigt Einlagen und orthopädische Schuhe für Menschen mit Fußproblemen.",
+  "Orthopädietechnik-Mechaniker/in":                                                 "Baut Prothesen, Orthesen und Hilfsmittel und passt sie an Patient:innen an.",
+  "Packmitteltechnologe/-in":                                                        "Stellt Verpackungen aus Papier, Karton oder Folie mit Maschinen her.",
+  "Papiertechnologe/-in":                                                            "Steuert die Maschinen, die Papier und Karton herstellen.",
+  "Parkettleger/in":                                                                 "Verlegt und schleift Parkett- und Holzböden.",
+  "Patentanwaltsfachangestellte/r":                                                  "Organisiert in einer Patentanwaltskanzlei Fristen, Akten und den Schriftverkehr.",
+  "Pelzveredler/in":                                                                 "Bearbeitet Felle, färbt und veredelt sie.",
+  "Personaldienstleistungskaufmann/-frau":                                           "Sucht und vermittelt Personal, führt Bewerbungsgespräche und berät Firmen.",
+  "Pferdewirt/in":                                                                   "Versorgt, pflegt und trainiert Pferde und arbeitet viel im Stall und draußen.",
+  "Pflanzentechnologe/-in":                                                          "Züchtet und untersucht Pflanzen im Labor, Gewächshaus und auf dem Feld.",
+  "Pharmakant/in":                                                                   "Stellt Medikamente in großen Anlagen her und hält strenge Hygienevorschriften ein.",
+  "Pharmazeutisch-kaufmännische/r Angestellte/r":                                    "Bestellt Medikamente, verwaltet das Lager und erledigt Büroarbeit in der Apotheke.",
+  "Physiklaborant/in":                                                               "Führt physikalische Messungen und Versuche im Labor durch und wertet sie aus.",
+  "Polster- und Dekorationsnäher/in":                                                "Näht Bezüge, Gardinen und Dekostoffe für Polstermöbel und Räume.",
+  "Polsterer / Polsterin":                                                           "Polstert Sofas und Stühle neu und repariert Polstermöbel.",
+  "Präzisionswerkzeugmechaniker/in":                                                 "Stellt und schärft feinste Werkzeuge wie Bohrer und Fräser.",
+  "Produktgestalter/in-Textil":                                                      "Entwirft Stoffe und Textilprodukte und bereitet sie für die Herstellung vor.",
+  "Produktionsfachkraft Chemie":                                                     "Bedient Anlagen in der chemischen Produktion und überwacht die Herstellung.",
+  "Produktionsmechaniker/in-Textil":                                                 "Richtet Textilmaschinen ein und überwacht die Herstellung von Stoffen.",
+  "Produktionstechnologe/-in":                                                       "Plant und optimiert Produktionsabläufe und nimmt neue Anlagen in Betrieb.",
+  "Produktprüfer/in-Textil":                                                         "Prüft Stoffe und Textilien auf Fehler und Qualität.",
+  "Produktveredler/in-Textil":                                                       "Färbt, bedruckt und veredelt Stoffe mit Maschinen.",
+  "Prüftechnologe/-in Keramik":                                                      "Prüft Keramikprodukte im Labor auf Festigkeit und Qualität.",
+  "Raumausstatter/in":                                                               "Gestaltet Räume mit Böden, Gardinen, Tapeten und Polstermöbeln und berät Kund:innen.",
+  "Rechtsanwalts- und Notarfachangestellte/r":                                       "Organisiert Büro, Akten und Termine in Kanzlei oder Notariat und betreut Mandant:innen.",
+  "Rechtsanwaltsfachangestellte/r":                                                  "Organisiert in einer Anwaltskanzlei Akten, Fristen und den Kontakt mit Mandant:innen.",
+  "Revierjäger/in":                                                                  "Betreut ein Jagdrevier, beobachtet und hegt Wildtiere und pflegt die Natur.",
+  "Rohrleitungsbauer/in":                                                            "Verlegt Rohrleitungen für Gas, Wasser und Fernwärme im Boden.",
+  "Rollladen- und Sonnenschutzmechatroniker/in":                                     "Baut Rollläden, Markisen und Jalousien ein und repariert ihre Antriebe.",
+  "Sattler/in":                                                                      "Fertigt Sättel, Taschen oder Fahrzeugpolster aus Leder und Stoff.",
+  "Schädlingsbekämpfer/in":                                                          "Bekämpft Ratten, Insekten und andere Schädlinge in Gebäuden und Betrieben.",
+  "Schifffahrtskaufmann/-frau":                                                      "Organisiert Schiffstransporte, chartert Schiffe und berät Kund:innen im Seehandel.",
+  "Schilder- und Lichtreklamehersteller/in":                                         "Gestaltet und baut Schilder, Leuchtreklamen und Beschriftungen.",
+  "Schornsteinfeger/in":                                                             "Kontrolliert Heizungen und Schornsteine, misst Abgase und berät zu Energie.",
+  "Schuhfertiger/in":                                                                "Stellt Schuhe in der Industrie mit Maschinen her.",
+  "Segelmacher/in":                                                                  "Entwirft und näht Segel, Planen und Zelte.",
+  "Seiler/in":                                                                       "Stellt Seile, Netze und Gurte her.",
+  "Servicefachkraft für Dialogmarketing":                                            "Berät Kund:innen am Telefon, per Mail oder Chat und nimmt Aufträge an.",
+  "Servicefahrer/in":                                                                "Liefert Waren aus, berät Kund:innen vor Ort und kassiert.",
+  "Servicekaufmann/-frau im Luftverkehr":                                            "Betreut Fluggäste am Flughafen, checkt sie ein und organisiert Abläufe.",
+  "Servicekraft für Schutz und Sicherheit":                                          "Bewacht Gebäude, kontrolliert Eingänge und sorgt für Sicherheit bei Veranstaltungen.",
+  "Spezialtiefbauer/in":                                                             "Baut tiefe Fundamente, Baugruben und Tunnel mit großen Spezialmaschinen.",
+  "Spielzeughersteller/in":                                                          "Fertigt Spielzeug aus Holz, Stoff oder Kunststoff.",
+  "Sport- und Fitnesskaufmann/-frau":                                                "Organisiert Abläufe im Fitnessstudio, berät Mitglieder und plant Kurse.",
+  "Sportfachmann/-frau":                                                             "Leitet Training und Sportkurse an und organisiert Sportangebote.",
+  "Stanz- und Umformmechaniker/in":                                                  "Formt Blech an großen Pressen zu Bauteilen, zum Beispiel für Autos.",
+  "Steinmetz/in und Steinbildhauer/in":                                              "Bearbeitet Naturstein zu Grabsteinen, Treppen, Figuren und Fassaden.",
+  "Straßenbauer/in":                                                                 "Baut Straßen, Wege und Plätze und pflastert sie – draußen bei jedem Wetter.",
+  "Straßenwärter/in":                                                                "Pflegt Straßen, mäht Böschungen, repariert Schäden und räumt im Winter Schnee.",
+  "Stuckateur/in":                                                                   "Verputzt Wände und Decken, dämmt Gebäude und gestaltet Stuck.",
+  "Süßwarentechnologe/-in":                                                          "Stellt Schokolade, Bonbons und Gebäck in großen Anlagen her.",
+  "Tankwart/in":                                                                     "Bedient Kund:innen an der Tankstelle, verkauft und erledigt kleine Arbeiten am Auto.",
+  "Technische/r Konfektionär/in":                                                    "Fertigt technische Textilien wie Planen, Zelte oder Schutzhüllen.",
+  "Technische/r Modellbauer/in":                                                     "Baut Modelle und Prototypen, zum Beispiel für Autos oder Architektur.",
+  "Technische/r Produktdesigner/in":                                                 "Konstruiert Bauteile und Produkte am Computer in 3D.",
+  "Technische/r Systemplaner/in":                                                    "Plant am Computer die Technik von Gebäuden wie Heizung, Lüftung und Elektrik.",
+  "Textil- und Modenäher/in":                                                        "Näht Kleidung und Textilien in der Produktion.",
+  "Textil- und Modeschneider/in":                                                    "Schneidet Stoffe zu und fertigt Kleidung in der Industrie.",
+  "Textilgestalter/in im Handwerk":                                                  "Webt, strickt oder bedruckt Stoffe und gestaltet Textilien von Hand.",
+  "Textillaborant/in":                                                               "Prüft Fasern und Stoffe im Labor auf ihre Eigenschaften.",
+  "Textilreiniger/in":                                                               "Reinigt und pflegt Kleidung und Textilien mit Maschinen.",
+  "Thermometermacher/in":                                                            "Stellt Thermometer und Messgeräte aus Glas her.",
+  "Tiefbaufacharbeiter/in":                                                          "Arbeitet beim Bau von Straßen, Kanälen und Leitungen im Boden mit.",
+  "Tiermedizinische/r Fachangestellte/r":                                            "Unterstützt in der Tierarztpraxis, betreut Tiere und ihre Halter:innen.",
+  "Tierpfleger/in":                                                                  "Versorgt und pflegt Tiere im Zoo, Tierheim oder in Kliniken.",
+  "Tierwirt/in":                                                                     "Hält und versorgt Nutztiere wie Rinder, Schweine, Schafe oder Bienen.",
+  "Tourismuskaufmann/-frau (Kaufmann/-frau für Privat- und Geschäftsreisen)":        "Berät Kund:innen im Reisebüro und plant und bucht Urlaubs- und Geschäftsreisen.",
+  "Trockenbaumonteur/in":                                                            "Baut Wände, Decken und Böden aus Gipskarton und Ständerwerk ein.",
+  "Uhrmacher/in":                                                                    "Repariert, wartet und baut mechanische und elektronische Uhren.",
+  "Umwelttechnologe/-in für Abwasserbewirtschaftung":                                "Überwacht Kläranlagen und sorgt dafür, dass Abwasser sauber wird.",
+  "Umwelttechnologe/-in für Kreislauf- und Abfallwirtschaft":                        "Organisiert Sammlung, Sortierung und Recycling von Abfall.",
+  "Umwelttechnologe/-in für Rohrleitungsnetze und Industrieanlagen":                 "Wartet Rohrleitungsnetze und Anlagen für Wasser, Gas und Wärme.",
+  "Umwelttechnologe/-in für Wasserversorgung":                                       "Sorgt dafür, dass sauberes Trinkwasser aus der Leitung kommt, und prüft die Qualität.",
+  "Veranstaltungskaufmann/-frau":                                                    "Plant und organisiert Konzerte, Messen und Events und betreut Kund:innen.",
+  "Verfahrensmechaniker/in für Beschichtungstechnik":                                "Beschichtet Bauteile mit Lack, Pulver oder Kunststoff in Anlagen.",
+  "Verfahrensmechaniker/in für Brillenoptik":                                        "Stellt Brillengläser mit computergesteuerten Maschinen her.",
+  "Verfahrensmechaniker/in Glastechnik":                                             "Steuert Anlagen, die Glasprodukte wie Flaschen oder Scheiben herstellen.",
+  "Verfahrensmechaniker/in in der Steine- und Erdenindustrie":                       "Stellt Baustoffe wie Zement, Kalk oder Ziegel in Anlagen her.",
+  "Verfahrenstechnologe/-in Metall":                                                 "Steuert Anlagen, in denen Stahl und Metalle erzeugt und geformt werden.",
+  "Verfahrenstechnologe/-in Mühlen- und Getreidewirtschaft":                         "Verarbeitet Getreide zu Mehl und Futtermitteln und steuert die Mühlenanlagen.",
+  "Vergolder/in":                                                                    "Veredelt Bilderrahmen, Möbel und Figuren mit Blattgold und restauriert sie.",
+  "Verkäufer/in":                                                                    "Berät Kund:innen im Geschäft, kassiert und räumt Ware ein.",
+  "Vermessungstechniker/in":                                                         "Vermisst Grundstücke und Gebäude draußen und wertet die Daten am Computer aus.",
+  "Verwaltungsfachangestellte/r":                                                    "Bearbeitet Anträge in Ämtern und Behörden und berät Bürger:innen.",
+  "Wärme-, Kälte- und Schallschutzisolierer/in":                                     "Dämmt Rohre, Gebäude und Anlagen gegen Wärme, Kälte und Lärm.",
+  "Wasserbauer/in":                                                                  "Baut und pflegt Ufer, Deiche, Schleusen und Wasserstraßen.",
+  "Weintechnologe/-in":                                                              "Stellt Wein und Sekt im Keller her und prüft die Qualität.",
+  "Werkfeuerwehrmann/-frau":                                                         "Löscht Brände, rettet und schützt in Industriebetrieben und wartet die Technik.",
+  "Werkgehilfe/-in Schmuckwarenindustrie, Taschen- und Armbanduhren":                "Fertigt und montiert Schmuck und Uhrenteile in der Industrie.",
+  "Werksteinhersteller/in":                                                          "Stellt Bauteile aus Betonwerkstein her, zum Beispiel Treppen oder Fensterbänke.",
+  "Werkstoffprüfer/in":                                                              "Prüft Metalle und Kunststoffe im Labor auf Festigkeit und Fehler.",
+  "Werkzeugmechaniker/in":                                                           "Baut und wartet Werkzeuge, Formen und Vorrichtungen für die Produktion.",
+  "Winzer/in":                                                                       "Pflegt Weinberge, erntet Trauben und stellt daraus Wein her.",
+  "Zahnmedizinische/r Fachangestellte/r":                                            "Assistiert bei der Zahnbehandlung, betreut Patient:innen und organisiert die Praxis.",
+  "Zahntechniker/in":                                                                "Fertigt Zahnersatz wie Kronen, Brücken und Zahnspangen im Labor.",
+  "Zerspanungsmechaniker/in":                                                        "Fräst, dreht und bohrt Metallteile an computergesteuerten Maschinen.",
+  "Zimmerer / Zimmerin":                                                             "Baut Dachstühle, Holzhäuser und Holzkonstruktionen und arbeitet oft auf der Baustelle.",
+  "Zupfinstrumentenmacher/in":                                                       "Baut und repariert Gitarren, Mandolinen und Harfen.",
+  "Zweiradmechatroniker/in":                                                         "Repariert und wartet Fahrräder, E-Bikes und Motorräder.",
+};
 
 // 309 Ausbildungsberufe aus dem BIBB-Verzeichnis 2026.
 // ACHTUNG: Die Profile sind VORLAEUFIG - eine Einschaetzung pro Beruf, noch nicht fachlich geprueft.
@@ -887,7 +1452,7 @@ const BERUFE_VORLAEUFIG = [
   { name: 'Zimmerer / Zimmerin', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 85, Infos: 5, Drinnen: 25, Struktur: 75, Verantwortung: 40, Vorne: 10 } },
   { name: 'Zupfinstrumentenmacher/in', bereich: 'Kreatives', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 75, Verantwortung: 20, Vorne: 5 } },
   { name: 'Zweiradmechatroniker/in', bereich: 'Technik', profil: { Menschen: 25, Dinge: 70, Infos: 5, Drinnen: 90, Struktur: 65, Verantwortung: 30, Vorne: 30 } },
-].map(b => ({ ...b, vorlaeufig: true }));
+].map(b => ({ ...b, vorlaeufig: true, beschreibung: BESCHREIBUNGEN_VORLAEUFIG[b.name] || '' }));
 
 // Alle Berufe zusammen: erst die geprueften, dann die vorlaeufigen.
 const BERUFE = BERUFE_GEPRUEFT.concat(BERUFE_VORLAEUFIG);
@@ -1143,6 +1708,208 @@ function starteApp() {
   const BUCHSTABEN = ['A', 'B', 'C', 'D', 'E', 'F'];
   const zustand = { index: 0, antworten: {} };
   let weiterTimer = null;
+  let aktuellesErgebnis = null;
+
+  // ---------- Einstellungen ----------
+  // Werden nur in diesem Browser gespeichert (localStorage). Antworten werden nie gespeichert.
+
+  const EINSTELLUNGEN_KEY = 'aptio-einstellungen';
+  const STANDARD = { theme: 'system', text: 'normal', autoWeiter: true, ruhig: false, details: true };
+  let einstellungen = ladeEinstellungen();
+
+  function ladeEinstellungen() {
+    try { return { ...STANDARD, ...JSON.parse(localStorage.getItem(EINSTELLUNGEN_KEY) || '{}') }; }
+    catch (_) { return { ...STANDARD }; }
+  }
+  function speichereEinstellungen() {
+    try { localStorage.setItem(EINSTELLUNGEN_KEY, JSON.stringify(einstellungen)); } catch (_) { /* egal */ }
+  }
+  function einstellungenAnwenden() {
+    const r = document.documentElement;
+    if (einstellungen.theme === 'system') delete r.dataset.theme; else r.dataset.theme = einstellungen.theme;
+    if (einstellungen.text === 'gross') r.dataset.text = 'gross'; else delete r.dataset.text;
+    if (einstellungen.ruhig) r.dataset.motion = 'ruhig'; else delete r.dataset.motion;
+    if (einstellungen.details) delete r.dataset.tips; else { r.dataset.tips = 'aus'; versteckeTip(); }
+    if (!bildschirme.quiz.hidden) weiterKnopfAktualisieren();
+  }
+  function formularFuellen() {
+    document.querySelectorAll('#settings input[name="theme"]').forEach(i => { i.checked = i.value === einstellungen.theme; });
+    document.querySelectorAll('#settings input[name="text"]').forEach(i => { i.checked = i.value === einstellungen.text; });
+    $('set-auto').checked = einstellungen.autoWeiter;
+    $('set-motion').checked = einstellungen.ruhig;
+    $('set-tips').checked = einstellungen.details;
+  }
+  function aendere(feld, wert) {
+    einstellungen[feld] = wert;
+    speichereEinstellungen();
+    einstellungenAnwenden();
+  }
+
+  const dialog = $('settings');
+  $('open-settings').addEventListener('click', () => { formularFuellen(); versteckeTip(); dialog.showModal(); });
+  $('close-settings').addEventListener('click', () => dialog.close());
+  $('done-settings').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); }); // Klick neben das Fenster
+  $('reset-settings').addEventListener('click', () => {
+    einstellungen = { ...STANDARD };
+    speichereEinstellungen();
+    einstellungenAnwenden();
+    formularFuellen();
+  });
+  dialog.querySelectorAll('input[name="theme"]').forEach(i => i.addEventListener('change', () => aendere('theme', i.value)));
+  dialog.querySelectorAll('input[name="text"]').forEach(i => i.addEventListener('change', () => aendere('text', i.value)));
+  $('set-auto').addEventListener('change', e => aendere('autoWeiter', e.target.checked));
+  $('set-motion').addEventListener('change', e => aendere('ruhig', e.target.checked));
+  $('set-tips').addEventListener('change', e => aendere('details', e.target.checked));
+
+  // ---------- Berufsdetails (Drüberfahren / Antippen) ----------
+
+  const WORT_FELD = { Menschen: 'Menschen', Dinge: 'Dingen', Infos: 'Zahlen und Infos' };
+
+  // Einordnung „Womit du arbeitest“: Schlüssel zum Vergleichen + Text
+  function feld(x) {
+    const r = ['Menschen', 'Dinge', 'Infos'].map(k => [k, x[k]]).sort((a, b) => b[1] - a[1]);
+    if (r[0][1] - r[1][1] < 15) {
+      const zwei = [r[0][0], r[1][0]].sort();
+      return { key: zwei.join('+'), text: `mit ${WORT_FELD[r[0][0]]} und ${WORT_FELD[r[1][0]]}` };
+    }
+    return { key: r[0][0], text: `vor allem mit ${WORT_FELD[r[0][0]]}` };
+  }
+  // Drei Stufen: hoch (ab 60), mittel, tief (bis 40)
+  function stufe(wert) {
+    return wert >= 60 ? 'hoch' : wert <= 40 ? 'tief' : 'mittel';
+  }
+  // Gleiche Einordnung = passt. Sonst entscheidet der Abstand, ob es teils oder anders ist.
+  function bewertung(gleich, abstand) {
+    if (gleich) return { klasse: 'ok', text: 'passt' };
+    if (abstand <= 35) return { klasse: 'teils', text: 'teils' };
+    return { klasse: 'anders', text: 'anders' };
+  }
+
+  // Vergleich Beruf ↔ du in den fünf Bereichen, Reihenfolge nach Gewicht.
+  function vergleich(p, du) {
+    const q = x => x * x;
+    const zweiseitig = (dim, wertBeruf, wertDu, texte, texteDu = texte) => ({
+      dim, beruf: texte[stufe(wertBeruf)], du: texteDu[stufe(wertDu)],
+      ...bewertung(stufe(wertBeruf) === stufe(wertDu), Math.abs(wertBeruf - wertDu)),
+    });
+    const fb = feld(p), fd = feld(du);
+    return [
+      { dim: 'Womit du arbeitest', beruf: fb.text, du: fd.text,
+        ...bewertung(fb.key === fd.key,
+          Math.sqrt((q(p.Menschen - du.Menschen) + q(p.Dinge - du.Dinge) + q(p.Infos - du.Infos)) / 2)) },
+      zweiseitig('Drinnen oder draußen', p.Drinnen, du.Drinnen,
+        { hoch: 'eher drinnen', mittel: 'drinnen und draußen', tief: 'eher draußen' }),
+      zweiseitig('Arbeitsweise', p.Struktur, du.Struktur,
+        { hoch: 'feste Abläufe', mittel: 'mal so, mal so', tief: 'viel Abwechslung' }),
+      zweiseitig('Verantwortung', p.Verantwortung, du.Verantwortung,
+        { hoch: 'viel', mittel: 'etwas', tief: 'wenig' },
+        { hoch: 'gern viel', mittel: 'etwas', tief: 'lieber wenig' }),
+      zweiseitig('Vorne oder im Hintergrund', p.Vorne, du.Vorne,
+        { hoch: 'oft vor Leuten', mittel: 'beides', tief: 'eher im Hintergrund' },
+        { hoch: 'gern vorne', mittel: 'beides', tief: 'eher im Hintergrund' }),
+    ];
+  }
+
+  let tipEl = null, tipZiel = null, tipFixiert = false;
+
+  function tipInhalt(r) {
+    const zeilen = vergleich(r.beruf.profil, aktuellesErgebnis.profil);
+    const passt = zeilen.filter(z => z.klasse === 'ok').length;
+    return [
+      el('h3', { id: 'job-tip-title' }, r.beruf.name.replaceAll('/-', '/‑')),
+      el('p', { class: 'tip-desc' }, r.beruf.beschreibung || 'Für diesen Beruf gibt es noch keine Beschreibung.'),
+      el('p', { class: 'tip-label' }, `Passt in ${passt} von ${zeilen.length} Bereichen zu dir`),
+      el('ul', { class: 'tip-rows' }, zeilen.map(z =>
+        el('li', {},
+          el('span', { class: 'tip-dim' }, z.dim),
+          el('span', { class: `tip-badge ${z.klasse}` }, z.text),
+          el('span', { class: 'tip-vs' }, `Im Beruf: ${z.beruf}. Du: ${z.du}.`)))),
+      el('div', { class: 'tip-fit' }, el('span', {}, 'Passung insgesamt'), el('strong', {}, prozentText(r.passung))),
+      r.beruf.vorlaeufig && el('p', { class: 'tip-flag' }, 'Profil und Beschreibung sind noch vorläufig.'),
+    ];
+  }
+
+  function zeigeTip(ziel, fixiert) {
+    if (!einstellungen.details || !aktuellesErgebnis) return;
+    const r = aktuellesErgebnis.rangliste[Number(ziel.dataset.tip)];
+    if (!r) return;
+    versteckeTip();
+    tipZiel = ziel;
+    tipFixiert = fixiert;
+    tipEl = el('div', { class: 'job-tip', id: 'job-tip', role: fixiert ? 'dialog' : 'tooltip', 'aria-labelledby': 'job-tip-title' }, tipInhalt(r));
+    if (fixiert) {
+      const zu = el('button', { class: 'icon-btn tip-close', type: 'button', 'aria-label': 'Schließen' });
+      zu.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+      zu.addEventListener('click', e => { e.stopPropagation(); versteckeTip(); ziel.focus({ preventScroll: true }); });
+      tipEl.prepend(zu);
+    }
+    document.body.append(tipEl);
+    ziel.classList.add('is-active');
+    ziel.setAttribute('aria-describedby', 'job-tip');
+    positioniereTip();
+  }
+
+  function positioniereTip() {
+    if (!tipEl || !tipZiel) return;
+    if (matchMedia('(hover: none), (max-width: 560px)').matches) return; // unten als Leiste, per CSS
+    const rect = tipZiel.getBoundingClientRect();
+    const w = tipEl.offsetWidth, h = tipEl.offsetHeight, rand = 12;
+    const begrenze = (wert, min, max) => Math.max(min, Math.min(wert, max));
+    let left, top;
+    if (innerWidth - rect.right >= w + rand * 2) {          // rechts daneben, wenn Platz
+      left = rect.right + rand;
+      top = begrenze(rect.top, rand, innerHeight - h - rand);
+    } else {                                                  // sonst darunter oder darüber
+      left = begrenze(rect.left, rand, innerWidth - w - rand);
+      top = rect.bottom + 8 + h <= innerHeight - rand ? rect.bottom + 8 : Math.max(rand, rect.top - 8 - h);
+    }
+    tipEl.style.left = `${left}px`;
+    tipEl.style.top = `${top}px`;
+  }
+
+  function versteckeTip() {
+    if (tipZiel) { tipZiel.classList.remove('is-active'); tipZiel.removeAttribute('aria-describedby'); }
+    if (tipEl) tipEl.remove();
+    tipEl = tipZiel = null;
+    tipFixiert = false;
+  }
+
+  const inhaltErgebnis = $('result-content');
+  const tipZielVon = node => node instanceof Element ? node.closest('[data-tip]') : null;
+  inhaltErgebnis.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse' || tipFixiert) return;
+    const ziel = tipZielVon(e.target);
+    if (ziel && ziel !== tipZiel) zeigeTip(ziel, false);
+  });
+  inhaltErgebnis.addEventListener('pointerout', e => {
+    if (e.pointerType !== 'mouse' || tipFixiert || !tipZiel) return;
+    if (!tipZiel.contains(e.relatedTarget)) versteckeTip();
+  });
+  inhaltErgebnis.addEventListener('click', e => {
+    const ziel = tipZielVon(e.target);
+    if (!ziel || e.target.closest('a, button, summary')) return;
+    if (ziel === tipZiel && tipFixiert) versteckeTip(); else zeigeTip(ziel, true);
+  });
+  inhaltErgebnis.addEventListener('focusin', e => {
+    const ziel = tipZielVon(e.target);
+    if (ziel && !tipFixiert && ziel !== tipZiel && ziel.matches(':focus-visible')) zeigeTip(ziel, false);
+  });
+  inhaltErgebnis.addEventListener('focusout', e => {
+    if (!tipFixiert && tipZiel && !tipZiel.contains(e.relatedTarget)) versteckeTip();
+  });
+  inhaltErgebnis.addEventListener('keydown', e => {
+    const ziel = tipZielVon(e.target);
+    if (!ziel || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    if (ziel === tipZiel && tipFixiert) versteckeTip(); else zeigeTip(ziel, true);
+  });
+  document.addEventListener('click', e => {
+    if (tipFixiert && tipEl && !tipEl.contains(e.target) && !tipZielVon(e.target)) versteckeTip();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && tipEl) versteckeTip(); });
+  addEventListener('scroll', positioniereTip, true); // Fenster wandert beim Scrollen mit
+  addEventListener('resize', positioniereTip);
 
   const probleme = datenPruefen();
   if (probleme.length) console.warn('Aptio – Probleme in den Daten:\n' + probleme.join('\n'));
@@ -1153,6 +1920,7 @@ function starteApp() {
   $('progress').setAttribute('aria-valuemax', FRAGEN.length);
 
   function zeige(name) {
+    versteckeTip();
     for (const [key, node] of Object.entries(bildschirme)) node.hidden = key !== name;
     window.scrollTo({ top: 0 });
   }
@@ -1191,7 +1959,6 @@ function starteApp() {
         liste.append(knopf);
       });
       bereich.append(liste);
-      $('next').hidden = true; // Antwort antippen führt direkt zur nächsten Frage
     } else {
       $('hint').textContent = 'Optional – aber je mehr du schreibst, desto persönlicher wird dein Ergebnis.';
       $('hint').hidden = false;
@@ -1199,11 +1966,19 @@ function starteApp() {
       feld.value = zustand.antworten[frage.nr] || '';
       feld.addEventListener('input', () => { zustand.antworten[frage.nr] = feld.value; });
       bereich.append(feld);
-      $('next').hidden = false; // Freitext braucht den Knopf, um weiterzukommen
     }
+    weiterKnopfAktualisieren();
 
     animiere($('quiz-card'));
     $('question').focus({ preventScroll: true });
+  }
+
+  // Bei Antwortfragen mit „automatisch weiter“ braucht es keinen Weiter-Knopf; Freitext braucht ihn immer.
+  function weiterKnopfAktualisieren() {
+    const frage = FRAGEN[zustand.index];
+    const mc = istMultipleChoice(frage);
+    $('next').hidden = mc && einstellungen.autoWeiter;
+    $('next').disabled = mc && zustand.antworten[frage.nr] === undefined;
   }
 
   function waehle(i) {
@@ -1211,7 +1986,8 @@ function starteApp() {
     zustand.antworten[frage.nr] = i;
     $('answer-area').querySelectorAll('.answer').forEach((knopf, j) => knopf.setAttribute('aria-pressed', String(i === j)));
     clearTimeout(weiterTimer);
-    weiterTimer = setTimeout(weiter, 320); // kurz zeigen, was gewählt wurde, dann weiter
+    weiterKnopfAktualisieren();
+    if (einstellungen.autoWeiter) weiterTimer = setTimeout(weiter, 320); // kurz zeigen, was gewählt wurde, dann weiter
   }
 
   function weiter() {
@@ -1237,6 +2013,8 @@ function starteApp() {
 
   function zeigeErgebnis() {
     const erg = auswerten(zustand.antworten);
+    aktuellesErgebnis = erg;
+    versteckeTip();
     const inhalt = $('result-content');
     inhalt.replaceChildren();
 
@@ -1276,8 +2054,11 @@ function starteApp() {
     // Berufsvorschläge
     const berufe = el('div', { class: 'section' },
       el('h2', {}, 'Berufe, die zu dir passen könnten'),
-      el('ol', { class: 'jobs' }, erg.vorschlaege.map(v =>
-        el('li', { class: 'job' },
+      el('p', { class: 'tip-hint small muted' },
+        el('span', { class: 'mouse' }, 'Fahr mit der Maus über einen Beruf, um zu sehen, wie gut er zu dir passt. Anklicken hält das Fenster offen.'),
+        el('span', { class: 'touch' }, 'Tipp einen Beruf an, um zu sehen, wie gut er zu dir passt.')),
+      el('ol', { class: 'jobs' }, erg.vorschlaege.map((v, i) =>
+        el('li', { class: 'job', 'data-tip': i, tabindex: 0 },
           el('div', { class: 'job-head' },
             el('h3', { class: 'job-name' }, v.beruf.name.replaceAll('/-', '/‑')), // kein Zeilenumbruch nach „/-“
             el('span', { class: 'job-area' }, v.beruf.bereich)),
@@ -1305,7 +2086,7 @@ function starteApp() {
       berufe.append(el('details', { class: 'more' },
         el('summary', {}, `Alle weiteren ${weitere.length} Berufe mit Prozentzahl`),
         el('ul', { class: 'more-list' }, weitere.map((r, i) =>
-          el('li', { class: 'more-row' },
+          el('li', { class: 'more-row', 'data-tip': erg.vorschlaege.length + i, tabindex: 0 },
             el('span', { class: 'more-rank' }, erg.vorschlaege.length + i + 1),
             el('span', { class: 'more-name' }, r.beruf.name.replaceAll('/-', '/‑')),
             el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: `width:${r.passung}%` })),
@@ -1401,9 +2182,9 @@ function starteApp() {
   });
   $('restart').addEventListener('click', () => zeige('start'));
 
-  // Tastatur: A–D oder 1–4 wählt eine Antwort
+  // Tastatur: A–E oder 1–5 wählt eine Antwort
   document.addEventListener('keydown', e => {
-    if (bildschirme.quiz.hidden || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (bildschirme.quiz.hidden || dialog.open || e.altKey || e.ctrlKey || e.metaKey) return;
     if (e.target instanceof HTMLTextAreaElement) return;
     const frage = FRAGEN[zustand.index];
     if (!istMultipleChoice(frage)) return;
@@ -1415,6 +2196,8 @@ function starteApp() {
       waehle(i);
     }
   });
+
+  einstellungenAnwenden();
 }
 
 if (typeof document !== 'undefined') starteApp();
