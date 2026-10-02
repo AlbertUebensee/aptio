@@ -14,7 +14,7 @@ Antworten werden nicht gespeichert: Wenn du die Seite neu lädst, fängt das Qui
 - **329 Berufe**: 20 geprüfte aus der eigenen Berufsliste und 309 aus dem BIBB-Verzeichnis 2026, jeder mit eigenem Profil und einer Kurzbeschreibung „Was man dort tut“
 - Ergebnis: stärkste Eigenschaften, 3–5 Berufe mit Passung in Prozent (eine Nachkommastelle), ein Satz aus Frage 7, Zitate aus Frage 19 und 20
 - Unter den Vorschlägen: **„Alle weiteren Berufe mit Prozentzahl“** zum Aufklappen – die komplette Rangliste aller 329 Berufe
-- **Berufsdetails:** Mit der Maus über einen Beruf fahren (oder antippen) zeigt, was man dort macht und wie er in den fünf Bereichen zu dir passt (passt / teils / anders). Gilt für die Vorschläge und die ganze Liste.
+- **Berufskarten:** Fährt man mit der Maus über einen vorgeschlagenen Beruf, wischt der Inhalt nach oben weg und von unten erscheint, was man in dem Beruf macht (am Handy: antippen). In der Liste „Alle weiteren Berufe“ öffnet sich stattdessen ein kleines Fenster mit Beschreibung und Vergleich in den fünf Bereichen (passt / teils / anders).
 - **Einstellungen** (Zahnrad oben rechts): Aussehen (wie Gerät / hell / dunkel), Schriftgröße, automatisch weiter an/aus, Bewegungen reduzieren, Berufsdetails an/aus. Wird im Browser gespeichert (`localStorage`, Schlüssel `aptio-einstellungen`).
 - Ganz unten: **„So wurde gerechnet“** zum Aufklappen, mit deinem Profil, allen Punkten und den besten 25 Berufen
 

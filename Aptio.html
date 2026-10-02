@@ -308,6 +308,37 @@
   .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 3px; }
   .settings-foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; }
 
+  /* Berufskarte: Beim Drüberfahren wischt der Inhalt nach oben weg und die Beschreibung kommt von unten */
+  .job[data-flip] { display: grid; overflow: hidden; position: relative; cursor: pointer; }
+  .job-front, .job-back { grid-area: 1 / 1; transition: transform .5s cubic-bezier(.65, 0, .35, 1), opacity .35s ease; }
+  .job-desc-static { display: none; }
+  .job-back {
+    display: flex; flex-direction: column; justify-content: center; gap: 10px;
+    transform: translateY(105%); opacity: 0;
+  }
+  .back-label { margin: 0; font-size: .8rem; font-weight: 600; color: var(--subtle); }
+  .back-text {
+    margin: 0; font-family: var(--font-display); font-size: clamp(1.15rem, 3.6vw, 1.4rem); font-weight: 600;
+    line-height: 1.32; letter-spacing: -.02em; text-wrap: pretty;
+  }
+  .back-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: .8rem; color: var(--subtle); }
+  .back-flag { margin: 0; font-size: .72rem; color: var(--subtle); }
+  .job.is-flipped .job-front { transform: translateY(-105%); opacity: 0; }
+  .job.is-flipped .job-back { transform: none; opacity: 1; }
+  @media (hover: hover) {
+    .job[data-flip]:hover .job-front, .job[data-flip]:focus-visible .job-front { transform: translateY(-105%); opacity: 0; }
+    .job[data-flip]:hover .job-back, .job[data-flip]:focus-visible .job-back { transform: none; opacity: 1; }
+    .job[data-flip]:hover { border-color: var(--line-strong); }
+  }
+  /* Ruhige Bewegung: nur überblenden statt wischen */
+  @media (prefers-reduced-motion: reduce) { .job-front, .job-back { transform: none !important; } }
+  :root[data-motion="ruhig"] .job-front, :root[data-motion="ruhig"] .job-back { transform: none !important; }
+  /* Details aus: keine Rückseite, Beschreibung steht direkt auf der Karte */
+  :root[data-tips="aus"] .job[data-flip] { cursor: auto; }
+  :root[data-tips="aus"] .job-back { display: none; }
+  :root[data-tips="aus"] .job-front { transform: none !important; opacity: 1 !important; }
+  :root[data-tips="aus"] .job-desc-static { display: block; }
+
   /* Berufsdetails beim Drüberfahren / Antippen */
   .job[data-tip], .more-row[data-tip] { cursor: pointer; }
   .job[data-tip]:hover, .job[data-tip].is-active { border-color: var(--line-strong); }
@@ -460,7 +491,7 @@
     <div class="setting switch-row">
       <div>
         <p class="setting-name" id="lbl-tips">Details zu Berufen anzeigen</p>
-        <p>Beim Drüberfahren oder Antippen: was man macht und wie gut es zu dir passt.</p>
+        <p>Beim Drüberfahren oder Antippen: was man in dem Beruf macht und wie gut er zu dir passt.</p>
       </div>
       <label class="switch"><input type="checkbox" id="set-tips" aria-labelledby="lbl-tips"><span></span></label>
     </div>
@@ -1729,7 +1760,8 @@ function starteApp() {
     if (einstellungen.theme === 'system') delete r.dataset.theme; else r.dataset.theme = einstellungen.theme;
     if (einstellungen.text === 'gross') r.dataset.text = 'gross'; else delete r.dataset.text;
     if (einstellungen.ruhig) r.dataset.motion = 'ruhig'; else delete r.dataset.motion;
-    if (einstellungen.details) delete r.dataset.tips; else { r.dataset.tips = 'aus'; versteckeTip(); }
+    if (einstellungen.details) delete r.dataset.tips;
+    else { r.dataset.tips = 'aus'; versteckeTip(); document.querySelectorAll('.job.is-flipped').forEach(k => k.classList.remove('is-flipped')); }
     if (!bildschirme.quiz.hidden) weiterKnopfAktualisieren();
   }
   function formularFuellen() {
@@ -1886,6 +1918,18 @@ function starteApp() {
     if (e.pointerType !== 'mouse' || tipFixiert || !tipZiel) return;
     if (!tipZiel.contains(e.relatedTarget)) versteckeTip();
   });
+  // Berufskarten: Antippen oder Enter/Leertaste wendet die Karte (Drüberfahren macht das per CSS)
+  inhaltErgebnis.addEventListener('click', e => {
+    const karte = e.target instanceof Element ? e.target.closest('[data-flip]') : null;
+    if (karte && einstellungen.details && !matchMedia('(hover: hover)').matches) karte.classList.toggle('is-flipped');
+  });
+  inhaltErgebnis.addEventListener('keydown', e => {
+    const karte = e.target instanceof Element && e.target.matches('[data-flip]') ? e.target : null;
+    if (!karte || (e.key !== 'Enter' && e.key !== ' ') || !einstellungen.details) return;
+    e.preventDefault();
+    karte.classList.toggle('is-flipped');
+  });
+
   inhaltErgebnis.addEventListener('click', e => {
     const ziel = tipZielVon(e.target);
     if (!ziel || e.target.closest('a, button, summary')) return;
@@ -2011,6 +2055,19 @@ function starteApp() {
 
   // ---------- Ergebnis ----------
 
+  // Rückseite einer Berufskarte: was man dort macht
+  function jobRueckseite(v, erg) {
+    const zeilen = vergleich(v.beruf.profil, erg.profil);
+    const passt = zeilen.filter(z => z.klasse === 'ok').length;
+    return el('div', { class: 'job-back' },
+      el('p', { class: 'back-label' }, `Was man als ${v.beruf.name.replaceAll('/-', '/‑')} macht`),
+      el('p', { class: 'back-text' }, v.beruf.beschreibung || 'Für diesen Beruf gibt es noch keine Beschreibung.'),
+      el('div', { class: 'back-foot' },
+        el('span', {}, `Passt in ${passt} von ${zeilen.length} Bereichen zu dir`),
+        el('strong', { class: 'fit-wert' }, prozentText(v.passung))),
+      v.beruf.vorlaeufig && el('p', { class: 'back-flag' }, 'Beschreibung noch vorläufig'));
+  }
+
   function zeigeErgebnis() {
     const erg = auswerten(zustand.antworten);
     aktuellesErgebnis = erg;
@@ -2055,14 +2112,15 @@ function starteApp() {
     const berufe = el('div', { class: 'section' },
       el('h2', {}, 'Berufe, die zu dir passen könnten'),
       el('p', { class: 'tip-hint small muted' },
-        el('span', { class: 'mouse' }, 'Fahr mit der Maus über einen Beruf, um zu sehen, wie gut er zu dir passt. Anklicken hält das Fenster offen.'),
-        el('span', { class: 'touch' }, 'Tipp einen Beruf an, um zu sehen, wie gut er zu dir passt.')),
+        el('span', { class: 'mouse' }, 'Fahr mit der Maus über einen Beruf, um zu sehen, was man dort macht.'),
+        el('span', { class: 'touch' }, 'Tipp einen Beruf an, um zu sehen, was man dort macht.')),
       el('ol', { class: 'jobs' }, erg.vorschlaege.map((v, i) =>
-        el('li', { class: 'job', 'data-tip': i, tabindex: 0 },
+        el('li', { class: 'job', 'data-flip': '', tabindex: 0, 'aria-label': `${v.beruf.name}: antippen, um zu sehen, was man dort macht` },
+         el('div', { class: 'job-front' },
           el('div', { class: 'job-head' },
             el('h3', { class: 'job-name' }, v.beruf.name.replaceAll('/-', '/‑')), // kein Zeilenumbruch nach „/-“
             el('span', { class: 'job-area' }, v.beruf.bereich)),
-          v.beruf.beschreibung && el('p', { class: 'job-desc' }, v.beruf.beschreibung),
+          v.beruf.beschreibung && el('p', { class: 'job-desc job-desc-static' }, v.beruf.beschreibung),
           v.beruf.vorlaeufig && el('p', { class: 'job-flag' }, 'Profil noch vorläufig'),
           v.treffer.length > 0 && el('div', { class: 'chips' },
             el('span', { class: 'chips-label' }, 'Passt zu dir:'),
@@ -2073,7 +2131,8 @@ function starteApp() {
           el('div', { class: 'fit' },
             el('span', {}, 'Passung'),
             el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: `width:${v.passung}%` })),
-            el('strong', { class: 'fit-wert' }, prozentText(v.passung)))))));
+            el('strong', { class: 'fit-wert' }, prozentText(v.passung)))),
+         jobRueckseite(v, erg)))));
     if (erg.vorschlaege[0].passung < 50) {
       berufe.append(el('p', { class: 'note' }, 'Deine Antworten verteilen sich ziemlich gleichmäßig – du bist vielseitig. Deshalb sind die Prozentwerte eher niedrig. Die Reihenfolge zeigt trotzdem, was am ehesten zu dir passt.'));
     }
