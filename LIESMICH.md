@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.9
+# Aptio – Prototyp v0.9.1
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 

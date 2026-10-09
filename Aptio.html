@@ -414,11 +414,11 @@
       <div class="card intro enter">
         <p class="eyebrow">Berufsorientierung</p>
         <h1>Welcher Job passt zu dir?</h1>
-        <p class="lead">Beantworte <span id="fact-total">20</span> kurze Fragen und je nach Antwort ein paar Nachfragen – es gibt kein Richtig oder Falsch. Am Ende bekommst du Berufe und Ausbildungen, die zu dir passen könnten.</p>
+        <p class="lead">Beantworte 21 bis 28 Fragen über dich – wie viele es werden, hängt davon ab, was du antippst: Passende Nachfragen kommen dazu. Bei manchen Fragen darfst du mehrere Antworten wählen. Es gibt kein Richtig oder Falsch. Am Ende bekommst du Berufe und Ausbildungen, die zu dir passen könnten.</p>
         <ul class="facts">
-          <li><strong>ca. 5 Min.</strong><span>dauert’s</span></li>
-          <li><strong id="fact-mc">18</strong><span>zum Antippen</span></li>
-          <li><strong id="fact-text">2</strong><span>zum kurz Schreiben</span></li>
+          <li><strong>ca. 10 Min.</strong><span>dauert’s</span></li>
+          <li><strong id="fact-mc">21–28</strong><span>Fragen</span></li>
+          <li><strong id="fact-text">2</strong><span>zum Schreiben</span></li>
         </ul>
         <button class="btn btn-primary btn-lg" id="start" type="button">Los geht’s</button>
         <p class="small muted">Deine Antworten bleiben in diesem Browserfenster und werden nirgends gespeichert.</p>
@@ -506,7 +506,7 @@
     </div>
   </dialog>
 
-  <p class="footer">Aptio · Prototyp v0.9 · Stand 09.10.2026</p>
+  <p class="footer">Aptio · Prototyp v0.9.1 · Stand 09.10.2026</p>
 </div>
 
 <script>
@@ -3428,10 +3428,9 @@ function starteApp() {
   const probleme = datenPruefen();
   if (probleme.length) console.warn('Aptio – Probleme in den Daten:\n' + probleme.join('\n'));
 
-  const grundfragen = FRAGEN.filter(f => !f.zeigeWenn);
-  $('fact-total').textContent = grundfragen.length;
-  $('fact-mc').textContent = grundfragen.filter(istMultipleChoice).length;
-  $('fact-text').textContent = grundfragen.filter(f => !istMultipleChoice(f)).length;
+  // Startseite: „21–28 Fragen“ ist von Hand gesetzt (Stand v0.9, per Simulation ermittelt) –
+  // bei neuen Abzweigen im HTML der Startseite anpassen. Die Zahl der Schreibfragen zählt der Code selbst.
+  $('fact-text').textContent = FRAGEN.filter(f => !istMultipleChoice(f)).length;
 
   function zeige(name) {
     versteckeTip();

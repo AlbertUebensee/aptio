@@ -58,6 +58,8 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 - `ausschluss: { feld, ab | bis, grund }` an einer Antwort nimmt Berufe komplett aus der Rangliste (auch direkt an Frage 11).
 - Abzweige vergeben keine Punkte, sonst verschieben sich die Höchstpunkte.
 
+- Startseite: Dauer („ca. 10 Min.“) und Fragenzahl („21–28“) stehen fest im HTML. Bei neuen oder entfernten Abzweigen per Simulation neu ermitteln und anpassen.
+
 ## Prüfen nach Änderungen
 
 - `datenPruefen()` läuft beim Öffnen und meldet Profilfehler in der **Browser-Konsole** – nach Datenänderungen kontrollieren.
