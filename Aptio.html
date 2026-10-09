@@ -326,6 +326,7 @@
     margin: 0; font-size: clamp(1.02rem, 2.8vw, 1.14rem); font-weight: 500;
     line-height: 1.55; letter-spacing: -.005em; text-wrap: pretty;
   }
+  .back-foot .fit-wert { white-space: nowrap; }
   .back-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: .8rem; color: var(--subtle); }
   .back-flag { margin: 0; font-size: .72rem; color: var(--subtle); }
   .job.is-flipped .job-front { transform: translateY(-105%); opacity: 0; }
@@ -364,6 +365,7 @@
   .tip-rows { list-style: none; margin: 0; padding: 0; }
   .tip-rows li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 7px 0; border-top: 1px solid var(--line); }
   .tip-dim { font-weight: 600; font-size: .84rem; }
+  .tip-anteil { font-weight: 400; color: var(--subtle); }
   .tip-vs { grid-column: 1 / -1; color: var(--muted); font-size: .82rem; }
   .tip-badge { font-size: .74rem; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
   .tip-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
@@ -371,7 +373,8 @@
   .tip-badge.teils { color: var(--teils); }
   .tip-badge.anders { color: var(--anders); }
   .tip-fit { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--subtle); font-size: .82rem; }
-  .tip-fit strong { color: var(--text); font-size: 1rem; font-variant-numeric: tabular-nums; }
+  .tip-fit strong { color: var(--text); font-size: 1rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tip-fit { gap: 12px; }
   .tip-flag { margin: 10px 0 0; font-size: .76rem; color: var(--subtle); }
   .tip-close { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; }
   .tip-close svg { width: 15px; height: 15px; }
@@ -506,14 +509,14 @@
     </div>
   </dialog>
 
-  <p class="footer">Aptio · Prototyp v0.9.1 · Stand 09.10.2026</p>
+  <p class="footer">Aptio · Prototyp v0.10 · Stand 09.10.2026</p>
 </div>
 
 <script>
 'use strict';
 
 /* =============================================================================
-   APTIO – Prototyp v0.9
+   APTIO – Prototyp v0.10
    Diese Datei hat drei Teile:
      1. DATEN       – Eigenschaften, Fragen mit Punkten, Berufe, Regeln
      2. AUSWERTUNG  – Punkte zählen, Top-Eigenschaften bestimmen, Berufe zuordnen
@@ -566,6 +569,10 @@ const REGELN = {
   // Hast du bei den Abzweigen Themen gewählt, zählt das so viel Prozent der Passung.
   // Beruf aus deinem Thema: 100 % (oder 50 %, wenn du ein anderes Unterthema gewählt hast), sonst 0 %.
   themenGewicht: 30,
+  // Bereichswertung im Infofenster/auf der Karte (Abstand 0–100, wie in der Passung):
+  // bis bereichPasst = „passt“, bis bereichTeils = „teils“, darüber „anders“.
+  bereichPasst: 15,
+  bereichTeils: 35,
   unterthemaDaneben: 50
 };
 
@@ -2850,7 +2857,7 @@ BERUFE.forEach(beruf => {
      d) Jeder Beruf hat ein Profil in Prozent (z. B. Dinge 85, Drinnen 95, Verantwortung 45).
         Werte ab 60 gelten als Merkmal und erklaeren im Ergebnis das "Passt zu dir".
      e) Passung: Aus deinen Prozentwerten entsteht dein Profil im selben Format. Die Passung
-        misst den gewichteten Abstand zum Berufsprofil (100 % = gleich). Hoehere Passung = weiter vorn.
+        ist der gewichtete Durchschnitt der Übereinstimmung pro Bereich (Übereinstimmung = 100 − Abstand). Hoehere Passung = weiter vorn.
         Bei exakt gleicher Passung zuerst die Berufe mit mehr Treffern bei deinen staerksten
         Eigenschaften, dann die geprueften Berufe, darunter zufaellig.
      f) Gezeigt werden die Berufe, die hoechstens 10 Prozentpunkte unter dem besten
@@ -3055,20 +3062,27 @@ function nutzerProfil(prozente) {
   };
 }
 
-// Passung in Prozent: Wie nah liegt dein Profil am Profil des Berufs?
-// Pro Bereich wird der Abstand gemessen (0 = gleich, 1 = maximal verschieden), gewichtet
-// zusammengefasst und von 100 % abgezogen. 100 % = dein Profil und das Berufsprofil sind gleich.
-function passungBerechnen(p, du) {
+// Abstand pro Bereich (0 = gleich, 100 = maximal verschieden).
+function bereichAbstaende(p, du) {
   const q = x => x * x;
+  return {
+    Arbeitsfeld: Math.sqrt((q(p.Menschen - du.Menschen) + q(p.Dinge - du.Dinge) + q(p.Infos - du.Infos)) / 2),
+    Umgebung: Math.abs(p.Drinnen - du.Drinnen),
+    Arbeitsweise: Math.abs(p.Struktur - du.Struktur),
+    Verantwortung: Math.abs(p.Verantwortung - du.Verantwortung),
+    Sichtbarkeit: Math.abs(p.Vorne - du.Vorne),
+  };
+}
+
+// Passung in Prozent: gewichteter Durchschnitt der Übereinstimmung pro Bereich.
+// Übereinstimmung eines Bereichs = 100 − Abstand. So ergibt die Summe aus „Anteil × Übereinstimmung“
+// im Infofenster genau die angezeigte Gesamtpassung – man kann sie nachrechnen.
+function passungBerechnen(p, du) {
   const g = REGELN.gewichte;
-  const abstand =
-    g.Arbeitsfeld * (q(p.Menschen - du.Menschen) + q(p.Dinge - du.Dinge) + q(p.Infos - du.Infos)) / 20000 +
-    g.Umgebung * q(p.Drinnen - du.Drinnen) / 10000 +
-    g.Arbeitsweise * q(p.Struktur - du.Struktur) / 10000 +
-    g.Verantwortung * q(p.Verantwortung - du.Verantwortung) / 10000 +
-    g.Sichtbarkeit * q(p.Vorne - du.Vorne) / 10000;
-  const summe = g.Arbeitsfeld + g.Umgebung + g.Arbeitsweise + g.Verantwortung + g.Sichtbarkeit;
-  return 100 * (1 - Math.sqrt(abstand / summe));
+  const d = bereichAbstaende(p, du);
+  let summe = 0, gewichte = 0;
+  for (const k of Object.keys(g)) { summe += g[k] * (100 - d[k]); gewichte += g[k]; }
+  return summe / gewichte;
 }
 
 // Prozentzahl mit einer Nachkommastelle, deutsch geschrieben (z. B. 87,3 %).
@@ -3276,58 +3290,82 @@ function starteApp() {
     }
     return { key: r[0][0], text: `vor allem mit ${WORT_FELD[r[0][0]]}` };
   }
-  // Drei Stufen: hoch (ab 60), mittel, tief (bis 40)
+  // Drei Stufen für die Beschreibung: hoch (ab 60), mittel, tief (bis 40)
   function stufe(wert) {
     return wert >= 60 ? 'hoch' : wert <= 40 ? 'tief' : 'mittel';
   }
-  // Gleiche Einordnung = passt. Sonst entscheidet der Abstand, ob es teils oder anders ist.
-  function bewertung(gleich, abstand) {
-    if (gleich) return { klasse: 'ok', text: 'passt' };
-    if (abstand <= 35) return { klasse: 'teils', text: 'teils' };
-    return { klasse: 'anders', text: 'anders' };
+  // Bewertung pro Bereich aus seiner Übereinstimmung (100 − Abstand) – derselbe Wert, der in die Passung eingeht.
+  function bewertung(uebereinstimmung) {
+    const w = Math.max(0, Math.min(100, uebereinstimmung));
+    if (w >= 100 - REGELN.bereichPasst) return { klasse: 'ok', text: 'passt', wert: w };
+    if (w >= 100 - REGELN.bereichTeils) return { klasse: 'teils', text: 'teils', wert: w };
+    return { klasse: 'anders', text: 'anders', wert: w };
   }
+  const pz = x => `${Math.round(x)} %`;
 
-  // Vergleich Beruf ↔ du in den fünf Bereichen, Reihenfolge nach Gewicht.
-  function vergleich(p, du) {
-    const q = x => x * x;
-    const zweiseitig = (dim, wertBeruf, wertDu, texte, texteDu = texte) => ({
-      dim, beruf: texte[stufe(wertBeruf)], du: texteDu[stufe(wertDu)],
-      ...bewertung(stufe(wertBeruf) === stufe(wertDu), Math.abs(wertBeruf - wertDu)),
+  // Vergleich Beruf ↔ du: die fünf Profilbereiche und – falls gewählt – dein Thema.
+  // anteil = wie viel Prozent der Gesamtpassung der Bereich ausmacht. Summe(anteil × wert) / 100 = Passung.
+  function vergleich(p, du, r = null, erg = aktuellesErgebnis) {
+    const g = REGELN.gewichte;
+    const mitThema = !!(erg && erg.themen && erg.themen.length);
+    const profilAnteil = mitThema ? 1 - REGELN.themenGewicht / 100 : 1;
+    const summe = Object.values(g).reduce((a, b) => a + b, 0);
+    const anteil = k => (100 * profilAnteil * g[k]) / summe;
+    const d = bereichAbstaende(p, du);
+    const zweiseitig = (dim, k, wertBeruf, wertDu, texte, texteDu = texte) => ({
+      dim, anteil: anteil(k),
+      beruf: `${texte[stufe(wertBeruf)]} (${pz(wertBeruf)})`, du: `${texteDu[stufe(wertDu)]} (${pz(wertDu)})`,
+      ...bewertung(100 - d[k]),
     });
-    const fb = feld(p), fd = feld(du);
-    return [
-      { dim: 'Womit du arbeitest', beruf: fb.text, du: fd.text,
-        ...bewertung(fb.key === fd.key,
-          Math.sqrt((q(p.Menschen - du.Menschen) + q(p.Dinge - du.Dinge) + q(p.Infos - du.Infos)) / 2)) },
-      zweiseitig('Drinnen oder draußen', p.Drinnen, du.Drinnen,
+    const zeilen = [
+      { dim: 'Womit du arbeitest', anteil: anteil('Arbeitsfeld'), beruf: feld(p).text, du: feld(du).text, ...bewertung(100 - d.Arbeitsfeld) },
+      zweiseitig('Drinnen oder draußen', 'Umgebung', p.Drinnen, du.Drinnen,
         { hoch: 'eher drinnen', mittel: 'drinnen und draußen', tief: 'eher draußen' }),
-      zweiseitig('Arbeitsweise', p.Struktur, du.Struktur,
+      zweiseitig('Arbeitsweise', 'Arbeitsweise', p.Struktur, du.Struktur,
         { hoch: 'feste Abläufe', mittel: 'mal so, mal so', tief: 'viel Abwechslung' }),
-      zweiseitig('Verantwortung', p.Verantwortung, du.Verantwortung,
+      zweiseitig('Verantwortung', 'Verantwortung', p.Verantwortung, du.Verantwortung,
         { hoch: 'viel', mittel: 'etwas', tief: 'wenig' },
         { hoch: 'gern viel', mittel: 'etwas', tief: 'lieber wenig' }),
-      zweiseitig('Vorne oder im Hintergrund', p.Vorne, du.Vorne,
+      zweiseitig('Vorne oder im Hintergrund', 'Sichtbarkeit', p.Vorne, du.Vorne,
         { hoch: 'oft vor Leuten', mittel: 'beides', tief: 'eher im Hintergrund' },
         { hoch: 'gern vorne', mittel: 'beides', tief: 'eher im Hintergrund' }),
     ];
+    if (mitThema && r) {
+      zeilen.push({ dim: 'Dein Thema', anteil: REGELN.themenGewicht,
+        beruf: r.themaTreffer.length ? themenText(r) : 'keins deiner Themen',
+        du: erg.themen.map(t => THEMEN[t]).join(', '), ...bewertung(r.themenWert) });
+    }
+    // Reihenfolge: was am meisten zählt, steht oben
+    return zeilen.sort((a, b) => b.anteil - a.anteil);
   }
+
+  // Kurzfazit ohne Zählerei (Zählen würde wichtige und unwichtige Bereiche gleich behandeln):
+  // „Passt vor allem bei: Dein Thema, Womit du arbeitest. Anders bei: Vorne oder im Hintergrund.“
+  function zusammenfassung(zeilen) {
+    const gut = zeilen.filter(z => z.klasse === 'ok').map(z => z.dim);
+    const anders = zeilen.filter(z => z.klasse === 'anders').map(z => z.dim);
+    const teile = [];
+    if (gut.length) teile.push(`Passt vor allem bei: ${gut.slice(0, 3).join(', ')}${gut.length > 3 ? ' und mehr' : ''}.`);
+    else teile.push('Passt überall nur teilweise.');
+    if (anders.length) teile.push(`Anders bei: ${anders.join(', ')}.`);
+    return teile.join(' ');
+  }
+
 
   let tipEl = null, tipZiel = null, tipFixiert = false;
 
   function tipInhalt(r) {
-    const zeilen = vergleich(r.beruf.profil, aktuellesErgebnis.profil);
-    const passt = zeilen.filter(z => z.klasse === 'ok').length;
+    const zeilen = vergleich(r.beruf.profil, aktuellesErgebnis.profil, r);
     return [
       el('h3', { id: 'job-tip-title' }, r.beruf.name.replaceAll('/-', '/‑')),
       el('p', { class: 'tip-desc' }, r.beruf.ausfuehrlich || 'Für diesen Beruf gibt es noch keine Beschreibung.'),
-      r.themaTreffer.length > 0 && el('p', { class: 'tip-label' }, `Gehört zu deinem Thema: ${themenText(r)}`),
-      el('p', { class: 'tip-label' }, `Passt in ${passt} von ${zeilen.length} Bereichen zu dir`),
+      el('p', { class: 'tip-label' }, zusammenfassung(zeilen)),
       el('ul', { class: 'tip-rows' }, zeilen.map(z =>
         el('li', {},
-          el('span', { class: 'tip-dim' }, z.dim),
-          el('span', { class: `tip-badge ${z.klasse}` }, z.text),
+          el('span', { class: 'tip-dim' }, z.dim, el('span', { class: 'tip-anteil' }, ` · zählt ${pz(z.anteil)}`)),
+          el('span', { class: `tip-badge ${z.klasse}` }, `${z.text} · ${pz(z.wert)}`),
           el('span', { class: 'tip-vs' }, `Im Beruf: ${z.beruf}. Du: ${z.du}.`)))),
-      el('div', { class: 'tip-fit' }, el('span', {}, 'Passung insgesamt'), el('strong', {}, prozentText(r.passung))),
+      el('div', { class: 'tip-fit' }, el('span', {}, 'Passung insgesamt = Durchschnitt der Bereiche, gewichtet nach „zählt“'), el('strong', {}, prozentText(r.passung))),
       r.beruf.vorlaeufig && el('p', { class: 'tip-flag' }, 'Profil und Beschreibung sind noch vorläufig.'),
     ];
   }
@@ -3561,14 +3599,13 @@ function starteApp() {
 
   // Rückseite einer Berufskarte: was man dort macht
   function jobRueckseite(v, erg) {
-    const zeilen = vergleich(v.beruf.profil, erg.profil);
-    const passt = zeilen.filter(z => z.klasse === 'ok').length;
+    const zeilen = vergleich(v.beruf.profil, erg.profil, v, erg);
     return el('div', { class: 'job-back' },
       el('p', { class: 'back-label' }, `Was man als ${v.beruf.name.replaceAll('/-', '/‑')} macht`),
       el('p', { class: 'back-text' }, v.beruf.ausfuehrlich || 'Für diesen Beruf gibt es noch keine Beschreibung.'),
       v.themaTreffer.length > 0 && el('p', { class: 'back-flag' }, `Gehört zu deinem Thema: ${themenText(v)}`),
       el('div', { class: 'back-foot' },
-        el('span', {}, `Passt in ${passt} von ${zeilen.length} Bereichen zu dir`),
+        el('span', {}, zusammenfassung(zeilen)),
         el('strong', { class: 'fit-wert' }, prozentText(v.passung))),
       v.beruf.vorlaeufig && el('p', { class: 'back-flag' }, 'Beschreibung noch vorläufig'));
   }
@@ -3697,7 +3734,7 @@ function starteApp() {
         el('li', {}, `Pro Bereich gewinnt die Eigenschaft mit dem höchsten Prozentwert. Sie gilt als deutlich, wenn sie mindestens ${REGELN.mindestProzent} % hat und die Gegenseite um mehr als ${REGELN.mindestVorsprung} Prozentpunkte übertrifft (Verantwortung: ab ${REGELN.mindestProzent} %).`),
         el('li', {}, `Sind weniger als ${REGELN.mindestTop} Eigenschaften deutlich, rücken die nächststärksten nach.`),
         el('li', {}, 'Jeder Beruf hat ein Profil in Prozent, zum Beispiel 85 % Dinge, 95 % drinnen, 45 % Verantwortung. Werte ab 60 % gelten als Merkmal des Berufs.'),
-        el('li', {}, 'Aus deinen Antworten entsteht dein eigenes Profil im selben Format. Die Passung zeigt, wie nah dein Profil am Profil des Berufs liegt: 100 % heißt gleich. Am stärksten zählt, womit du arbeitest (30 %), dann drinnen/draußen (25 %), Arbeitsweise (20 %), Verantwortung (15 %) und Sichtbarkeit (10 %).'),
+        el('li', {}, 'Aus deinen Antworten entsteht dein eigenes Profil im selben Format. Pro Bereich wird verglichen, wie nah du und der Beruf beieinanderliegen (100 % = gleich). Die Passung ist der Durchschnitt dieser Bereiche, gewichtet: Am stärksten zählt, womit du arbeitest (30 %), dann drinnen/draußen (25 %), Arbeitsweise (20 %), Verantwortung (15 %) und Sichtbarkeit (10 %). Im Infofenster zu jedem Beruf siehst du jeden Bereich mit seiner Prozentzahl und wie viel er zählt.'),
         el('li', {}, `Je nach Antwort kommen Nachfragen (Abzweige), etwa „Womit möchtest du am liebsten arbeiten?“ und danach „Am Bau – was reizt dich mehr?“. Die gewählten Themen zählen ${REGELN.themenGewicht} % der Passung: Beruf aus deinem Thema 100 % – hast du ein Unterthema gewählt und der Beruf gehört nicht dazu, ${REGELN.unterthemaDaneben} % – alle anderen 0 %. Der Rest (${100 - REGELN.themenGewicht} %) ist der Profilvergleich.`),
         el('li', {}, 'Manche Antworten schließen Berufe ganz aus. Wer zum Beispiel „draußen“ sagt, bekommt keine Berufe vorgeschlagen, bei denen man fast nur drinnen ist – und umgekehrt.'),
         el('li', {}, 'Höhere Passung = weiter oben. Bei exakt gleicher Passung kommen zuerst die Berufe, die mehr deiner stärksten Eigenschaften treffen, dann die geprüften Berufe, darunter wird zufällig ausgewählt.'),

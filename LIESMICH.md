@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.9.1
+# Aptio – Prototyp v0.10
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
@@ -51,7 +51,7 @@ Jeder Beruf hat ein Profil in Prozent, im Code zum Beispiel so:
 2. Die Punkte werden in Prozent der maximal möglichen Punkte umgerechnet.
 3. In jedem Bereich gewinnt die Eigenschaft mit dem höchsten Prozentwert. Sie gilt als **deutlich**, wenn sie mindestens 50 % hat und die Gegenseite um mehr als 25 Prozentpunkte übertrifft. Verantwortung zählt ab 50 %. Das sind deine stärksten Eigenschaften.
 4. Aus deinen Prozentwerten entsteht **dein eigenes Profil** im selben Format wie die Berufsprofile. Beispiel: Hast du bei Menschen 67 % und bei Dinge 33 % der möglichen Punkte, wird daraus Menschen 67, Dinge 33, Infos 0.
-5. Die **Passung** zeigt, wie nah dein Profil am Profil eines Berufs liegt. 100 % heißt: gleich. Die Bereiche zählen unterschiedlich stark:
+5. Die **Passung** zeigt, wie nah dein Profil am Profil eines Berufs liegt. Pro Bereich wird die Übereinstimmung gemessen (100 − Abstand, 100 % = gleich); die Passung ist der **gewichtete Durchschnitt** dieser Bereiche (seit v0.10 – vorher Wurzel aus gewichteten Quadraten, das ließ sich nicht nachrechnen). Die Bereiche zählen unterschiedlich stark:
 
    | Bereich | Gewicht |
    |---|---|
@@ -127,6 +127,18 @@ Die Punkte für die Fragen 1, 2, 3, 4, 6, 8, 11 und 14 stammen aus `TiP_Auswertu
 - Frage 12 bleibt ohne Punkte: Punkte auf Vorne/Hintergrund haben im Test „Vorne“ fast doppelt so oft zur stärksten Eigenschaft gemacht wie „Hintergrund“.
 
 Höchstpunkte in v0.5: Menschen 12, Dinge 11, Infos 11, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 5, Vorne 2, Hintergrund 4 (aktuelle Werte siehe „Neue Antworten in v0.6“).
+
+## Plausibilität: Passung und Bereiche (v0.10)
+
+**Problem bis v0.9.1:** Im Infofenster stand z. B. „79 % – passt in 0 von 5 Bereichen“, darunter „77 % – passt in 2 von 5“. Ursachen: (1) Die Bereiche wurden in grobe Stufen sortiert, die Passung rechnete stufenlos; (2) die Bereiche wurden gleich gezählt, die Passung gewichtete sie; (3) die Themen (30 %) tauchten in den Bereichen gar nicht auf. Gemessen: 249 von 15.000 Vorschlagskarten zeigten „passt in 0“ bei über 75 %.
+
+**Seit v0.10:**
+
+- Die Passung ist exakt der gewichtete Durchschnitt der Bereiche. Nachgerechnet über 440.000 Bewertungen: Abweichung 0,0 Prozentpunkte.
+- Das Infofenster zeigt jeden Bereich mit Übereinstimmung in Prozent und „zählt X %“; das Thema ist ein eigener Bereich. Sortiert nach Gewicht.
+- Statt „passt in X von 5“ steht ein Fazit: „Passt vor allem bei: … Anders bei: …“ – Zählen hätte unwichtige und wichtige Bereiche gleich behandelt.
+- Bereichsbewertung: passt ab 85 %, teils ab 65 %, darunter anders (`REGELN.bereichPasst`, `REGELN.bereichTeils`).
+- Nebenwirkung: Die Passungen liegen etwas höher (beste typisch 86 % statt 82 %), weil große Abweichungen in einem Bereich nicht mehr überproportional bestraft werden.
 
 ## Themen, Unterthemen und Ausschlüsse (v0.8)
 

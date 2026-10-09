@@ -1,7 +1,7 @@
 # CLAUDE.md – Hinweise für Claude Code
 
 Aptio ist ein Berufsorientierungs-Quiz für Jugendliche („Welcher Job passt zu dir?“).
-Aktueller Stand: **Prototyp v0.9**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
+Aktueller Stand: **Prototyp v0.10**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
 
 ## Sprache und Ton
 
@@ -59,6 +59,8 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 - Abzweige vergeben keine Punkte, sonst verschieben sich die Höchstpunkte.
 
 - Startseite: Dauer („ca. 10 Min.“) und Fragenzahl („21–28“) stehen fest im HTML. Bei neuen oder entfernten Abzweigen per Simulation neu ermitteln und anpassen.
+
+- **Passung muss nachrechenbar bleiben:** `passungBerechnen` = gewichteter Durchschnitt aus `100 − bereichAbstaende()`; Gesamt = (1 − Themengewicht) × Profil + Themengewicht × Themenwert. Die Oberfläche (`vergleich()`) nutzt dieselben Funktionen. Summe(anteil × wert)/100 muss exakt die angezeigte Passung ergeben – nach Änderungen an Formel oder Gewichten prüfen.
 
 ## Prüfen nach Änderungen
 
