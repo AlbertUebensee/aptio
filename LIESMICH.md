@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.11
+# Aptio – Prototyp v0.12
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
@@ -127,6 +127,15 @@ Die Punkte für die Fragen 1, 2, 3, 4, 6, 8, 11 und 14 stammen aus `TiP_Auswertu
 - Frage 12 bleibt ohne Punkte: Punkte auf Vorne/Hintergrund haben im Test „Vorne“ fast doppelt so oft zur stärksten Eigenschaft gemacht wie „Hintergrund“.
 
 Höchstpunkte in v0.5: Menschen 12, Dinge 11, Infos 11, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 5, Vorne 2, Hintergrund 4 (aktuelle Werte siehe „Neue Antworten in v0.6“).
+
+## Neu in v0.12: Animationen
+
+- **Startseite:** schwebende Farbflächen im Hintergrund (`.aurora`), Inhalte erscheinen nacheinander, Logo-Punkt pulsiert, Glanz über „Los geht’s“.
+- **Quiz:** Fragen gleiten je nach Richtung herein (vor = von rechts, zurück = von links), Antworten erscheinen nacheinander, gewählte Antworten „ploppen“, Fortschrittsbalken schimmert.
+- **Auswertung:** kurzer Zwischenbildschirm (ca. 2 s) mit den echten Schritten, Antippen oder Taste überspringt.
+- **Ergebnis:** Abschnitte tauchen beim Scrollen auf, Balken wachsen, Prozentzahlen zählen hoch, bester Treffer mit „★ Top-Treffer“ und Glanz, Karten heben sich beim Drüberfahren, Herz zerplatzt in Funken.
+- **Bewegungen reduzieren** (Einstellung in Aptio oder am Gerät): keine Animation, kein Zwischenbildschirm, alles sofort sichtbar (getestet).
+- Fehler behoben: Themen, die nur halb zählen (über den Arbeitsort oder anderes Unterthema), wurden als „anders“ bewertet, obwohl „Gehört zu deinem Thema“ dastand – betraf in v0.11 rund die Hälfte der Themenkarten. Jetzt „teils“, Widerspruch in 0 von 45.000 Fällen.
 
 ## Neu in v0.11
 

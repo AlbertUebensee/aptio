@@ -1,7 +1,7 @@
 # CLAUDE.md – Hinweise für Claude Code
 
 Aptio ist ein Berufsorientierungs-Quiz für Jugendliche („Welcher Job passt zu dir?“).
-Aktueller Stand: **Prototyp v0.11**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
+Aktueller Stand: **Prototyp v0.12**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
 
 ## Sprache und Ton
 
@@ -64,6 +64,9 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 
 - Online braucht die Seite die Capability `downloads` (beim Veröffentlichen `capabilities: {downloads: true}`). Offline fällt `ergebnisSpeichern()` auf einen normalen Blob-Download zurück.
 - Schreibfragen: `TEXT_SIGNALE`, `BERUF_SYNONYME`, `ALLGEMEINE_WOERTER` beeinflussen nur Hinweise, nie die Passung.
+
+- Animationen: alles im CSS-Block „ANIMATIONEN“. Neue Animationen müssen bei `data-motion="ruhig"` und `prefers-reduced-motion` aus sein; Inhalte dürfen dann nie unsichtbar bleiben (`.reveal`). JS prüft das über `ruhig()`.
+- Die Grundfarbe liegt auf `html`, nicht auf `body` – sonst verdeckt sie die Farbflächen.
 
 ## Prüfen nach Änderungen
 

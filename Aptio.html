@@ -93,7 +93,8 @@
   html { -webkit-text-size-adjust: 100%; background: var(--bg); }
   body {
     margin: 0;
-    background: radial-gradient(900px 460px at 50% -180px, var(--glow), transparent 70%) no-repeat, var(--bg);
+    /* Grundfarbe sitzt auf html, damit die Farbflächen (.aurora) dazwischen sichtbar sind */
+    background: radial-gradient(900px 460px at 50% -180px, var(--glow), transparent 70%) no-repeat;
     color: var(--text);
     font: 1rem/1.6 var(--font);
     min-height: 100vh;
@@ -262,6 +263,118 @@
 
   .enter { animation: enter .35s cubic-bezier(.2, .8, .2, 1) both; }
   @keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  /* =========================================================================
+     ANIMATIONEN (v0.12) – alle aus bei „Bewegungen reduzieren“ (Aptio oder Gerät)
+     ========================================================================= */
+  :root { --aurora-1: rgb(99 102 241 / .22); --aurora-2: rgb(236 72 153 / .15); --aurora-3: rgb(20 184 166 / .13); --shine: rgb(9 9 11 / .38); --lift: 0 14px 34px rgb(0 0 0 / .45); }
+  :root[data-theme="light"] { --aurora-1: rgb(99 102 241 / .13); --aurora-2: rgb(251 146 60 / .12); --aurora-3: rgb(20 184 166 / .10); --shine: rgb(255 255 255 / .55); --lift: 0 14px 34px rgb(24 24 27 / .12); }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) { --aurora-1: rgb(99 102 241 / .13); --aurora-2: rgb(251 146 60 / .12); --aurora-3: rgb(20 184 166 / .10); --shine: rgb(255 255 255 / .55); --lift: 0 14px 34px rgb(24 24 27 / .12); }
+  }
+
+  /* Schwebende Farbflächen im Hintergrund */
+  .aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .aurora i { position: absolute; width: 62vmax; height: 62vmax; border-radius: 50%; filter: blur(90px); will-change: transform; }
+  .aurora i:nth-child(1) { background: var(--aurora-1); top: -26vmax; left: -18vmax; animation: drift-1 28s ease-in-out infinite alternate; }
+  .aurora i:nth-child(2) { background: var(--aurora-2); bottom: -30vmax; right: -20vmax; animation: drift-2 34s ease-in-out infinite alternate; }
+  .aurora i:nth-child(3) { background: var(--aurora-3); top: 30%; left: 55%; width: 40vmax; height: 40vmax; animation: drift-3 40s ease-in-out infinite alternate; }
+  @keyframes drift-1 { to { transform: translate(18vmax, 14vmax) scale(1.15); } }
+  @keyframes drift-2 { to { transform: translate(-16vmax, -12vmax) scale(1.1); } }
+  @keyframes drift-3 { to { transform: translate(-30vmax, 10vmax) scale(.85); } }
+
+  /* Logo-Punkt pulsiert */
+  .wordmark i { animation: puls 2.8s ease-in-out infinite; }
+  @keyframes puls { 0%, 100% { transform: translateY(.08rem) scale(1); opacity: 1; } 50% { transform: translateY(.08rem) scale(1.45); opacity: .55; } }
+
+  /* Startseite: Inhalte nacheinander */
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .intro > * { animation: rise .6s cubic-bezier(.2, .8, .2, 1) both; }
+  .intro > :nth-child(1) { animation-delay: .05s; } .intro > :nth-child(2) { animation-delay: .12s; }
+  .intro > :nth-child(3) { animation-delay: .2s; }  .intro > :nth-child(4) { animation-delay: .28s; }
+  .intro > :nth-child(5) { animation-delay: .36s; } .intro > :nth-child(6) { animation-delay: .44s; }
+  .facts li { animation: rise .55s cubic-bezier(.2, .8, .2, 1) both; }
+  .facts li:nth-child(1) { animation-delay: .34s; } .facts li:nth-child(2) { animation-delay: .42s; } .facts li:nth-child(3) { animation-delay: .5s; }
+
+  /* Glanz über den Hauptknopf */
+  .btn-primary { position: relative; overflow: hidden; isolation: isolate; }
+  .btn-primary::after {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: linear-gradient(110deg, transparent 30%, var(--shine) 50%, transparent 70%);
+    transform: translateX(-120%);
+  }
+  .btn-primary:hover::after { animation: glanz .9s ease; }
+  #start::after { animation: glanz 1.4s 1.1s ease both; }
+  #start:hover::after { animation: glanz .9s ease; }
+  @keyframes glanz { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+
+  /* Quiz: Fragen gleiten je nach Richtung herein, Antworten nacheinander */
+  .slide-vor { animation: von-rechts .42s cubic-bezier(.2, .8, .2, 1) both; }
+  .slide-zurueck { animation: von-links .42s cubic-bezier(.2, .8, .2, 1) both; }
+  @keyframes von-rechts { from { opacity: 0; transform: translateX(34px); } to { opacity: 1; transform: none; } }
+  @keyframes von-links { from { opacity: 0; transform: translateX(-34px); } to { opacity: 1; transform: none; } }
+  .answers .answer { animation: rise .4s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(80ms + var(--i, 0) * 38ms); }
+  .answer[aria-pressed="true"] .key { animation: plopp .34s cubic-bezier(.3, 1.7, .5, 1); }
+  @keyframes plopp { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+  /* Fortschrittsbalken mit Schimmer */
+  .progress-fill { position: relative; overflow: hidden; }
+  .progress-fill::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, var(--shine), transparent);
+    transform: translateX(-100%); animation: schimmer 2.6s ease-in-out infinite;
+  }
+  @keyframes schimmer { 0% { transform: translateX(-100%); } 60%, 100% { transform: translateX(100%); } }
+
+  /* Auswertungs-Bildschirm */
+  .rechnen { display: grid; place-items: center; gap: 26px; text-align: center; min-height: 52vh; padding: 48px 24px; cursor: pointer; }
+  .orbit { position: relative; width: 112px; height: 112px; }
+  .orbit .kern { position: absolute; inset: 38px; border-radius: 50%; background: var(--accent); animation: kern 1.6s ease-in-out infinite; }
+  .orbit .ring { position: absolute; inset: 0; border-radius: 50%; border: 1px dashed var(--line-strong); animation: dreh 9s linear infinite; }
+  .orbit .bahn { position: absolute; inset: 0; animation: dreh 1.8s cubic-bezier(.5, .1, .5, .9) infinite; }
+  .orbit .bahn:nth-child(4) { animation-duration: 2.6s; animation-direction: reverse; inset: 12px; }
+  .orbit .bahn:nth-child(5) { animation-duration: 3.4s; inset: 24px; }
+  .orbit .bahn::before { content: ""; position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--text); box-shadow: 0 0 14px var(--text); }
+  .orbit .bahn:nth-child(4)::before { width: 7px; height: 7px; margin-left: -3.5px; top: -3.5px; opacity: .7; }
+  .orbit .bahn:nth-child(5)::before { width: 6px; height: 6px; margin-left: -3px; top: -3px; opacity: .5; }
+  @keyframes dreh { to { transform: rotate(360deg); } }
+  @keyframes kern { 0%, 100% { transform: scale(.82); opacity: .9; } 50% { transform: scale(1.08); opacity: 1; } }
+  .rechnen-text { font-family: var(--font-display); font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 650; letter-spacing: -.02em; margin: 0; min-height: 2.2em; }
+  .rechnen-text span { display: inline-block; animation: rise .35s cubic-bezier(.2, .8, .2, 1) both; }
+  .rechnen-schritte { display: flex; gap: 6px; justify-content: center; }
+  .rechnen-schritte i { width: 28px; height: 3px; border-radius: 99px; background: var(--line-strong); transition: background-color .3s; }
+  .rechnen-schritte i.an { background: var(--accent); }
+
+  /* Ergebnis: auftauchen beim Scrollen, Balken wachsen */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s cubic-bezier(.2, .8, .2, 1), transform .6s cubic-bezier(.2, .8, .2, 1); }
+  .reveal.sichtbar { opacity: 1; transform: none; }
+  .meter > span { transition: width 1s cubic-bezier(.2, .8, .2, 1); }
+  .job { transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s, border-color .2s, opacity .6s cubic-bezier(.2, .8, .2, 1); }
+  @media (hover: hover) { .job:hover { transform: translateY(-3px); box-shadow: var(--lift); } }
+  .job.reveal:not(.sichtbar) { transform: translateY(18px); }
+
+  /* Bester Treffer: Etikett + einmaliger Glanz */
+  .top-badge {
+    display: inline-flex; align-items: center; gap: 5px; margin: 0 0 8px; padding: .14rem .6rem; border-radius: 99px;
+    font-size: .72rem; font-weight: 650; background: var(--accent); color: var(--on-accent);
+  }
+  .job.top::after {
+    content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    background: linear-gradient(110deg, transparent 35%, var(--shine) 50%, transparent 65%);
+    transform: translateX(-120%);
+  }
+  .job.top.sichtbar::after, .job.top.ohne-reveal::after { animation: glanz 1.5s .5s ease both; }
+
+  /* Herz: Plopp + Partikel */
+  .merk[aria-pressed="true"] svg { animation: plopp .4s cubic-bezier(.3, 1.7, .5, 1); }
+  .merk { overflow: visible; }
+  .funke { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: var(--anders); pointer-events: none; animation: funke .6s cubic-bezier(.2, .8, .2, 1) forwards; }
+  @keyframes funke { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; } }
+
+  /* Ruhig: alles sofort sichtbar, nichts bewegt sich */
+  :root[data-motion="ruhig"] .reveal { opacity: 1 !important; transform: none !important; }
+  :root[data-motion="ruhig"] .aurora i { animation: none !important; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1 !important; transform: none !important; } }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
@@ -433,6 +546,7 @@
     </div>
   </header>
 
+  <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
   <main>
     <!-- Startbildschirm -->
     <section id="screen-intro">
@@ -470,6 +584,16 @@
     </section>
 
     <!-- Ergebnis -->
+    <!-- Auswertung (kurz, antippen überspringt) -->
+    <section id="screen-rechnen" hidden>
+      <div class="card rechnen" id="rechnen-card" role="status" aria-live="polite">
+        <div class="orbit" aria-hidden="true"><span class="kern"></span><span class="ring"></span><span class="bahn"></span><span class="bahn"></span><span class="bahn"></span></div>
+        <p class="rechnen-text" id="rechnen-text"></p>
+        <div class="rechnen-schritte" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <p class="small muted">Antippen zum Überspringen</p>
+      </div>
+    </section>
+
     <section id="screen-result" hidden>
       <div class="card" id="result-card">
         <div id="result-content"></div>
@@ -533,14 +657,14 @@
     </div>
   </dialog>
 
-  <p class="footer">Aptio · Prototyp v0.11 · Stand 09.10.2026</p>
+  <p class="footer">Aptio · Prototyp v0.12 · Stand 09.10.2026</p>
 </div>
 
 <script>
 'use strict';
 
 /* =============================================================================
-   APTIO – Prototyp v0.11
+   APTIO – Prototyp v0.12
    Diese Datei hat drei Teile:
      1. DATEN       – Eigenschaften, Fragen mit Punkten, Berufe, Regeln
      2. AUSWERTUNG  – Punkte zählen, Top-Eigenschaften bestimmen, Berufe zuordnen
@@ -3328,7 +3452,10 @@ function aufzaehlen(teile) {
 
 function starteApp() {
   const $ = id => document.getElementById(id);
-  const bildschirme = { start: $('screen-intro'), quiz: $('screen-quiz'), ergebnis: $('screen-result') };
+  const bildschirme = { start: $('screen-intro'), quiz: $('screen-quiz'), rechnen: $('screen-rechnen'), ergebnis: $('screen-result') };
+  let richtung = 1; // 1 = vorwärts, -1 = zurück (für die Wisch-Richtung der Fragen)
+  // Bewegungen reduziert? (Einstellung in Aptio oder am Gerät)
+  const ruhig = () => einstellungen.ruhig || matchMedia('(prefers-reduced-motion: reduce)').matches;
   const BUCHSTABEN = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
   const aktiv = () => aktiveFragen(zustand.antworten);
   const zustand = { index: 0, antworten: {} };
@@ -3444,7 +3571,10 @@ function starteApp() {
     if (mitThema && r) {
       zeilen.push({ dim: 'Dein Thema', anteil: REGELN.themenGewicht,
         beruf: r.themaTreffer.length ? themenText(r) : 'keins deiner Themen',
-        du: themenListe(erg), ...bewertung(r.themenWert) });
+        du: themenListe(erg),
+        // Thema: ganz (100) = passt, halb (Unterthema daneben oder nur über den Arbeitsort) = teils, sonst anders
+        ...(r.themenWert >= 100 ? { klasse: 'ok', text: 'passt' } : r.themenWert > 0 ? { klasse: 'teils', text: 'teils' } : { klasse: 'anders', text: 'anders' }),
+        wert: r.themenWert });
     }
     // Reihenfolge: was am meisten zählt, steht oben
     return zeilen.sort((a, b) => b.anteil - a.anteil);
@@ -3617,7 +3747,7 @@ function starteApp() {
       if (frage.mehrfach) $('hint').textContent = `Mehrere Antworten möglich – bis zu ${frage.mehrfach}.`;
       const knoepfe = el('div', { class: frage.mehrfach ? 'answers multi' : 'answers', role: 'group', 'aria-labelledby': 'question' });
       antwortenVon(frage).forEach((antwort, i) => {
-        const knopf = el('button', { type: 'button', class: antwort.exklusiv ? 'answer exklusiv' : 'answer', 'aria-pressed': istGewaehlt(frage, i) },
+        const knopf = el('button', { type: 'button', class: antwort.exklusiv ? 'answer exklusiv' : 'answer', 'aria-pressed': istGewaehlt(frage, i), style: `--i:${i}` },
           el('span', { class: 'key', 'aria-hidden': 'true' }, BUCHSTABEN[i]),
           el('span', {}, antwort.text));
         knopf.addEventListener('click', () => waehle(i));
@@ -3634,7 +3764,10 @@ function starteApp() {
     }
     weiterKnopfAktualisieren();
 
-    animiere($('quiz-card'));
+    const karte = $('quiz-card');
+    karte.classList.remove('enter', 'slide-vor', 'slide-zurueck');
+    void karte.offsetWidth; // Animation neu starten
+    karte.classList.add(richtung < 0 ? 'slide-zurueck' : 'slide-vor');
     $('question').focus({ preventScroll: true });
   }
 
@@ -3685,17 +3818,19 @@ function starteApp() {
     const frage = liste[zustand.index];
     const wert = zustand.antworten[frage.nr];
     if (istMultipleChoice(frage) && (wert === undefined || (Array.isArray(wert) && !wert.length))) return;
+    richtung = 1;
     if (zustand.index < liste.length - 1) {
       zustand.index++;
       zeigeFrage();
     } else {
-      zeigeErgebnis();
+      zeigeAuswertung();
     }
   }
 
   function zurueck() {
     clearTimeout(weiterTimer);
     if (zustand.index === 0) return zeige('start');
+    richtung = -1;
     zustand.index--;
     zeigeFrage();
   }
@@ -3749,7 +3884,16 @@ function starteApp() {
     knopf.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>';
     knopf.addEventListener('click', e => {
       e.stopPropagation();
-      if (merkliste.has(name)) merkliste.delete(name); else merkliste.add(name);
+      if (merkliste.has(name)) merkliste.delete(name);
+      else {
+        merkliste.add(name);
+        if (!ruhig()) for (let k = 0; k < 8; k++) {
+          const winkel = (k / 8) * Math.PI * 2 + Math.random() * .4, weite = 18 + Math.random() * 12;
+          const f = el('span', { class: 'funke', style: `--dx:${Math.cos(winkel) * weite}px;--dy:${Math.sin(winkel) * weite}px` });
+          knopf.append(f);
+          setTimeout(() => f.remove(), 650);
+        }
+      }
       document.querySelectorAll('.merk').forEach(k => { if (k.dataset.name === name) k.setAttribute('aria-pressed', merkliste.has(name)); });
       merkAnzeigeAktualisieren();
     });
@@ -3770,11 +3914,96 @@ function starteApp() {
     return el('div', { class: 'job-back' },
       el('p', { class: 'back-label' }, `Was man als ${v.beruf.name.replaceAll('/-', '/‑')} macht`),
       el('p', { class: 'back-text' }, v.beruf.ausfuehrlich || 'Für diesen Beruf gibt es noch keine Beschreibung.'),
-      v.themaTreffer.length > 0 && el('p', { class: 'back-flag' }, `Gehört zu deinem Thema: ${themenText(v)}`),
+      v.themaTreffer.length > 0 && el('p', { class: 'back-flag' }, `${v.themenWert >= 100 ? 'Gehört zu deinem Thema' : 'Gehört teilweise zu deinen Themen'}: ${themenText(v)}`),
       el('div', { class: 'back-foot' },
         el('span', {}, zusammenfassung(zeilen)),
         el('strong', { class: 'fit-wert' }, prozentText(v.passung))),
       v.beruf.vorlaeufig && el('p', { class: 'back-flag' }, 'Beschreibung noch vorläufig'));
+  }
+
+  // ---------- Auswertung mit kurzer Animation ----------
+  let rechnenTimer = [];
+  function zeigeAuswertung() {
+    if (ruhig()) return zeigeErgebnis();
+    const schritte = [
+      `Punkte aus deinen Antworten zählen …`,
+      'Dein Profil erstellen …',
+      `Mit ${BERUFE.length} Berufen vergleichen …`,
+      'Die besten für dich heraussuchen …',
+    ];
+    const text = $('rechnen-text');
+    const balken = [...document.querySelectorAll('.rechnen-schritte i')];
+    zeige('rechnen');
+    let fertig = false;
+    const ende = () => {
+      if (fertig) return;
+      fertig = true;
+      rechnenTimer.forEach(clearTimeout);
+      rechnenTimer = [];
+      $('rechnen-card').removeEventListener('click', ende);
+      document.removeEventListener('keydown', ende);
+      zeigeErgebnis();
+    };
+    schritte.forEach((t, i) => rechnenTimer.push(setTimeout(() => {
+      text.replaceChildren(el('span', {}, t));
+      balken.forEach((b, j) => b.classList.toggle('an', j <= i));
+    }, i * 480)));
+    rechnenTimer.push(setTimeout(ende, schritte.length * 480 + 260));
+    $('rechnen-card').addEventListener('click', ende);
+    document.addEventListener('keydown', ende);
+  }
+
+  // Ergebnis: Abschnitte tauchen beim Scrollen auf, Balken wachsen, Prozentzahlen zählen hoch
+  let beobachter = null;
+  function ergebnisAnimieren(inhalt) {
+    const balken = [...inhalt.querySelectorAll('.meter > span')];
+    const zahlen = [...inhalt.querySelectorAll('.job .fit-wert')];
+    if (beobachter) beobachter.disconnect();
+    if (ruhig() || !('IntersectionObserver' in window)) {
+      inhalt.querySelectorAll('.job.top').forEach(k => k.classList.add('ohne-reveal'));
+      return;
+    }
+    balken.forEach(b => { b.dataset.w = b.style.width; b.style.width = '0%'; });
+    const bloecke = [...inhalt.querySelectorAll(':scope > .section, :scope > p, :scope > h1, .jobs > .job, .trait')];
+    bloecke.forEach(b => b.classList.add('reveal'));
+    inhalt.querySelectorAll('.jobs > .job').forEach((k, i) => { k.style.transitionDelay = `${i * 90}ms`; });
+    inhalt.querySelectorAll('.trait').forEach((k, i) => { k.style.transitionDelay = `${i * 80}ms`; });
+    const hochzaehlen = node => {
+      const ziel = parseFloat(node.textContent.replace(',', '.'));
+      if (!isFinite(ziel)) return;
+      const start = performance.now(), dauer = 1000;
+      const schritt = jetzt => {
+        const t = Math.min(1, (jetzt - start) / dauer);
+        node.textContent = prozentText(ziel * (1 - Math.pow(1 - t, 3)));
+        if (t < 1) requestAnimationFrame(schritt); else node.textContent = prozentText(ziel);
+      };
+      node.textContent = prozentText(0);
+      requestAnimationFrame(schritt);
+    };
+    beobachter = new IntersectionObserver(eintraege => {
+      for (const e of eintraege) {
+        if (!e.isIntersecting) continue;
+        const b = e.target;
+        b.classList.add('sichtbar');
+        beobachter.unobserve(b);
+        const verz = parseInt(b.style.transitionDelay) || 0;
+        setTimeout(() => {
+          b.querySelectorAll('.meter > span[data-w]').forEach(m => { m.style.width = m.dataset.w; });
+          b.querySelectorAll('.fit-wert').forEach(hochzaehlen);
+        }, verz + 150);
+        // Hover-Verzögerung nicht dauerhaft behalten
+        setTimeout(() => { b.style.transitionDelay = ''; }, verz + 700);
+      }
+    }, { threshold: 0.12 });
+    bloecke.forEach(b => beobachter.observe(b));
+    // Balken außerhalb der beobachteten Blöcke (z. B. aufklappbare Liste) direkt setzen
+    balken.filter(m => !bloecke.some(b => b.contains(m))).forEach(m => { m.style.width = m.dataset.w; });
+    // Sicherheitsnetz: nach 4 s ist alles sichtbar, auch wenn der Beobachter hängt
+    setTimeout(() => {
+      bloecke.forEach(b => b.classList.add('sichtbar'));
+      balken.forEach(m => { if (m.dataset.w) m.style.width = m.dataset.w; });
+      zahlen.forEach(z => { if (z.textContent === prozentText(0)) hochzaehlen(z); });
+    }, 4000);
   }
 
   function zeigeErgebnis() {
@@ -3825,9 +4054,10 @@ function starteApp() {
         el('span', { class: 'mouse' }, 'Fahr mit der Maus über einen Beruf, um zu sehen, was man dort macht.'),
         el('span', { class: 'touch' }, 'Tipp einen Beruf an, um zu sehen, was man dort macht.')),
       el('ol', { class: 'jobs' }, erg.vorschlaege.map((v, i) =>
-        el('li', { class: 'job', 'data-flip': '', tabindex: 0, 'aria-label': `${v.beruf.name}: antippen, um zu sehen, was man dort macht` },
+        el('li', { class: i === 0 ? 'job top' : 'job', 'data-flip': '', tabindex: 0, 'aria-label': `${v.beruf.name}: antippen, um zu sehen, was man dort macht` },
          merkKnopf(v.beruf.name),
          el('div', { class: 'job-front' },
+          i === 0 && el('span', { class: 'top-badge' }, '★ Top-Treffer'),
           el('div', { class: 'job-head' },
             el('h3', { class: 'job-name' }, v.beruf.name.replaceAll('/-', '/‑')), // kein Zeilenumbruch nach „/-“
             el('span', { class: 'job-area' }, v.beruf.bereich)),
@@ -3888,6 +4118,7 @@ function starteApp() {
 
     zeige('ergebnis');
     animiere($('result-card'));
+    ergebnisAnimieren(inhalt);
   }
 
   // Kleine Berufsliste (Name, Passung, Merken) für die Hinweise unter den Vorschlägen
