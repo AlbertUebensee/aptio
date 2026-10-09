@@ -1,7 +1,7 @@
 # CLAUDE.md – Hinweise für Claude Code
 
 Aptio ist ein Berufsorientierungs-Quiz für Jugendliche („Welcher Job passt zu dir?“).
-Aktueller Stand: **Prototyp v0.10**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
+Aktueller Stand: **Prototyp v0.11**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
 
 ## Sprache und Ton
 
@@ -62,6 +62,9 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 
 - **Passung muss nachrechenbar bleiben:** `passungBerechnen` = gewichteter Durchschnitt aus `100 − bereichAbstaende()`; Gesamt = (1 − Themengewicht) × Profil + Themengewicht × Themenwert. Die Oberfläche (`vergleich()`) nutzt dieselben Funktionen. Summe(anteil × wert)/100 muss exakt die angezeigte Passung ergeben – nach Änderungen an Formel oder Gewichten prüfen.
 
+- Online braucht die Seite die Capability `downloads` (beim Veröffentlichen `capabilities: {downloads: true}`). Offline fällt `ergebnisSpeichern()` auf einen normalen Blob-Download zurück.
+- Schreibfragen: `TEXT_SIGNALE`, `BERUF_SYNONYME`, `ALLGEMEINE_WOERTER` beeinflussen nur Hinweise, nie die Passung.
+
 ## Prüfen nach Änderungen
 
 - `datenPruefen()` läuft beim Öffnen und meldet Profilfehler in der **Browser-Konsole** – nach Datenänderungen kontrollieren.
@@ -74,8 +77,6 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 - Beschreibungen der BIBB-Berufe fachlich prüfen
 - Die 33 neuen Antworten aus v0.6 gegenlesen
 - Themen- und Unterthemen-Zuordnung (`BERUF_THEMEN`, `BERUF_UNTERTHEMEN`) und die Abzweig-Fragen aus v0.8 prüfen
-- Speichern/Mitnehmen (PDF, Link oder Screenshot) – Pflicht für Version 1
-- Begründung (1–2 Sätze) pro Berufsvorschlag
 - Frage 12 (Kritik): Ergebnissatz oder streichen
 - Frage 20: offizielle Entscheidung zur Behandlung
 - Bereichsnamen vereinheitlichen (geprüfte vs. BIBB-Berufe)

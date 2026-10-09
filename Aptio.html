@@ -227,12 +227,12 @@
   .more[open] summary { margin-bottom: 8px; }
   .more-list { list-style: none; margin: 0; padding: 0 4px 0 0; max-height: 420px; overflow-y: auto; }
   .more-rank { color: var(--subtle); font-size: .78rem; font-variant-numeric: tabular-nums; text-align: right; }
-  .more-row { display: grid; grid-template-columns: 2.4rem 1fr 64px 3.1rem; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .88rem; }
+  .more-row { display: grid; grid-template-columns: 2.4rem 1fr 64px 3.1rem 30px; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .88rem; }
   .more-list li:last-child { border-bottom: 0; }
   .more-name { color: var(--muted); min-width: 0; hyphens: auto; overflow-wrap: anywhere; }
   .more-pct { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
   @media (max-width: 420px) {
-    .more-row { grid-template-columns: 1.9rem 1fr 3.1rem; gap: 8px; }
+    .more-row { grid-template-columns: 1.9rem 1fr 3.1rem 30px; gap: 8px; }
     .more-row .meter { display: none; }
   }
 
@@ -345,6 +345,28 @@
   :root[data-tips="aus"] .job-front { transform: none !important; opacity: 1 !important; }
   :root[data-tips="aus"] .job-desc-static { display: block; }
 
+  /* Begründung, Merken, Hinweise, nächste Schritte */
+  .job-warum { margin: 8px 0 2px; font-size: .92rem; color: var(--muted); }
+  .job .job-head { padding-right: 48px; }
+  .job .back-label { padding-right: 48px; }
+  .merk {
+    position: absolute; top: 14px; right: 14px; z-index: 2; display: grid; place-items: center; width: 38px; height: 38px; padding: 0;
+    border: 1px solid var(--line-strong); border-radius: 50%; background: var(--surface); color: var(--subtle); cursor: pointer;
+    transition: color .15s, border-color .15s, background-color .15s, transform .15s;
+  }
+  .merk svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+  .merk:hover { color: var(--text); border-color: var(--muted); }
+  .merk[aria-pressed="true"] { color: var(--anders); border-color: currentColor; }
+  .merk[aria-pressed="true"] svg { fill: currentColor; }
+  .merk:active { transform: scale(.92); }
+  .merk-klein { position: static; width: 30px; height: 30px; }
+  .merk-klein svg { width: 15px; height: 15px; }
+  .mini-jobs { list-style: none; margin: 10px 0 0; padding: 0; }
+  .merk-box { margin-top: 14px; padding: 12px 14px; border: 1px dashed var(--line-strong); border-radius: 12px; font-size: .9rem; }
+  .next-steps ol { margin: 0; padding-left: 1.2rem; display: grid; gap: 10px; }
+  .next-steps a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
+  .save-note { margin: 12px 0 0; text-align: center; }
+
   /* Berufsdetails beim Drüberfahren / Antippen */
   .job[data-tip], .more-row[data-tip] { cursor: pointer; }
   .job[data-tip]:hover, .job[data-tip].is-active { border-color: var(--line-strong); }
@@ -453,8 +475,10 @@
         <div id="result-content"></div>
         <div class="actions">
           <button class="btn btn-outline" id="edit" type="button">← Antworten ändern</button>
+          <button class="btn btn-outline" id="save-result" type="button">Ergebnis speichern</button>
           <button class="btn btn-primary" id="restart" type="button">Nochmal von vorn</button>
         </div>
+        <p class="small muted save-note" id="save-note" role="status" hidden></p>
       </div>
     </section>
   </main>
@@ -509,14 +533,14 @@
     </div>
   </dialog>
 
-  <p class="footer">Aptio · Prototyp v0.10 · Stand 09.10.2026</p>
+  <p class="footer">Aptio · Prototyp v0.11 · Stand 09.10.2026</p>
 </div>
 
 <script>
 'use strict';
 
 /* =============================================================================
-   APTIO – Prototyp v0.10
+   APTIO – Prototyp v0.11
    Diese Datei hat drei Teile:
      1. DATEN       – Eigenschaften, Fragen mit Punkten, Berufe, Regeln
      2. AUSWERTUNG  – Punkte zählen, Top-Eigenschaften bestimmen, Berufe zuordnen
@@ -573,7 +597,9 @@ const REGELN = {
   // bis bereichPasst = „passt“, bis bereichTeils = „teils“, darüber „anders“.
   bereichPasst: 15,
   bereichTeils: 35,
-  unterthemaDaneben: 50
+  unterthemaDaneben: 50,
+  // Thema nur über den Arbeitsort gewählt (Frage 11, z. B. „In der Werkstatt“), nicht bei „Womit möchtest du arbeiten?“
+  ortThemaWert: 50
 };
 
 // Die 20 Fragen.
@@ -1106,6 +1132,53 @@ const THEMEN = {
   labor: 'Labor und Forschung',
   medien: 'Medien, Film, Gestaltung',
   planung: 'Planen, Zeichnen, Vermessen',
+};
+
+// Signalwörter für die Schreibfragen 19 und 20: Wer zum Beispiel „Tiere“ schreibt, bekommt dazu passende Berufe gezeigt.
+// muster = Wortanfang (klein geschrieben, ohne Umlaut-Sonderfälle); Treffer beeinflussen die Passung NICHT,
+// sie erscheinen nur als eigener Hinweis im Ergebnis.
+const TEXT_SIGNALE = [
+  { wort: 'Holz',               thema: 'holz',          muster: ['holz', 'möbel', 'tischler', 'schreiner', 'zimmer'] },
+  { wort: 'Metall',             thema: 'metall',        muster: ['metall', 'schweiß', 'maschine', 'fräs', 'stahl'] },
+  { wort: 'Strom und Technik',  thema: 'elektro',       muster: ['strom', 'elektr', 'kabel', 'roboter', 'technik'] },
+  { wort: 'Fahrzeuge',          thema: 'fahrzeuge',     muster: ['auto', 'motor', 'fahrzeug', 'fahrrad', 'werkstatt', 'kfz', 'flugzeug'] },
+  { wort: 'Bauen',              thema: 'bau',           muster: ['bau', 'haus', 'häuser', 'dach', 'maurer', 'handwerk'] },
+  { wort: 'Tiere',              thema: 'natur',         unterthema: 'tiere',  muster: ['tier', 'hund', 'katze', 'pferd', 'zoo', 'vogel', 'vögel'] },
+  { wort: 'Pflanzen und Natur', thema: 'natur',         muster: ['pflanz', 'garten', 'gärt', 'blume', 'wald', 'natur', 'feld', 'bauernhof'] },
+  { wort: 'Essen',              thema: 'essen',         muster: ['koch', 'back', 'küche', 'essen', 'lebensmittel', 'restaurant'] },
+  { wort: 'Mode und Handwerk',  thema: 'kunsthandwerk', muster: ['mode', 'näh', 'schmuck', 'kleid', 'stoff', 'instrument', 'musik'] },
+  { wort: 'Unterwegs sein',     thema: 'verkehr',       muster: ['lkw', 'fahren', 'unterwegs', 'reisen', 'zug', 'schiff', 'liefer'] },
+  { wort: 'Gesundheit und Helfen', thema: 'gesundheit', muster: ['helfen', 'pflege', 'kranken', 'arzt', 'ärzt', 'patient', 'medizin', 'kinder', 'kita', 'menschen helfen'] },
+  { wort: 'Aussehen und Styling', thema: 'schoenheit',  muster: ['haare', 'friseur', 'frisur', 'schmink', 'kosmetik', 'nägel', 'styling'] },
+  { wort: 'Gäste',              thema: 'gaeste',        muster: ['hotel', 'gäste', 'gast', 'kellner', 'bedienen'] },
+  { wort: 'Verkaufen',          thema: 'verkauf',       muster: ['verkauf', 'kunden', 'laden', 'beraten', 'shop'] },
+  { wort: 'Sport und Freizeit', thema: 'freizeit',      muster: ['sport', 'fitness', 'training', 'fußball', 'schwimm', 'urlaub'] },
+  { wort: 'Sicherheit',         thema: 'sicherheit',    muster: ['polizei', 'feuerwehr', 'sicherheit', 'retten', 'rettung', 'security'] },
+  { wort: 'Computer',           thema: 'it',            muster: ['computer', 'pc', 'programm', 'code', 'coden', 'software', 'app', 'informatik', 'gaming', 'games', 'it'] },
+  { wort: 'Zahlen und Büro',    thema: 'buero',         muster: ['büro', 'zahlen', 'geld', 'bank', 'rechnen', 'mathe'] },
+  { wort: 'Recht',              thema: 'recht',         muster: ['recht', 'gesetz', 'gericht', 'anwalt', 'amt'] },
+  { wort: 'Labor',              thema: 'labor',         muster: ['labor', 'chemie', 'experiment', 'forsch', 'biologie', 'physik'] },
+  { wort: 'Medien und Gestalten', thema: 'medien',      muster: ['film', 'video', 'foto', 'design', 'zeichn', 'grafik', 'medien', 'youtube', 'social media', 'kreativ', 'malen'] },
+];
+
+// Wörter, die in vielen Berufsnamen vorkommen und allein nichts sagen (für die Wunschberuf-Suche).
+const ALLGEMEINE_WOERTER = new Set(['fachkraft', 'fachmann', 'fachfrau', 'kaufmann', 'kauffrau', 'fachangestellte', 'fachangestellter',
+  'technische', 'technischer', 'technologe', 'technologin', 'mechaniker', 'mechanikerin', 'service', 'servicekraft', 'für', 'und', 'der', 'die', 'das', 'mit', 'im', 'in',
+  // Materialien und Themen: „irgendwas mit Holz“ meint ein Thema, keinen bestimmten Beruf
+  'holz', 'metall', 'glas', 'stahl', 'leder', 'textil', 'papier', 'kunststoff', 'medien', 'technik', 'natur', 'tiere', 'pflanzen']);
+
+// Alltagsbegriffe → offizieller Berufsname (Wortanfang genügt). null = kein Ausbildungsberuf in der Liste.
+const BERUF_SYNONYME = {
+  bürokauf: 'Kaufmann/-frau für Büromanagement', krankenschwester: 'Pflegefachmann/-frau', krankenpfleg: 'Pflegefachmann/-frau',
+  altenpfleg: 'Pflegefachmann/-frau', pflegekraft: 'Pflegefachmann/-frau', automechaniker: 'Kfz-Mechatroniker/in', kfz: 'Kfz-Mechatroniker/in',
+  schreiner: 'Tischler/in', programmierer: 'Fachinformatiker/in Anwendungsentwicklung', informatiker: 'Fachinformatiker/in Anwendungsentwicklung',
+  elektriker: 'Elektroniker/in für Energie- und Gebäudetechnik', maler: 'Maler/in und Lackierer/in', sanitäter: 'Notfallsanitäter/in',
+  arzthelfer: 'Medizinische/r Fachangestellte/r', zahnarzthelfer: 'Zahnmedizinische/r Fachangestellte/r', tierarzthelfer: 'Tiermedizinische/r Fachangestellte/r',
+  lokführer: 'Eisenbahner/in im Betriebsdienst Lokführer/in und Transport', busfahrer: 'Fachkraft im Fahrbetrieb', lkw: 'Berufskraftfahrer/in',
+  metzger: 'Fleischer/in', landschaftsgärtner: 'Gärtner/in', erzieher: 'Erzieher/in', kindergärtner: 'Erzieher/in', mechatroniker: 'Mechatroniker/in',
+  einzelhandel: 'Kaufmann/-frau im Einzelhandel', lagerist: 'Fachkraft für Lagerlogistik', bankkauf: 'Bankkaufmann/-frau', friseur: 'Friseur/in',
+  polizei: null, polizist: null, arzt: null, ärztin: null, lehrer: null, tierarzt: null, tierärztin: null, anwalt: null, anwältin: null,
+  pilot: null, psycholog: null, architekt: null, ingenieur: null, soldat: null, influencer: null, youtuber: null, gamer: null,
 };
 
 // Ausführliche Beschreibung für die Rückseite der Berufskarten und das Infofenster (Stand 09.10.2026).
@@ -2601,7 +2674,7 @@ const BERUFE_VORLAEUFIG = [
   { name: 'Fachkraft für Lederherstellung und Gerbereitechnik', bereich: 'Handwerk/Mode', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 95, Struktur: 85, Verantwortung: 25, Vorne: 5 } },
   { name: 'Fachkraft für Lederverarbeitung', bereich: 'Handwerk/Mode', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 100, Struktur: 80, Verantwortung: 20, Vorne: 10 } },
   { name: 'Fachkraft für Metalltechnik', bereich: 'Handwerk/Technik', profil: { Menschen: 5, Dinge: 90, Infos: 5, Drinnen: 90, Struktur: 85, Verantwortung: 30, Vorne: 5 } },
-  { name: 'Fachkraft für Möbel-, Küchen- und Umzugsservice', bereich: 'Gastronomie/Lebensmittel', profil: { Menschen: 35, Dinge: 60, Infos: 5, Drinnen: 65, Struktur: 55, Verantwortung: 30, Vorne: 40 } },
+  { name: 'Fachkraft für Möbel-, Küchen- und Umzugsservice', bereich: 'Bau/Handwerk', profil: { Menschen: 35, Dinge: 60, Infos: 5, Drinnen: 65, Struktur: 55, Verantwortung: 30, Vorne: 40 } },
   { name: 'Fachkraft für Schutz und Sicherheit', bereich: 'Dienstleistung', profil: { Menschen: 60, Dinge: 25, Infos: 15, Drinnen: 55, Struktur: 70, Verantwortung: 85, Vorne: 65 } },
   { name: 'Fachkraft für Straßen- und Verkehrstechnik', bereich: 'Bau/Handwerk', profil: { Menschen: 10, Dinge: 55, Infos: 35, Drinnen: 35, Struktur: 80, Verantwortung: 60, Vorne: 15 } },
   { name: 'Fachkraft für Veranstaltungstechnik', bereich: 'Technik', profil: { Menschen: 25, Dinge: 65, Infos: 10, Drinnen: 60, Struktur: 30, Verantwortung: 60, Vorne: 30 } },
@@ -2948,7 +3021,7 @@ function punkteZaehlen(antworten) {
 // Die genauen Nachfragen der 2. Ebene (z. B. „Am Bau – was reizt dich mehr?“) haben Vorrang:
 // Hast du dort ein Unterthema gewählt, weichen spätere, allgemeinere Antworten es nicht wieder auf.
 function themenAuswahl(antworten) {
-  const themen = new Set(), unter = {}, genau = new Set();
+  const themen = new Set(), unter = {}, genau = new Set(), haupt = new Set();
   const fragen = aktiveFragen(antworten);
   const istGenau = f => String(f.nr).includes('-') && !String(f.nr).startsWith('11');
   for (const runde of [fragen.filter(istGenau), fragen.filter(f => !istGenau(f))]) {
@@ -2956,6 +3029,7 @@ function themenAuswahl(antworten) {
       for (const a of gewaehlt(frage, antworten)) {
         for (const t of alsListe(a.thema)) {
           themen.add(t);
+          if (!String(frage.nr).startsWith('11')) haupt.add(t);
           if (runde[0] && istGenau(runde[0])) { if (alsListe(a.unterthema).length) genau.add(t); }
           else if (genau.has(t)) continue;
           for (const u of alsListe(a.unterthema)) (unter[t] = unter[t] || new Set()).add(u);
@@ -2963,20 +3037,24 @@ function themenAuswahl(antworten) {
       }
     }
   }
-  return { themen: [...themen], unter };
+  // Ohne Hauptthemen (z. B. „Weiß ich noch nicht“ bei Frage 5) zählen die Ort-Themen voll.
+  return { themen: [...themen], unter, haupt: haupt.size ? [...haupt] : [...themen] };
 }
 
 // Wie gut passt ein Beruf zu deinen Themen? 100, 50 oder 0 – und welche Themen/Unterthemen treffen.
 function themenWertung(beruf, wahl) {
   let wert = 0;
   const themen = [], unterthemen = [];
+  const haupt = wahl.haupt || wahl.themen;
   for (const t of beruf.themen.filter(t => wahl.themen.includes(t))) {
     themen.push(t);
+    // Nur über den Arbeitsort (Frage 11, z. B. „Werkstatt“) gewählt: zählt halb.
+    const voll = haupt.includes(t) ? 100 : REGELN.ortThemaWert;
     const gewuenscht = wahl.unter[t];
-    if (!gewuenscht) { wert = 100; continue; }
+    if (!gewuenscht) { wert = Math.max(wert, voll); continue; }
     const treffer = beruf.unterthemen.filter(u => gewuenscht.has(u));
     unterthemen.push(...treffer);
-    wert = Math.max(wert, treffer.length ? 100 : REGELN.unterthemaDaneben);
+    wert = Math.max(wert, treffer.length ? voll : Math.min(voll, REGELN.unterthemaDaneben));
   }
   return { wert, themen, unterthemen: [...new Set(unterthemen)] };
 }
@@ -3085,6 +3163,37 @@ function passungBerechnen(p, du) {
   return summe / gewichte;
 }
 
+// Schreibfragen auswerten: Welche Themen kommen im Text vor? (nur Hinweis, keine Punkte)
+function woerterVon(text) {
+  return String(text || '').toLowerCase().replace(/[^a-zäöüß\s-]/g, ' ').split(/[\s-]+/).filter(Boolean);
+}
+function textSignale(text) {
+  const t = ' ' + String(text || '').toLowerCase() + ' ';
+  const woerter = woerterVon(text);
+  return TEXT_SIGNALE.filter(sig => sig.muster.some(m =>
+    m.includes(' ') ? t.includes(m) : woerter.some(w => (m.length <= 3 ? w === m : w.startsWith(m)))));
+}
+
+// Wunschberuf (Frage 20): Welche Berufe aus der Liste sind gemeint? Vergleicht Wörter im Text mit Wörtern im Berufsnamen.
+// Ergebnis: { berufe: [...], fremd: ['Polizist', …] } – fremd = genannt, aber kein Ausbildungsberuf in der Liste.
+function wunschberufe(text) {
+  const alle = woerterVon(text);
+  const treffer = new Set(), fremd = [];
+  for (const w of alle) {
+    const key = Object.keys(BERUF_SYNONYME).find(k => w.startsWith(k));
+    if (key === undefined) continue;
+    if (BERUF_SYNONYME[key] === null) fremd.push(w.charAt(0).toUpperCase() + w.slice(1));
+    else treffer.add(BERUF_SYNONYME[key]);
+  }
+  const eingabe = alle.filter(w => w.length >= 4 && !ALLGEMEINE_WOERTER.has(w));
+  const perName = BERUFE.filter(beruf => {
+    const namensWoerter = woerterVon(beruf.name.replace(/\/(in|-in|-frau|r)\b/g, ' ')).filter(w => w.length >= 4 && !ALLGEMEINE_WOERTER.has(w));
+    return namensWoerter.some(n => eingabe.some(w => w === n || (w.length >= 5 && n.length >= 5 && (w.startsWith(n) || n.startsWith(w)))));
+  });
+  const berufe = [...BERUFE.filter(b => treffer.has(b.name)), ...perName.filter(b => !treffer.has(b.name))];
+  return { berufe, fremd: [...new Set(fremd)] };
+}
+
 // Prozentzahl mit einer Nachkommastelle, deutsch geschrieben (z. B. 87,3 %).
 function prozentText(wert) {
   return `${wert.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
@@ -3144,7 +3253,7 @@ function auswerten(antworten) {
   const rangliste = berufeBewerten(prozente, topSet, wahl, regeln);
   return {
     max, punkte, prozente, top, topSet, rangliste, regeln,
-    themen: wahl.themen, unter: wahl.unter,
+    themen: wahl.themen, unter: wahl.unter, hauptThemen: wahl.haupt,
     ausgeschlossen: BERUFE.filter(b => istAusgeschlossen(b, regeln)),
     vorschlaege: vorschlaegeAuswaehlen(rangliste),
     profil: nutzerProfil(prozente),
@@ -3152,6 +3261,8 @@ function auswerten(antworten) {
     geldSatz: textZurRolle(antworten, 'geldOderSpass'),
     traumtag: textZurRolle(antworten, 'traumtag'),
     wunschberuf: textZurRolle(antworten, 'wunschberuf'),
+    signale: textSignale(textZurRolle(antworten, 'traumtag') + ' ' + textZurRolle(antworten, 'wunschberuf')),
+    wunschTreffer: wunschberufe(textZurRolle(antworten, 'wunschberuf')),
   };
 }
 
@@ -3333,7 +3444,7 @@ function starteApp() {
     if (mitThema && r) {
       zeilen.push({ dim: 'Dein Thema', anteil: REGELN.themenGewicht,
         beruf: r.themaTreffer.length ? themenText(r) : 'keins deiner Themen',
-        du: erg.themen.map(t => THEMEN[t]).join(', '), ...bewertung(r.themenWert) });
+        du: themenListe(erg), ...bewertung(r.themenWert) });
     }
     // Reihenfolge: was am meisten zählt, steht oben
     return zeilen.sort((a, b) => b.anteil - a.anteil);
@@ -3428,7 +3539,7 @@ function starteApp() {
   });
   // Berufskarten: Antippen oder Enter/Leertaste wendet die Karte (Drüberfahren macht das per CSS)
   inhaltErgebnis.addEventListener('click', e => {
-    const karte = e.target instanceof Element ? e.target.closest('[data-flip]') : null;
+    const karte = e.target instanceof Element && !e.target.closest('button, a') ? e.target.closest('[data-flip]') : null;
     if (karte && einstellungen.details && !matchMedia('(hover: hover)').matches) karte.classList.toggle('is-flipped');
   });
   inhaltErgebnis.addEventListener('keydown', e => {
@@ -3591,10 +3702,66 @@ function starteApp() {
 
   // ---------- Ergebnis ----------
 
+  // „Holz (dazu über den Arbeitsort: Metall und Maschinen, …)“
+  function themenListe(erg) {
+    const haupt = erg.hauptThemen || erg.themen;
+    const ort = erg.themen.filter(t => !haupt.includes(t));
+    return haupt.map(t => THEMEN[t]).join(', ') + (ort.length ? ` (dazu über den Arbeitsort: ${ort.map(t => THEMEN[t]).join(', ')})` : '');
+  }
+
   // „Häuser bauen und ausbauen (Rohbau und Straße)“
   function themenText(r) {
     const themen = r.themaTreffer.map(t => THEMEN[t]).join(', ');
     return r.unterTreffer.length ? `${themen} (${r.unterTreffer.map(u => UNTERTHEMEN[u]).join(', ')})` : themen;
+  }
+
+  // „Warum dieser Beruf?“ – ein Satz aus den Bereichen, die am meisten zählen.
+  const WARUM_GUT = {
+    'Dein Thema': r => `er zu deinem Thema ${themenText(r)} gehört`,
+    'Womit du arbeitest': r => `du dort ${feld(r.beruf.profil).text} arbeitest – wie du es magst`,
+    'Drinnen oder draußen': r => (r.beruf.profil.Drinnen >= 50 ? 'du überwiegend drinnen bist' : 'du viel draußen bist'),
+    'Arbeitsweise': r => (r.beruf.profil.Struktur >= 60 ? 'feste Abläufe zu dir passen' : r.beruf.profil.Struktur <= 40 ? 'viel Abwechslung zu dir passt' : 'die Mischung aus Plan und Abwechslung zu dir passt'),
+    'Verantwortung': r => (r.beruf.profil.Verantwortung >= 60 ? 'du Verantwortung übernehmen kannst' : 'die Verantwortung zu dir passt'),
+    'Vorne oder im Hintergrund': r => (r.beruf.profil.Vorne >= 60 ? 'du gern vor Leuten stehst' : r.beruf.profil.Vorne <= 40 ? 'du eher im Hintergrund arbeitest' : 'du mal vorne, mal im Hintergrund bist'),
+  };
+  const WARUM_ANDERS = {
+    'Dein Thema': () => 'er gehört zu keinem deiner Themen',
+    'Womit du arbeitest': (r, erg) => `man arbeitet dort ${feld(r.beruf.profil).text}, du lieber ${feld(erg.profil).text}`,
+    'Drinnen oder draußen': r => (r.beruf.profil.Drinnen >= 50 ? 'man ist dort viel drinnen' : 'man ist dort viel draußen'),
+    'Arbeitsweise': r => (r.beruf.profil.Struktur >= 50 ? 'die Abläufe sind ziemlich fest' : 'es geht oft spontan zu'),
+    'Verantwortung': r => (r.beruf.profil.Verantwortung >= 50 ? 'du trägst dort ziemlich viel Verantwortung' : 'du trägst dort eher wenig Verantwortung'),
+    'Vorne oder im Hintergrund': r => (r.beruf.profil.Vorne >= 50 ? 'man steht dort oft vor Leuten' : 'man arbeitet dort eher im Hintergrund'),
+  };
+  function warum(r, erg = aktuellesErgebnis) {
+    const zeilen = vergleich(r.beruf.profil, erg.profil, r, erg);
+    const gut = zeilen.filter(z => z.klasse === 'ok').slice(0, 2).map(z => WARUM_GUT[z.dim](r));
+    const anders = zeilen.find(z => z.klasse === 'anders' && z.anteil >= 10);
+    let satz = gut.length ? `Passt, weil ${aufzaehlen(gut)}.` : 'Passt in mehreren Bereichen teilweise zu dir.';
+    if (anders) satz += ` Aber: ${WARUM_ANDERS[anders.dim](r, erg)}.`;
+    return satz;
+  }
+
+  // Merkliste (nur für diese Sitzung, landet in der gespeicherten Datei)
+  const merkliste = new Set();
+  function merkKnopf(name, klein = false) {
+    const knopf = el('button', { type: 'button', class: klein ? 'merk merk-klein' : 'merk', 'aria-pressed': merkliste.has(name),
+      'aria-label': `${name} merken`, title: 'Merken' });
+    knopf.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>';
+    knopf.addEventListener('click', e => {
+      e.stopPropagation();
+      if (merkliste.has(name)) merkliste.delete(name); else merkliste.add(name);
+      document.querySelectorAll('.merk').forEach(k => { if (k.dataset.name === name) k.setAttribute('aria-pressed', merkliste.has(name)); });
+      merkAnzeigeAktualisieren();
+    });
+    knopf.dataset.name = name;
+    return knopf;
+  }
+  function merkAnzeigeAktualisieren() {
+    $('save-result').textContent = merkliste.size ? `Ergebnis speichern (${merkliste.size} gemerkt)` : 'Ergebnis speichern';
+    const box = $('merk-box');
+    if (!box) return;
+    box.hidden = !merkliste.size;
+    box.querySelector('.merk-namen').textContent = [...merkliste].join(' · ');
   }
 
   // Rückseite einer Berufskarte: was man dort macht
@@ -3649,6 +3816,7 @@ function starteApp() {
         el('blockquote', { class: 'quote' }, `„${erg.traumtag}“`),
         el('p', { class: 'small muted' }, 'Schau mal, welcher der Vorschläge unten am ehesten nach so einem Tag klingt.')));
     }
+    const textHinweis = signalBereich(erg);
 
     // Berufsvorschläge
     const berufe = el('div', { class: 'section' },
@@ -3658,10 +3826,12 @@ function starteApp() {
         el('span', { class: 'touch' }, 'Tipp einen Beruf an, um zu sehen, was man dort macht.')),
       el('ol', { class: 'jobs' }, erg.vorschlaege.map((v, i) =>
         el('li', { class: 'job', 'data-flip': '', tabindex: 0, 'aria-label': `${v.beruf.name}: antippen, um zu sehen, was man dort macht` },
+         merkKnopf(v.beruf.name),
          el('div', { class: 'job-front' },
           el('div', { class: 'job-head' },
             el('h3', { class: 'job-name' }, v.beruf.name.replaceAll('/-', '/‑')), // kein Zeilenumbruch nach „/-“
             el('span', { class: 'job-area' }, v.beruf.bereich)),
+          el('p', { class: 'job-warum' }, warum(v, erg)),
           v.beruf.beschreibung && el('p', { class: 'job-desc job-desc-static' }, v.beruf.beschreibung),
           v.beruf.vorlaeufig && el('p', { class: 'job-flag' }, 'Profil noch vorläufig'),
           v.treffer.length > 0 && el('div', { class: 'chips' },
@@ -3699,23 +3869,166 @@ function starteApp() {
             el('span', { class: 'more-rank' }, erg.vorschlaege.length + i + 1),
             el('span', { class: 'more-name' }, r.beruf.name.replaceAll('/-', '/‑')),
             el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: `width:${r.passung}%` })),
-            el('span', { class: 'more-pct' }, prozentText(r.passung)))))));
+            el('span', { class: 'more-pct' }, prozentText(r.passung)),
+            merkKnopf(r.beruf.name, true))))));
     }
+    berufe.append(el('div', { class: 'merk-box', id: 'merk-box', hidden: true },
+      el('strong', {}, 'Gemerkt: '), el('span', { class: 'merk-namen' }),
+      el('span', { class: 'small muted' }, ' – steht beim Speichern ganz oben.')));
     inhalt.append(berufe);
 
-    // Zitat Wunschberuf (Frage 20)
-    if (erg.wunschberuf) {
-      inhalt.append(el('div', { class: 'section' },
-        el('h2', {}, 'Das reizt dich schon'),
-        el('blockquote', { class: 'quote' }, `„${erg.wunschberuf}“`),
-        el('p', { class: 'small muted' }, 'Gut, dass du schon eine Idee hast! Findest du davon etwas in den Vorschlägen oben wieder?')));
-    }
+    // Wunschberuf (Frage 20): Zitat + Check, ob der genannte Beruf passt
+    if (erg.wunschberuf) inhalt.append(wunschBereich(erg));
+    if (textHinweis) inhalt.append(textHinweis);
+
+    inhalt.append(naechsteSchritte());
 
     inhalt.append(rechenweg(erg));
+    merkAnzeigeAktualisieren();
 
     zeige('ergebnis');
     animiere($('result-card'));
   }
+
+  // Kleine Berufsliste (Name, Passung, Merken) für die Hinweise unter den Vorschlägen
+  function kurzListe(eintraege, erg) {
+    return el('ul', { class: 'mini-jobs' }, eintraege.map(r => {
+      const i = erg.rangliste.indexOf(r);
+      return el('li', { class: 'more-row', 'data-tip': i >= 0 ? i : null, tabindex: i >= 0 ? 0 : null },
+        el('span', { class: 'more-rank' }, i >= 0 ? i + 1 : '–'),
+        el('span', { class: 'more-name' }, r.beruf.name.replaceAll('/-', '/‑')),
+        el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: `width:${i >= 0 ? r.passung : 0}%` })),
+        el('span', { class: 'more-pct' }, i >= 0 ? prozentText(r.passung) : 'raus'),
+        merkKnopf(r.beruf.name, true));
+    }));
+  }
+
+  // Wunschberuf aus Frage 20: Wie gut passt er laut deinen Antworten?
+  function wunschBereich(erg) {
+    const box = el('div', { class: 'section' },
+      el('h2', {}, 'Das reizt dich schon'),
+      el('blockquote', { class: 'quote' }, `„${erg.wunschberuf}“`));
+    const gefunden = erg.wunschTreffer.berufe.slice(0, 3);
+    if (gefunden.length) {
+      const eintraege = gefunden.map(b => erg.rangliste.find(r => r.beruf === b) || { beruf: b, passung: 0 });
+      const besterPlatz = Math.min(...eintraege.map(r => { const i = erg.rangliste.indexOf(r); return i < 0 ? Infinity : i + 1; }));
+      const text = besterPlatz === Infinity
+        ? 'Den Beruf haben wir gefunden – er passt aber nicht zu dem, was du über drinnen und draußen oder Kundenkontakt gesagt hast. Schau ihn dir trotzdem an, wenn er dich reizt!'
+        : besterPlatz <= erg.vorschlaege.length
+          ? 'Der ist sogar unter deinen Vorschlägen – deine Antworten passen also gut zu deiner Idee.'
+          : `Der steht bei dir auf Platz ${besterPlatz} von ${erg.rangliste.length}. ${besterPlatz <= 25 ? 'Das passt ziemlich gut!' : 'Ein paar deiner Antworten passen nicht ganz dazu – fahr drüber, um zu sehen, welche.'}`;
+      box.append(el('p', { class: 'small muted' }, text), kurzListe(eintraege, erg));
+    } else if (erg.wunschTreffer.fremd.length) {
+      box.append(el('p', { class: 'small muted' }, `${aufzaehlen(erg.wunschTreffer.fremd)} – das ist kein Ausbildungsberuf in unserer Liste (oft braucht man dafür ein Studium oder eine eigene Ausbildung, z. B. bei der Polizei). Frag dazu am besten bei der Berufsberatung nach.`));
+    } else {
+      box.append(el('p', { class: 'small muted' }, 'Gut, dass du schon eine Idee hast! Findest du davon etwas in den Vorschlägen oben wieder?'));
+    }
+    return box;
+  }
+
+  // Themen aus den Schreibfragen: „Du hast von Tieren geschrieben – dazu passen …“
+  function signalBereich(erg) {
+    if (!erg.signale.length) return null;
+    const schonGezeigt = new Set([...erg.vorschlaege, ...(erg.wunschTreffer.berufe || [])].map(x => x.beruf ? x.beruf.name : x.name));
+    // Ein Beruf passt zu einem Signal, wenn er das Thema hat (und ggf. das Unterthema, z. B. Tiere statt Pflanzen).
+    const passtZu = (beruf, sig) => beruf.themen.includes(sig.thema) && (!sig.unterthema || beruf.unterthemen.includes(sig.unterthema));
+    // Pro erkanntem Thema die zwei bestpassenden Berufe, damit jedes Thema vorkommt
+    const auswahl = [];
+    for (const sig of erg.signale.slice(0, 4)) {
+      erg.rangliste.filter(r => !schonGezeigt.has(r.beruf.name) && !auswahl.includes(r) && passtZu(r.beruf, sig))
+        .slice(0, erg.signale.length > 2 ? 1 : 2).forEach(r => auswahl.push(r));
+    }
+    if (!auswahl.length) return null;
+    auswahl.sort((a, b) => b.passung - a.passung);
+    return el('div', { class: 'section' },
+      el('h2', {}, 'Aus deinen eigenen Worten'),
+      el('p', { class: 'small muted' }, `In deinen Antworten zum Schreiben steckt: ${erg.signale.map(s => s.wort).join(', ')}. Dazu passen von deinen anderen Antworten her am besten:`),
+      kurzListe(auswahl, erg));
+  }
+
+  function naechsteSchritte() {
+    const link = (href, text) => el('a', { href, target: '_blank', rel: 'noopener noreferrer' }, text);
+    return el('div', { class: 'section next-steps' },
+      el('h2', {}, 'So geht’s weiter'),
+      el('ol', {},
+        el('li', {}, el('strong', {}, 'Merk dir 2 bis 3 Berufe '), 'mit dem Herz und speichere dein Ergebnis – dann hast du es für Gespräche mit Eltern, Lehrkräften oder der Berufsberatung dabei.'),
+        el('li', {}, el('strong', {}, 'Schau dir die Berufe genauer an: '), 'Videos, Gehalt und Ausbildungsinhalte findest du bei ', link('https://planet-beruf.de', 'planet-beruf.de'), ' und im ', link('https://web.arbeitsagentur.de/berufenet/', 'BERUFENET der Arbeitsagentur'), '.'),
+        el('li', {}, el('strong', {}, 'Probier es aus: '), 'Ein Praktikum oder ein Schnuppertag zeigt dir am schnellsten, ob ein Beruf wirklich zu dir passt.'),
+        el('li', {}, el('strong', {}, 'Lass dich beraten: '), 'Die ', link('https://www.arbeitsagentur.de/bildung/berufsberatung', 'Berufsberatung der Agentur für Arbeit'), ' ist kostenlos und kennt auch Ausbildungsplätze in deiner Nähe.')));
+  }
+
+  // ---------- Ergebnis speichern ----------
+  const htmlEsc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+  function ergebnisDatei(erg) {
+    const heute = new Date().toLocaleDateString('de-DE');
+    const top = erg.top.slice(0, REGELN.topAnzeige);
+    const beruf = r => {
+      const z = vergleich(r.beruf.profil, erg.profil, r, erg);
+      return `<article><h3>${htmlEsc(r.beruf.name)}<span>${htmlEsc(prozentText(r.passung))}</span></h3>
+        <p>${htmlEsc(r.beruf.ausfuehrlich || r.beruf.beschreibung || '')}</p>
+        <p class="warum">${htmlEsc(warum(r, erg))}</p>
+        <table>${z.map(x => `<tr><td>${htmlEsc(x.dim)}</td><td>${htmlEsc(x.text)}</td><td>${Math.round(x.wert)} %</td><td>zählt ${Math.round(x.anteil)} %</td></tr>`).join('')}</table>
+        ${r.beruf.vorlaeufig ? '<p class="klein">Profil und Beschreibung noch vorläufig.</p>' : ''}</article>`;
+    };
+    const gemerkt = [...merkliste].map(n => erg.rangliste.find(r => r.beruf.name === n)).filter(Boolean);
+    const vorschlaege = erg.vorschlaege.filter(v => !merkliste.has(v.beruf.name));
+    return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mein Aptio-Ergebnis vom ${heute}</title>
+<style>
+  body{font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#18181b;background:#fff;max-width:720px;margin:40px auto;padding:0 20px}
+  h1{font-size:2rem;letter-spacing:-.03em;margin:0 0 4px} h2{font-size:1.1rem;margin:32px 0 10px;padding-bottom:6px;border-bottom:1px solid #e4e4e7}
+  h3{display:flex;justify-content:space-between;gap:12px;font-size:1.05rem;margin:0 0 6px} h3 span{white-space:nowrap}
+  article{border:1px solid #e4e4e7;border-radius:12px;padding:16px 18px;margin:0 0 12px;break-inside:avoid}
+  .warum{font-weight:600} table{width:100%;border-collapse:collapse;font-size:.85rem;color:#52525b} td{padding:3px 6px 3px 0;border-top:1px solid #f0f0f2}
+  blockquote{margin:0;padding:8px 14px;border-left:3px solid #18181b;font-size:1.05rem} .klein,.fuss{font-size:.8rem;color:#686871}
+  ul.eig{padding-left:18px} @media print{body{margin:0}}
+</style></head><body>
+<p class="klein">Aptio – Berufsorientierung · ${heute}</p>
+<h1>Mein Ergebnis</h1>
+<h2>Meine stärksten Eigenschaften</h2>
+<ul class="eig">${top.map(t => `<li><strong>${htmlEsc(t.eig)}</strong> (${htmlEsc(t.dimension)}, ${Math.round(t.prozent)} %)</li>`).join('') || '<li>Sehr ausgeglichen – ziemlich vielseitig.</li>'}</ul>
+${erg.themen.length ? `<p>Meine Themen: ${htmlEsc(themenListe(erg))}</p>` : ''}
+${gemerkt.length ? `<h2>Gemerkte Berufe</h2>${gemerkt.map(beruf).join('')}` : ''}
+<h2>${gemerkt.length ? 'Weitere Vorschläge' : 'Berufe, die zu mir passen könnten'}</h2>
+${vorschlaege.map(beruf).join('')}
+${erg.traumtag ? `<h2>Mein Traumtag bei der Arbeit</h2><blockquote>„${htmlEsc(erg.traumtag)}“</blockquote>` : ''}
+${erg.wunschberuf ? `<h2>Das reizt mich schon</h2><blockquote>„${htmlEsc(erg.wunschberuf)}“</blockquote>` : ''}
+<h2>So geht’s weiter</h2>
+<ol><li>Berufe genauer anschauen: planet-beruf.de und BERUFENET der Arbeitsagentur</li><li>Praktikum oder Schnuppertag machen</li><li>Kostenlose Berufsberatung der Agentur für Arbeit nutzen</li></ol>
+<p class="fuss">Erstellt mit Aptio (Prototyp). Die Passung zeigt, wie nah meine Antworten am Profil eines Berufs liegen – sie ist eine Orientierung, keine Entscheidung. Manche Berufsprofile sind noch vorläufig.</p>
+</body></html>`;
+  }
+
+  async function ergebnisSpeichern() {
+    const erg = aktuellesErgebnis;
+    if (!erg) return;
+    const datum = new Date().toISOString().slice(0, 10);
+    const name = `Aptio-Ergebnis-${datum}.html`;
+    const inhalt = ergebnisDatei(erg);
+    const hinweis = text => { const n = $('save-note'); n.textContent = text; n.hidden = !text; };
+    hinweis('');
+    if (window.claude && typeof window.claude.use === 'function') {
+      // Online-Version: Speichern über den Viewer (fragt einmal nach)
+      const downloads = await window.claude.use('downloads');
+      if (!downloads) { hinweis('Speichern geht in dieser Ansicht leider nicht.'); return; }
+      try {
+        await downloads.save({ filename: name, data: inhalt });
+        hinweis('Gespeichert – du kannst die Datei öffnen, ausdrucken oder als PDF sichern.');
+      } catch (fehler) {
+        if (fehler && fehler.code === 'declined') return;
+        hinweis(fehler && fehler.code === 'rate_limited' ? 'Einen Moment, bitte nochmal versuchen.' : 'Speichern hat leider nicht geklappt.');
+      }
+    } else {
+      // Offline (Datei direkt geöffnet oder GitHub Pages): normaler Download
+      const url = URL.createObjectURL(new Blob([inhalt], { type: 'text/html' }));
+      const a = el('a', { href: url, download: name });
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      hinweis('Gespeichert – du findest die Datei in deinen Downloads.');
+    }
+  }
+  $('save-result').addEventListener('click', ergebnisSpeichern);
 
   // Aufklappbarer Bereich zum Nachvollziehen und Testen der Auswertung.
   function rechenweg(erg) {
@@ -3744,7 +4057,7 @@ function starteApp() {
         `Menschen ${Math.round(erg.profil.Menschen)} % · Dinge ${Math.round(erg.profil.Dinge)} % · Infos ${Math.round(erg.profil.Infos)} % · ` +
         `Drinnen ${Math.round(erg.profil.Drinnen)} % · Struktur ${Math.round(erg.profil.Struktur)} % · ` +
         `Verantwortung ${Math.round(erg.profil.Verantwortung)} % · Vorne ${Math.round(erg.profil.Vorne)} %`),
-      el('p', { class: 'small muted' }, erg.themen.length ? `Deine Themen: ${aufzaehlen(erg.themen.map(t => THEMEN[t]))}.` : 'Keine Themen gewählt – es zählt nur der Profilvergleich.'),
+      el('p', { class: 'small muted' }, erg.themen.length ? `Deine Themen: ${themenListe(erg)}.` : 'Keine Themen gewählt – es zählt nur der Profilvergleich.'),
       erg.ausgeschlossen.length > 0 && el('p', { class: 'small muted' }, `Ausgeschlossen: ${erg.ausgeschlossen.length} Berufe.`),
       el('h3', {}, 'Deine Punkte'));
 
@@ -3793,7 +4106,7 @@ function starteApp() {
     zeige('quiz');
     zeigeFrage();
   });
-  $('restart').addEventListener('click', () => zeige('start'));
+  $('restart').addEventListener('click', () => { merkliste.clear(); $('save-note').hidden = true; zeige('start'); });
 
   // Tastatur: A–E oder 1–5 wählt eine Antwort
   document.addEventListener('keydown', e => {

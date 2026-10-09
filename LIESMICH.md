@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.10
+# Aptio – Prototyp v0.11
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
@@ -98,8 +98,8 @@ Die Berufe stehen in zwei Listen: `BERUFE_GEPRUEFT` (die 20 aus der eigenen List
 - [x] **Beschreibungen:** Alle 309 BIBB-Berufe haben eine Kurzbeschreibung (Stand 02.10.2026), alle 329 Berufe zusätzlich eine ausführliche (`BESCHREIBUNGEN_AUSFUEHRLICH`, Stand 09.10.2026). Beides sind eigene Texte, noch nicht mit BIBB/BERUFENET abgeglichen – bibb.de war aus der Arbeitsumgebung nicht erreichbar.
 - [x] **Fragetexte:** Die Originale aus `TiP_Quizfragen_Entwurf_2026-08-28` (Google Drive, Liste „Die 20 Fragen“) sind 1:1 eingesetzt. Nur die Apostrophe sind typografisch gesetzt (’ statt ').
 - [ ] **Neue Antworten prüfen:** Die 33 Antworten aus v0.6 stehen nicht im Entwurf. Texte und Punkte gegenlesen und ggf. in den Entwurf übernehmen.
-- [ ] **Speichern/Mitnehmen:** Laut `Aptio_planung_2026-08-28` Pflicht für Version 1 (PDF, Link oder Screenshot), laut Meilensteinen bis Ende Dezember.
-- [ ] **Begründung pro Vorschlag:** Laut Planung ein bis zwei Sätze, warum der Beruf passt. Bisher nur Stichworte („Passt zu dir: …“).
+- [x] **Speichern/Mitnehmen:** Laut `Aptio_planung_2026-08-28` Pflicht für Version 1 (PDF, Link oder Screenshot), laut Meilensteinen bis Ende Dezember.
+- [x] **Begründung pro Vorschlag:** Laut Planung ein bis zwei Sätze, warum der Beruf passt. Bisher nur Stichworte („Passt zu dir: …“).
 - [x] **Punktelogik** für Frage 5, 9, 10, 13, 15, 16, 17, 18 ergänzt (Stand 30.09.2026, siehe „Punkte der Fragen 5–18“). Frage 12 bleibt bewusst ohne Punkte.
 - [ ] **Frage 12 (Kritik):** Ohne Punkte. Offen, ob sie wie Frage 7 einen Satz im Ergebnis bekommt oder gestrichen wird.
 - [ ] **Frage 20:** Wird vorerst wie Frage 19 behandelt (Zitat, keine Punkte). Das ist noch nicht offiziell entschieden.
@@ -127,6 +127,16 @@ Die Punkte für die Fragen 1, 2, 3, 4, 6, 8, 11 und 14 stammen aus `TiP_Auswertu
 - Frage 12 bleibt ohne Punkte: Punkte auf Vorne/Hintergrund haben im Test „Vorne“ fast doppelt so oft zur stärksten Eigenschaft gemacht wie „Hintergrund“.
 
 Höchstpunkte in v0.5: Menschen 12, Dinge 11, Infos 11, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 5, Vorne 2, Hintergrund 4 (aktuelle Werte siehe „Neue Antworten in v0.6“).
+
+## Neu in v0.11
+
+- **Ergebnis speichern:** Knopf auf der Ergebnisseite lädt eine druckfertige HTML-Datei herunter (Eigenschaften, Themen, gemerkte Berufe, Vorschläge mit Beschreibung, Begründung und Bereichen, eigene Texte, nächste Schritte). Online über die Download-Funktion des Viewers (fragt einmal nach), offline als normaler Download. Antworten werden weiterhin nirgends gespeichert.
+- **Merkliste ♥:** Herz auf jeder Karte und in jeder Listenzeile. Gemerkte Berufe stehen in der Datei ganz oben. Gilt nur für die aktuelle Sitzung.
+- **„Warum dieser Beruf?“:** Ein Satz pro Vorschlag aus den Bereichen, die am meisten zählen, plus ein „Aber:“, wenn ein wichtiger Bereich (ab 10 %) abweicht.
+- **Schreibfragen ausgewertet:** Frage 20 erkennt genannte Berufe (auch Alltagsbegriffe wie „Bürokauffrau“, „Krankenschwester“, `BERUF_SYNONYME`) und zeigt deren Platz in deiner Rangliste. Berufe außerhalb der Liste (z. B. Polizist, Ärztin) bekommen einen Hinweis. Frage 19 und 20 werden nach Signalwörtern (`TEXT_SIGNALE`) durchsucht; dazu gibt es je Thema passende Berufe unter „Aus deinen eigenen Worten“. **Die Passung ändert sich dadurch nicht.**
+- **So geht’s weiter:** Nächste Schritte mit Links zu planet-beruf.de, BERUFENET und Berufsberatung.
+- **Themen nach Herkunft:** Themen aus „Womit möchtest du arbeiten?“ zählen voll, Themen nur über den Arbeitsort (Frage 11, z. B. „In der Werkstatt“) halb (`REGELN.ortThemaWert` = 50). Vorher machte „Werkstatt“ alle Werkstatt-Themen gleichwertig mit der genauen Wahl.
+- Datenfehler korrigiert: „Fachkraft für Möbel-, Küchen- und Umzugsservice“ stand unter Gastronomie/Lebensmittel, jetzt Bau/Handwerk.
 
 ## Plausibilität: Passung und Bereiche (v0.10)
 
