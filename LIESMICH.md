@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.12
+# Aptio – Prototyp v0.12.1
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
@@ -17,7 +17,7 @@ Antworten werden nicht gespeichert: Wenn du die Seite neu lädst, fängt das Qui
   - Frage 11 → *draußen* → „Was möchtest du draußen machen?“ · *drinnen* → „Wo drinnen am liebsten?“
   - Frage 8 → bei *Hintergrund* → „Wäre täglicher Kundenkontakt okay?“
   Je nach Weg sind es etwa 21 bis 26 Fragen.
-- **Mehrfachauswahl:** Frage 1, 4, 17 und die Abzweige der 1. Ebene erlauben bis zu 2 Antworten. Die Punkte werden gemittelt.
+- **Mehrfachauswahl:** Frage 1, 4, 17 und die Abzweige der 1. Ebene erlauben bis zu 2 Antworten. Die Punkte werden gemittelt. Sobald die Höchstzahl gewählt ist (oder „Weiß ich noch nicht“), geht es automatisch weiter – mit kurzer Pause, in der man die Wahl noch zurücknehmen kann. Bei nur einer Antwort tippt man auf „Weiter“. Gilt nur, wenn „automatisch weiter“ in den Einstellungen an ist.
 - **Ausschlüsse:** Schon die Antwort bei Frage 11 schließt aus: *Drinnen* → keine Berufe mit Drinnen bis 40 · *eher drinnen* → bis 25 · *Draußen* → keine Berufe mit Drinnen ab 65 · *eher draußen* → ab 80. Dazu Frage 8a (viel vor Leuten). Das Ergebnis sagt, wie viele Berufe deshalb fehlen.
 - **329 Berufe**: 20 geprüfte aus der eigenen Berufsliste und 309 aus dem BIBB-Verzeichnis 2026, jeder mit eigenem Profil und einer Kurzbeschreibung „Was man dort tut“
 - Ergebnis: stärkste Eigenschaften, 3–5 Berufe mit Passung in Prozent (eine Nachkommastelle), ein Satz aus Frage 7, Zitate aus Frage 19 und 20

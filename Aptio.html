@@ -657,7 +657,7 @@
     </div>
   </dialog>
 
-  <p class="footer">Aptio · Prototyp v0.12 · Stand 09.10.2026</p>
+  <p class="footer">Aptio · Prototyp v0.12.1 · Stand 09.10.2026</p>
 </div>
 
 <script>
@@ -3744,7 +3744,9 @@ function starteApp() {
 
     if (istMultipleChoice(frage)) {
       $('hint').hidden = !frage.mehrfach;
-      if (frage.mehrfach) $('hint').textContent = `Mehrere Antworten möglich – bis zu ${frage.mehrfach}.`;
+      if (frage.mehrfach) $('hint').textContent = einstellungen.autoWeiter
+        ? `Bis zu ${frage.mehrfach} Antworten – bei ${frage.mehrfach} geht’s automatisch weiter. Nur eine? Dann tipp auf „Weiter“.`
+        : `Mehrere Antworten möglich – bis zu ${frage.mehrfach}.`;
       const knoepfe = el('div', { class: frage.mehrfach ? 'answers multi' : 'answers', role: 'group', 'aria-labelledby': 'question' });
       antwortenVon(frage).forEach((antwort, i) => {
         const knopf = el('button', { type: 'button', class: antwort.exklusiv ? 'answer exklusiv' : 'answer', 'aria-pressed': istGewaehlt(frage, i), style: `--i:${i}` },
@@ -3809,7 +3811,16 @@ function starteApp() {
     inaktiveLoeschen(zustand.antworten); // Abzweige, die jetzt nicht mehr passen, vergessen
     $('answer-area').querySelectorAll('.answer').forEach((knopf, j) => knopf.setAttribute('aria-pressed', String(istGewaehlt(frage, j))));
     weiterKnopfAktualisieren();
-    if (!frage.mehrfach && einstellungen.autoWeiter) weiterTimer = setTimeout(weiter, 320); // kurz zeigen, was gewählt wurde, dann weiter
+    if (einstellungen.autoWeiter) {
+      if (!frage.mehrfach) weiterTimer = setTimeout(weiter, 320); // kurz zeigen, was gewählt wurde, dann weiter
+      else {
+        // Mehrfachauswahl: weiter, sobald die Höchstzahl erreicht ist – oder „Weiß ich noch nicht“ gewählt wurde.
+        // Etwas länger warten, damit man die zweite Wahl sieht (und sie noch zurücknehmen kann).
+        const auswahl = zustand.antworten[frage.nr];
+        const optionen = antwortenVon(frage);
+        if (auswahl.length >= frage.mehrfach || (auswahl.length === 1 && optionen[auswahl[0]].exklusiv)) weiterTimer = setTimeout(weiter, 550);
+      }
+    }
   }
 
   function weiter() {
