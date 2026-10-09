@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.8
+# Aptio – Prototyp v0.9
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
@@ -22,7 +22,7 @@ Antworten werden nicht gespeichert: Wenn du die Seite neu lädst, fängt das Qui
 - **329 Berufe**: 20 geprüfte aus der eigenen Berufsliste und 309 aus dem BIBB-Verzeichnis 2026, jeder mit eigenem Profil und einer Kurzbeschreibung „Was man dort tut“
 - Ergebnis: stärkste Eigenschaften, 3–5 Berufe mit Passung in Prozent (eine Nachkommastelle), ein Satz aus Frage 7, Zitate aus Frage 19 und 20
 - Unter den Vorschlägen: **„Alle weiteren Berufe mit Prozentzahl“** zum Aufklappen – die komplette Rangliste aller 329 Berufe
-- **Berufskarten:** Fährt man mit der Maus über einen vorgeschlagenen Beruf, wischt der Inhalt nach oben weg und von unten erscheint, was man in dem Beruf macht (am Handy: antippen). In der Liste „Alle weiteren Berufe“ öffnet sich stattdessen ein kleines Fenster mit Beschreibung und Vergleich in den fünf Bereichen (passt / teils / anders).
+- **Berufskarten:** Fährt man mit der Maus über einen vorgeschlagenen Beruf, wischt der Inhalt nach oben weg und von unten erscheint eine **ausführliche Beschreibung** (2–3 Sätze: was man macht, wo und womit; am Handy: antippen). In der Liste „Alle weiteren Berufe“ öffnet sich stattdessen ein Infofenster mit derselben Beschreibung und dem Vergleich in den fünf Bereichen (passt / teils / anders).
 - **Einstellungen** (Zahnrad oben rechts): Aussehen (wie Gerät / hell / dunkel), Schriftgröße, automatisch weiter an/aus, Bewegungen reduzieren, Berufsdetails an/aus. Wird im Browser gespeichert (`localStorage`, Schlüssel `aptio-einstellungen`).
 - Ganz unten: **„So wurde gerechnet“** zum Aufklappen, mit deinem Profil, allen Punkten und den besten 25 Berufen
 
@@ -95,7 +95,7 @@ Die Berufe stehen in zwei Listen: `BERUFE_GEPRUEFT` (die 20 aus der eigenen List
 ## Offene Punkte
 
 - [ ] **Profile prüfen:** 309 Berufe haben vorläufige Profile (meine Einschätzung).
-- [x] **Beschreibungen:** Alle 309 BIBB-Berufe haben eine Kurzbeschreibung (Stand 02.10.2026, noch vorläufig – fachlich prüfen).
+- [x] **Beschreibungen:** Alle 309 BIBB-Berufe haben eine Kurzbeschreibung (Stand 02.10.2026), alle 329 Berufe zusätzlich eine ausführliche (`BESCHREIBUNGEN_AUSFUEHRLICH`, Stand 09.10.2026). Beides sind eigene Texte, noch nicht mit BIBB/BERUFENET abgeglichen – bibb.de war aus der Arbeitsumgebung nicht erreichbar.
 - [x] **Fragetexte:** Die Originale aus `TiP_Quizfragen_Entwurf_2026-08-28` (Google Drive, Liste „Die 20 Fragen“) sind 1:1 eingesetzt. Nur die Apostrophe sind typografisch gesetzt (’ statt ').
 - [ ] **Neue Antworten prüfen:** Die 33 Antworten aus v0.6 stehen nicht im Entwurf. Texte und Punkte gegenlesen und ggf. in den Entwurf übernehmen.
 - [ ] **Speichern/Mitnehmen:** Laut `Aptio_planung_2026-08-28` Pflicht für Version 1 (PDF, Link oder Screenshot), laut Meilensteinen bis Ende Dezember.
