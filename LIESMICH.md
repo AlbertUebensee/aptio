@@ -173,7 +173,7 @@ Höchstpunkte jetzt: Menschen 13, Dinge 12, Infos 13, Drinnen 3, Draußen 4, Str
 
 - kein einziger Fehler, immer 3 bis 5 Vorschläge
 - in keinem Durchlauf taucht ein ausgeschlossener Beruf in den Vorschlägen auf
-- 307 von 329 Berufen landen bei irgendeiner Kombination unter den Vorschlägen (vorher 284 – die Themen sorgen für mehr Abwechslung)
+- rund 290 bis 310 von 329 Berufen landen bei irgendeiner Kombination unter den Vorschlägen (schwankt je nach Zufallslauf; vorher 284 – die Themen sorgen für mehr Abwechslung)
 - die beste Passung liegt zwischen 48 % und 98 %, typisch bei 80 %
 
 **Stand v0.6 (02.10.2026),** 20.000 zufällige Antwort-Kombinationen mit 5 Antworten je Frage:
