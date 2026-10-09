@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.6
+# Aptio – Prototyp v0.7
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
@@ -11,6 +11,12 @@ Antworten werden nicht gespeichert: Wenn du die Seite neu lädst, fängt das Qui
 
 - Alle 20 Fragen (18 Multiple-Choice, 2 Freitext), per Du. **Jede Antwortfrage hat jetzt 5 Antworten** (siehe „Neue Antworten in v0.6“). Antwort antippen springt automatisch weiter (abschaltbar).
 - Punkte für 16 Fragen (alle außer 7, 12, 19 und 20)
+- **Abzweige (Nachfragen):** Je nach Antwort kommen bis zu drei Nachfragen dazu:
+  - nach Frage 5 *„Und womit genau?“* – Themen zur Auswahl, passend zur Antwort (Dinge → Holz, Metall, Strom …; Menschen → Gesundheit, Gäste, Verkauf …; Infos → IT, Büro, Labor …), bis zu 3
+  - nach Frage 8, wenn „Hintergrund“: Wäre täglicher Kundenkontakt okay?
+  - nach Frage 11, wenn „drinnen“: Wäre regelmäßig raus okay? / wenn „draußen“: Wäre fast nur drinnen okay?
+- **Mehrfachauswahl:** Bei Frage 1, 4 und 17 bis zu 2 Antworten, bei den Themen bis zu 3. Die Punkte werden gemittelt – mehr Kreuze geben nicht mehr Punkte.
+- **Ausschlüsse:** Wer bei einer Nachfrage „lieber nicht“ oder „auf keinen Fall“ sagt, bekommt die betreffenden Berufe gar nicht vorgeschlagen (z. B. „auf keinen Fall raus“ → die 51 Berufe mit viel Draußen-Anteil fallen weg). Das Ergebnis sagt, wie viele Berufe deshalb fehlen.
 - **329 Berufe**: 20 geprüfte aus der eigenen Berufsliste und 309 aus dem BIBB-Verzeichnis 2026, jeder mit eigenem Profil und einer Kurzbeschreibung „Was man dort tut“
 - Ergebnis: stärkste Eigenschaften, 3–5 Berufe mit Passung in Prozent (eine Nachkommastelle), ein Satz aus Frage 7, Zitate aus Frage 19 und 20
 - Unter den Vorschlägen: **„Alle weiteren Berufe mit Prozentzahl“** zum Aufklappen – die komplette Rangliste aller 329 Berufe
@@ -120,6 +126,20 @@ Die Punkte für die Fragen 1, 2, 3, 4, 6, 8, 11 und 14 stammen aus `TiP_Auswertu
 
 Höchstpunkte in v0.5: Menschen 12, Dinge 11, Infos 11, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 5, Vorne 2, Hintergrund 4 (aktuelle Werte siehe „Neue Antworten in v0.6“).
 
+## Themen und Ausschlüsse (v0.7)
+
+**Themen:** Jeder Beruf hat in `BERUF_THEMEN` ein oder mehrere von 21 Themen (`THEMEN`). Hast du Themen gewählt, setzt sich die Passung so zusammen: **80 % Profilvergleich + 20 % Thema** (Beruf aus deinem Thema = 100 %, sonst 0 %). Stellschraube: `REGELN.themenGewicht`. „Weiß ich noch nicht“ heißt: nur Profilvergleich.
+
+**Ausschlüsse:**
+
+| Nachfrage | Antwort | fällt weg |
+|---|---|---|
+| 8a (bei Hintergrund) | Lieber nicht / Auf keinen Fall | Berufe mit Vorne ab 80 / ab 65 |
+| 11a (bei drinnen) | Lieber nicht / Auf keinen Fall | Berufe mit Drinnen bis 25 / bis 40 |
+| 11b (bei draußen) | Lieber nicht / Auf keinen Fall | Berufe mit Drinnen ab 90 / ab 75 |
+
+Die Themen-Zuordnung ist eine erste Einschätzung (automatisch nach Berufsnamen, von Hand korrigiert) und sollte geprüft werden.
+
 ## Neue Antworten in v0.6
 
 Damit man genauer sagen kann, was passt, hat jede Antwortfrage jetzt **5 Antworten**. Die Originalantworten stehen unverändert vorn (a, b, c …), die neuen kommen dahinter. Meist sind es Zwischenstufen („eher …“) oder Mischungen. Zwischenstufen geben 1 Punkt, Mischungen je 1 Punkt auf zwei Eigenschaften.
@@ -148,6 +168,13 @@ Damit man genauer sagen kann, was passt, hat jede Antwortfrage jetzt **5 Antwort
 Höchstpunkte jetzt: Menschen 13, Dinge 12, Infos 13, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 7, **Vorne 4, Hintergrund 4** (vorher 2 zu 4 – Sichtbarkeit ist jetzt ausgeglichen).
 
 ## Gegenprobe
+
+**Stand v0.7 (02.10.2026),** 20.000 zufällige Durchläufe mit Nachfragen und Mehrfachauswahl:
+
+- kein einziger Fehler, immer 3 bis 5 Vorschläge
+- in keinem Durchlauf taucht ein ausgeschlossener Beruf in den Vorschlägen auf
+- 307 von 329 Berufen landen bei irgendeiner Kombination unter den Vorschlägen (vorher 284 – die Themen sorgen für mehr Abwechslung)
+- die beste Passung liegt zwischen 48 % und 98 %, typisch bei 80 %
 
 **Stand v0.6 (02.10.2026),** 20.000 zufällige Antwort-Kombinationen mit 5 Antworten je Frage:
 
