@@ -1,7 +1,7 @@
 # CLAUDE.md – Hinweise für Claude Code
 
 Aptio ist ein Berufsorientierungs-Quiz für Jugendliche („Welcher Job passt zu dir?“).
-Aktueller Stand: **Prototyp v0.7**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
+Aktueller Stand: **Prototyp v0.8**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
 
 ## Sprache und Ton
 
@@ -48,16 +48,14 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 - Werte ab 60 (`REGELN.profilDeutlich`) gelten als Merkmal („Passt zu dir“).
 - Jeder Beruf braucht mindestens ein Thema in `BERUF_THEMEN` (Schlüssel aus `THEMEN`); `datenPruefen()` meldet fehlende.
 
-## Abzweige, Mehrfachauswahl, Ausschlüsse (seit v0.7)
+## Fragebaum, Mehrfachauswahl, Ausschlüsse (seit v0.8)
 
-- `zeigeWenn: a => …` macht eine Frage zur Nachfrage, die nur bei bestimmten Antworten erscheint. Immer über `aktiveFragen(antworten)` arbeiten, nie direkt über `FRAGEN` mit Index.
-- `mehrfach: n` erlaubt bis zu n Antworten; die Punkte werden gemittelt (`punkteZaehlen`). Antwort ist dann ein Array von Indizes.
-- `typ: 'themen'` + `abhaengigVon: 5`: Antworten kommen aus `THEMEN_JE_ANTWORT`, nicht aus `antworten`. Antwortmöglichkeiten immer über `antwortenVon(frage, antworten)` holen.
-- `ausschluss: { feld, ab | bis, grund }` an einer Antwort nimmt Berufe komplett aus der Rangliste.
-- Nachfragen vergeben keine Punkte, sonst verschieben sich die Höchstpunkte für alle.
-- `BERUFE_GEPRUEFT` haben die `beschreibung` direkt im Eintrag; für `BERUFE_VORLAEUFIG` (BIBB 2026) steht sie in `BESCHREIBUNGEN_VORLAEUFIG` (Schlüssel = Berufsname, ebenfalls vorläufig).
-- Das Kennzeichen `vorlaeufig` steht **nicht** in den einzelnen Einträgen, sondern wird pro Liste per `.map(b => ({ ...b, vorlaeufig: … }))` gesetzt. Ist ein Profil fachlich geprüft, den Eintrag (mit `beschreibung`) nach `BERUFE_GEPRUEFT` verschieben.
-- Keine Dubletten zwischen beiden Listen (siehe „Doppelte Berufe“ in `LIESMICH.md`).
+- `zeigeWenn: a => …` macht eine Frage zum Abzweig. Immer über `aktiveFragen(antworten)` arbeiten, nie direkt über `FRAGEN` mit Index. Nach jeder Antwort räumt `inaktiveLoeschen()` Antworten von Abzweigen weg, die nicht mehr dran sind.
+- 2. Ebene: `zeigeWenn: a => hatThema(a, '5d', 'bau')`. Nummern mit Bindestrich (`5d-bau`) gelten als „genau“ und haben bei Unterthemen Vorrang (`themenAuswahl`).
+- Antworten können `thema` und `unterthema` tragen (String oder Liste). Schlüssel aus `THEMEN` / `UNTERTHEMEN`; `datenPruefen()` meldet unbekannte und Unterthemen ohne Beruf.
+- `mehrfach: n` erlaubt bis zu n Antworten (Array von Indizes); Punkte werden gemittelt. `exklusiv: true` („Weiß ich noch nicht“) steht allein.
+- `ausschluss: { feld, ab | bis, grund }` an einer Antwort nimmt Berufe komplett aus der Rangliste (auch direkt an Frage 11).
+- Abzweige vergeben keine Punkte, sonst verschieben sich die Höchstpunkte.
 
 ## Prüfen nach Änderungen
 
@@ -70,7 +68,7 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 - 309 vorläufige Berufsprofile prüfen
 - Beschreibungen der BIBB-Berufe fachlich prüfen
 - Die 33 neuen Antworten aus v0.6 gegenlesen
-- Themen-Zuordnung (`BERUF_THEMEN`) und die Nachfragen aus v0.7 prüfen
+- Themen- und Unterthemen-Zuordnung (`BERUF_THEMEN`, `BERUF_UNTERTHEMEN`) und die Abzweig-Fragen aus v0.8 prüfen
 - Speichern/Mitnehmen (PDF, Link oder Screenshot) – Pflicht für Version 1
 - Begründung (1–2 Sätze) pro Berufsvorschlag
 - Frage 12 (Kritik): Ergebnissatz oder streichen

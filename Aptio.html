@@ -506,14 +506,14 @@
     </div>
   </dialog>
 
-  <p class="footer">Aptio · Prototyp v0.7 · Stand 02.10.2026</p>
+  <p class="footer">Aptio · Prototyp v0.8 · Stand 09.10.2026</p>
 </div>
 
 <script>
 'use strict';
 
 /* =============================================================================
-   APTIO – Prototyp v0.7
+   APTIO – Prototyp v0.8
    Diese Datei hat drei Teile:
      1. DATEN       – Eigenschaften, Fragen mit Punkten, Berufe, Regeln
      2. AUSWERTUNG  – Punkte zählen, Top-Eigenschaften bestimmen, Berufe zuordnen
@@ -563,9 +563,10 @@ const REGELN = {
   gewichte: { Arbeitsfeld: 30, Umgebung: 25, Arbeitsweise: 20, Verantwortung: 15, Sichtbarkeit: 10 },
   zufallBeiGleichstand: true, // Berufe mit exakt gleicher Bewertung werden zufaellig gemischt (false = alphabetisch).
   tabelleMax: 25,        // So viele Berufe zeigt die Tabelle unter im Rechenweg.,
-  // Hast du Themen gewählt (Nachfrage zu Frage 5), zählt das so viel Prozent der Passung.
-  // Berufe aus deinen Themen bekommen dafür 100 %, alle anderen 0 %.
-  themenGewicht: 20
+  // Hast du bei den Abzweigen Themen gewählt, zählt das so viel Prozent der Passung.
+  // Beruf aus deinem Thema: 100 % (oder 50 %, wenn du ein anderes Unterthema gewählt hast), sonst 0 %.
+  themenGewicht: 30,
+  unterthemaDaneben: 50
 };
 
 // Die 20 Fragen.
@@ -631,14 +632,232 @@ const FRAGEN = [
     ],
   },
   {
-    // Abzweig: Welche Themen? Die Auswahl hängt von der Antwort auf Frage 5 ab (THEMEN_JE_ANTWORT).
-    // Keine Punkte – die Themen fließen direkt in die Passung ein (REGELN.themenGewicht).
-    nr: '5a',
-    typ: 'themen',
-    abhaengigVon: 5,
-    mehrfach: 3,
-    zeigeWenn: a => a[5] !== undefined,
-    text: 'Und womit genau? Was davon reizt dich am meisten?',
+    // Abzweig 1. Ebene: nur bei „Menschen“ oder „Menschen und Dinge“ in Frage 5. Keine Punkte – Themen zählen in der Passung (REGELN.themenGewicht).
+    nr: '5m',
+    zeigeWenn: a => [0, 3].includes(a[5]),
+    mehrfach: 2,
+    text: "Mit welchen Menschen hättest du am liebsten zu tun?",
+    antworten: [
+      { text: 'Mit Kranken, Älteren oder Verletzten', thema: 'gesundheit', unterthema: 'pflege', punkte: {} },
+      { text: 'Mit Kindern und Jugendlichen', thema: 'gesundheit', unterthema: 'kinder', punkte: {} },
+      { text: 'Mit Gästen im Restaurant oder Hotel', thema: 'gaeste', punkte: {} },
+      { text: 'Mit Kund:innen im Laden oder in der Beratung', thema: 'verkauf', punkte: {} },
+      { text: 'Menschen schöner machen – Haare, Haut, Styling', thema: 'schoenheit', punkte: {} },
+      { text: 'Menschen schützen und retten', thema: 'sicherheit', punkte: {} },
+      { text: 'Mit Leuten beim Sport, Reisen oder in der Freizeit', thema: 'freizeit', punkte: {} },
+      { text: 'Weiß ich noch nicht', punkte: {}, exklusiv: true },
+    ],
+  },
+  {
+    // Abzweig 1. Ebene: nur bei „Dinge“ oder einer Mischung mit Dingen in Frage 5.
+    nr: '5d',
+    zeigeWenn: a => [1, 3, 4].includes(a[5]),
+    mehrfach: 2,
+    text: "Womit möchtest du am liebsten arbeiten?",
+    antworten: [
+      { text: 'Mit Holz', thema: 'holz', punkte: {} },
+      { text: 'Mit Metall und Maschinen', thema: 'metall', punkte: {} },
+      { text: 'Mit Strom und Elektronik', thema: 'elektro', punkte: {} },
+      { text: 'Mit Autos, Rädern oder Flugzeugen', thema: 'fahrzeuge', punkte: {} },
+      { text: 'Häuser bauen und ausbauen', thema: 'bau', punkte: {} },
+      { text: 'Mit Pflanzen, Tieren und Natur', thema: 'natur', punkte: {} },
+      { text: 'Mit Essen und Getränken', thema: 'essen', punkte: {} },
+      { text: 'Mit Stoffen, Schmuck, Glas oder Instrumenten', thema: 'kunsthandwerk', punkte: {} },
+      { text: 'Mit Waren – transportieren und lagern', thema: 'verkehr', punkte: {} },
+      { text: 'Weiß ich noch nicht', punkte: {}, exklusiv: true },
+    ],
+  },
+  {
+    // Abzweig 1. Ebene: nur bei „Zahlen oder Infos“ oder „Dinge und Infos“ in Frage 5.
+    nr: '5i',
+    zeigeWenn: a => [2, 4].includes(a[5]),
+    mehrfach: 2,
+    text: "Mit welchen Zahlen oder Infos am liebsten?",
+    antworten: [
+      { text: 'Computer und IT', thema: 'it', punkte: {} },
+      { text: 'Zahlen, Geld und Büro', thema: 'buero', punkte: {} },
+      { text: 'Recht, Gesetze und Verwaltung', thema: 'recht', punkte: {} },
+      { text: 'Labor und Forschung', thema: 'labor', punkte: {} },
+      { text: 'Medien, Film und Gestaltung', thema: 'medien', punkte: {} },
+      { text: 'Pläne zeichnen, vermessen, konstruieren', thema: 'planung', punkte: {} },
+      { text: 'Weiß ich noch nicht', punkte: {}, exklusiv: true },
+    ],
+  },
+  {
+    // Abzweig 2. Ebene: nur wenn bei 5d „Holz“ gewählt ist. Unterthemen in BERUF_UNTERTHEMEN.
+    nr: '5d-holz',
+    zeigeWenn: a => hatThema(a, '5d', 'holz'),
+    text: "Und beim Holz – was reizt dich mehr?",
+    antworten: [
+      { text: 'Möbel bauen und Räume einrichten', thema: 'holz', unterthema: 'moebel', punkte: {} },
+      { text: 'Häuser und Dachstühle aus Holz', thema: 'holz', unterthema: 'holzbau', punkte: {} },
+      { text: 'Instrumente, Spielzeug oder Kunsthandwerk', thema: 'holz', unterthema: 'instrumente', punkte: {} },
+      { text: 'Holz an großen Maschinen verarbeiten', thema: 'holz', unterthema: 'holzindustrie', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'holz', punkte: {} },
+    ],
+  },
+  {
+    nr: '5d-metall',
+    zeigeWenn: a => hatThema(a, '5d', 'metall'),
+    text: "Bei Metall und Maschinen – was liegt dir eher?",
+    antworten: [
+      { text: 'Große Maschinen und Anlagen einrichten und reparieren', thema: 'metall', unterthema: 'anlagen', punkte: {} },
+      { text: 'Feine Präzisionsteile fräsen, drehen, schleifen', thema: 'metall', unterthema: 'praezision', punkte: {} },
+      { text: 'Schweißen und große Teile bauen', thema: 'metall', unterthema: 'schweissen', punkte: {} },
+      { text: 'Die Produktion an Maschinen überwachen', thema: 'metall', unterthema: 'produktion', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'metall', punkte: {} },
+    ],
+  },
+  {
+    nr: '5d-elektro',
+    zeigeWenn: a => hatThema(a, '5d', 'elektro'),
+    text: "Bei Strom und Elektronik – wo am liebsten?",
+    antworten: [
+      { text: 'In Häusern: Licht, Strom, Smart Home', thema: 'elektro', unterthema: 'gebaeude', punkte: {} },
+      { text: 'In der Industrie: Maschinen und Roboter', thema: 'elektro', unterthema: 'automatisierung', punkte: {} },
+      { text: 'Geräte und Elektronik bauen und reparieren', thema: 'elektro', unterthema: 'geraete', punkte: {} },
+      { text: 'Technik für Bühnen und Konzerte', thema: 'elektro', unterthema: 'buehne', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'elektro', punkte: {} },
+    ],
+  },
+  {
+    nr: '5d-fahrzeuge',
+    zeigeWenn: a => hatThema(a, '5d', 'fahrzeuge'),
+    text: "Bei Fahrzeugen – was davon?",
+    antworten: [
+      { text: 'Reparieren und warten', thema: 'fahrzeuge', unterthema: 'reparieren', punkte: {} },
+      { text: 'Selbst fahren oder steuern – Lkw, Bus, Zug, Schiff', thema: 'fahrzeuge', unterthema: 'fahren', punkte: {} },
+      { text: 'Lackieren, Karosserie, Innenausstattung', thema: 'fahrzeuge', unterthema: 'karosserie', punkte: {} },
+      { text: 'Flugzeuge', thema: 'fahrzeuge', unterthema: 'flug', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'fahrzeuge', punkte: {} },
+    ],
+  },
+  {
+    nr: '5d-bau',
+    zeigeWenn: a => hatThema(a, '5d', 'bau'),
+    text: "Am Bau – was reizt dich mehr?",
+    antworten: [
+      { text: 'Rohbau, Straßen, Gleise – mit großen Maschinen', thema: 'bau', unterthema: 'rohbau', punkte: {} },
+      { text: 'Dach, Gerüst, Fassade – in der Höhe', thema: 'bau', unterthema: 'hoehe', punkte: {} },
+      { text: 'Innenausbau – Fliesen, Böden, Wände, Malern', thema: 'bau', unterthema: 'ausbau', punkte: {} },
+      { text: 'Heizung, Bad und Haustechnik', thema: 'bau', unterthema: 'haustechnik', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'bau', punkte: {} },
+    ],
+  },
+  {
+    nr: '5d-natur',
+    zeigeWenn: a => hatThema(a, '5d', 'natur'),
+    text: "Bei Pflanzen, Tieren und Natur – was genau?",
+    antworten: [
+      { text: 'Gärten, Parks und Blumen', thema: 'natur', unterthema: 'garten', punkte: {} },
+      { text: 'Tiere pflegen und versorgen', thema: 'natur', unterthema: 'tiere', punkte: {} },
+      { text: 'Landwirtschaft, Wald oder Weinberg', thema: 'natur', unterthema: 'land', punkte: {} },
+      { text: 'Umwelt schützen – Wasser, Abwasser, Recycling', thema: 'natur', unterthema: 'umwelt', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'natur', punkte: {} },
+    ],
+  },
+  {
+    nr: '5d-essen',
+    zeigeWenn: a => hatThema(a, '5d', 'essen'),
+    text: "Beim Essen – was davon?",
+    antworten: [
+      { text: 'Kochen in der Küche', thema: 'essen', unterthema: 'kochen', punkte: {} },
+      { text: 'Backen und Süßes', thema: 'essen', unterthema: 'backen', punkte: {} },
+      { text: 'Lebensmittel oder Getränke in großen Anlagen herstellen', thema: 'essen', unterthema: 'lebensmittelindustrie', punkte: {} },
+      { text: 'Gäste bedienen und verkaufen', thema: 'essen', unterthema: 'service', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'essen', punkte: {} },
+    ],
+  },
+  {
+    nr: '5d-kunsthandwerk',
+    zeigeWenn: a => hatThema(a, '5d', 'kunsthandwerk'),
+    text: "Und was davon am liebsten?",
+    antworten: [
+      { text: 'Mode und Stoffe – nähen und schneidern', thema: 'kunsthandwerk', unterthema: 'mode', punkte: {} },
+      { text: 'Schmuck und Uhren', thema: 'kunsthandwerk', unterthema: 'schmuck', punkte: {} },
+      { text: 'Glas und Keramik', thema: 'kunsthandwerk', unterthema: 'glas', punkte: {} },
+      { text: 'Leder, Polster, Raumausstattung', thema: 'kunsthandwerk', unterthema: 'leder', punkte: {} },
+      { text: 'Instrumente bauen', thema: 'kunsthandwerk', unterthema: 'instrumente', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'kunsthandwerk', punkte: {} },
+    ],
+  },
+  {
+    nr: '5m-gesundheit',
+    zeigeWenn: a => hatThema(a, '5m', 'gesundheit'),
+    text: "In der Gesundheit – wie genau?",
+    antworten: [
+      { text: 'Direkt am Menschen: pflegen, helfen, behandeln', thema: 'gesundheit', unterthema: 'pflege', punkte: {} },
+      { text: 'In der Praxis: Patient:innen betreuen und organisieren', thema: 'gesundheit', unterthema: 'praxis', punkte: {} },
+      { text: 'Hilfsmittel herstellen – Zähne, Brillen, Hörgeräte', thema: 'gesundheit', unterthema: 'hilfsmittel', punkte: {} },
+      { text: 'Kinder betreuen und fördern', thema: 'gesundheit', unterthema: 'kinder', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'gesundheit', punkte: {} },
+    ],
+  },
+  {
+    nr: '5m-gaeste',
+    zeigeWenn: a => hatThema(a, '5m', 'gaeste'),
+    text: "Bei Gästen – wo lieber?",
+    antworten: [
+      { text: 'In der Küche', thema: 'gaeste', unterthema: 'kochen', punkte: {} },
+      { text: 'Im Service, direkt am Gast', thema: 'gaeste', unterthema: 'service', punkte: {} },
+      { text: 'An der Rezeption, Reisen und Events organisieren', thema: 'gaeste', unterthema: 'hotel', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'gaeste', punkte: {} },
+    ],
+  },
+  {
+    nr: '5m-verkauf',
+    zeigeWenn: a => hatThema(a, '5m', 'verkauf'),
+    text: "Beim Verkaufen – was davon?",
+    antworten: [
+      { text: 'Im Laden beraten und verkaufen', thema: 'verkauf', unterthema: 'laden', punkte: {} },
+      { text: 'Beraten bei Geld, Versicherung oder Immobilien', thema: 'verkauf', unterthema: 'beratung', punkte: {} },
+      { text: 'Online verkaufen und Werbung machen', thema: 'verkauf', unterthema: 'online', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'verkauf', punkte: {} },
+    ],
+  },
+  {
+    nr: '5i-it',
+    zeigeWenn: a => hatThema(a, '5i', 'it'),
+    text: "Bei Computer und IT – was eher?",
+    antworten: [
+      { text: 'Programmieren und Software entwickeln', thema: 'it', unterthema: 'programmieren', punkte: {} },
+      { text: 'Netzwerke und Systeme einrichten, Leuten helfen', thema: 'it', unterthema: 'systeme', punkte: {} },
+      { text: 'Firmen digitaler machen, Onlineshops betreuen', thema: 'it', unterthema: 'digital', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'it', punkte: {} },
+    ],
+  },
+  {
+    nr: '5i-buero',
+    zeigeWenn: a => hatThema(a, '5i', 'buero'),
+    text: "Im Büro – was eher?",
+    antworten: [
+      { text: 'Mit Zahlen: Buchhaltung, Steuern, Bank', thema: 'buero', unterthema: 'zahlen', punkte: {} },
+      { text: 'Organisieren: Termine, Personal, Abläufe', thema: 'buero', unterthema: 'organisation', punkte: {} },
+      { text: 'Handel: Einkauf, Transporte, Logistik planen', thema: 'buero', unterthema: 'handel', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'buero', punkte: {} },
+    ],
+  },
+  {
+    nr: '5i-labor',
+    zeigeWenn: a => hatThema(a, '5i', 'labor'),
+    text: "Im Labor – was eher?",
+    antworten: [
+      { text: 'Chemie und Medikamente', thema: 'labor', unterthema: 'chemie', punkte: {} },
+      { text: 'Biologie, Pflanzen, Lebensmittel', thema: 'labor', unterthema: 'bio', punkte: {} },
+      { text: 'Materialien prüfen und messen', thema: 'labor', unterthema: 'pruefen', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'labor', punkte: {} },
+    ],
+  },
+  {
+    nr: '5i-medien',
+    zeigeWenn: a => hatThema(a, '5i', 'medien'),
+    text: "Bei Medien – was eher?",
+    antworten: [
+      { text: 'Fotos, Videos, 3D und Animation', thema: 'medien', unterthema: 'bild', punkte: {} },
+      { text: 'Druck und Print gestalten', thema: 'medien', unterthema: 'druck', punkte: {} },
+      { text: 'Werbung und Marketing', thema: 'medien', unterthema: 'marketing', punkte: {} },
+      { text: 'Alles davon / weiß ich noch nicht', thema: 'medien', punkte: {} },
+    ],
   },
   {
     nr: 6,
@@ -713,33 +932,46 @@ const FRAGEN = [
     nr: 11,
     text: 'Bist du lieber drinnen oder draußen bei der Arbeit?',
     antworten: [
-      { text: 'Drinnen',                   punkte: { Drinnen: 2 } },
-      { text: 'Draußen',                   punkte: { Draußen: 2 } },
+      { text: 'Drinnen',                   punkte: { Drinnen: 2 }, ausschluss: { feld: 'Drinnen', bis: 40, grund: 'bei denen man viel draußen ist' } },
+      { text: 'Draußen',                   punkte: { Draußen: 2 }, ausschluss: { feld: 'Drinnen', ab: 65, grund: 'bei denen man viel drinnen ist' } },
       { text: 'Mix aus beidem wäre ideal', punkte: { Drinnen: 1, Draußen: 1 } },
-      { text: 'Eher drinnen, ab und zu raus ist okay',    punkte: { Drinnen: 1 } },
-      { text: 'Eher draußen, bei Regen auch mal drinnen', punkte: { Draußen: 1 } },
+      { text: 'Eher drinnen, ab und zu raus ist okay',    punkte: { Drinnen: 1 }, ausschluss: { feld: 'Drinnen', bis: 25, grund: 'bei denen man fast nur draußen ist' } },
+      { text: 'Eher draußen, bei Regen auch mal drinnen', punkte: { Draußen: 1 }, ausschluss: { feld: 'Drinnen', ab: 80, grund: 'bei denen man fast nur drinnen ist' } },
     ],
   },
   {
-    // Abzweig nur bei „Drinnen“ oder „eher drinnen“. Keine Punkte, kann Berufe ausschließen.
-    nr: '11a',
-    zeigeWenn: a => [0, 3].includes(a[11]),
-    text: 'Und wenn du bei der Arbeit doch regelmäßig raus müsstest – zum Beispiel auf die Baustelle oder ins Grüne?',
-    antworten: [
-      { text: 'Wäre okay, solange es nicht ständig ist', punkte: {} },
-      { text: 'Lieber nicht',                            punkte: {}, ausschluss: { feld: 'Drinnen', bis: 25, grund: 'bei denen man fast nur draußen ist' } },
-      { text: 'Auf keinen Fall – ich will drinnen arbeiten', punkte: {}, ausschluss: { feld: 'Drinnen', bis: 40, grund: 'bei denen man viel draußen ist' } },
-    ],
-  },
-  {
-    // Abzweig nur bei „Draußen“ oder „eher draußen“. Keine Punkte, kann Berufe ausschließen.
-    nr: '11b',
+    // Abzweig: nur bei „Draußen“ oder „eher draußen“ in Frage 11.
+    nr: '11-draussen',
     zeigeWenn: a => [1, 4].includes(a[11]),
-    text: 'Und ein Job, bei dem du fast den ganzen Tag drinnen bist – zum Beispiel im Büro?',
+    mehrfach: 2,
+    text: "Was möchtest du draußen am liebsten machen?",
     antworten: [
-      { text: 'Wenn der Rest passt, schon',  punkte: {} },
-      { text: 'Lieber nicht',                punkte: {}, ausschluss: { feld: 'Drinnen', ab: 90, grund: 'bei denen man fast nur drinnen ist' } },
-      { text: 'Auf keinen Fall',             punkte: {}, ausschluss: { feld: 'Drinnen', ab: 75, grund: 'bei denen man viel drinnen ist' } },
+      { text: 'In Gärten und Parks, mit Pflanzen', thema: 'natur', unterthema: 'garten', punkte: {} },
+      { text: 'Mit Tieren', thema: 'natur', unterthema: 'tiere', punkte: {} },
+      { text: 'Auf dem Bau, an Straßen oder auf Dächern', thema: 'bau', unterthema: ['rohbau', 'hoehe'], punkte: {} },
+      { text: 'Unterwegs sein und fahren', thema: ['verkehr', 'fahrzeuge'], unterthema: 'fahren', punkte: {} },
+      { text: 'Im Wald, auf dem Feld oder im Weinberg', thema: 'natur', unterthema: 'land', punkte: {} },
+      { text: 'Wasser und Umwelt schützen', thema: 'natur', unterthema: 'umwelt', punkte: {} },
+      { text: 'Für Sicherheit sorgen oder retten', thema: 'sicherheit', punkte: {} },
+      { text: 'Weiß ich noch nicht', punkte: {}, exklusiv: true },
+    ],
+  },
+  {
+    // Abzweig: nur bei „Drinnen“ oder „eher drinnen“ in Frage 11.
+    nr: '11-drinnen',
+    zeigeWenn: a => [0, 3].includes(a[11]),
+    mehrfach: 2,
+    text: "Wo drinnen am liebsten?",
+    antworten: [
+      { text: 'Am Schreibtisch und Computer', thema: ['buero', 'it', 'recht'], punkte: {} },
+      { text: 'In der Werkstatt', thema: ['holz', 'metall', 'elektro', 'fahrzeuge', 'kunsthandwerk'], punkte: {} },
+      { text: 'In der Fabrik an Maschinen', thema: ['metall', 'essen'], unterthema: ['anlagen', 'produktion', 'lebensmittelindustrie'], punkte: {} },
+      { text: 'Im Labor', thema: 'labor', punkte: {} },
+      { text: 'In der Küche oder Backstube', thema: 'essen', unterthema: ['kochen', 'backen'], punkte: {} },
+      { text: 'Im Laden oder mit Kund:innen', thema: 'verkauf', unterthema: ['laden', 'beratung'], punkte: {} },
+      { text: 'In Praxis, Klinik oder Pflege', thema: 'gesundheit', punkte: {} },
+      { text: 'Im Studio oder Atelier – gestalten', thema: ['medien', 'kunsthandwerk'], punkte: {} },
+      { text: 'Weiß ich noch nicht', punkte: {}, exklusiv: true },
     ],
   },
   {
@@ -869,14 +1101,371 @@ const THEMEN = {
   planung: 'Planen, Zeichnen, Vermessen',
 };
 
-// Welche Themen zur Auswahl stehen – je nach Antwort auf Frage 5 (Index der Antwort).
-const THEMEN_JE_ANTWORT = {
-  0: ['gesundheit', 'schoenheit', 'gaeste', 'verkauf', 'freizeit', 'sicherheit', 'natur'],                 // Menschen
-  1: ['holz', 'metall', 'elektro', 'fahrzeuge', 'bau', 'natur', 'essen', 'kunsthandwerk', 'verkehr'],      // Dinge
-  2: ['it', 'buero', 'recht', 'labor', 'medien', 'planung', 'verkehr'],                                    // Zahlen oder Infos
-  3: ['gesundheit', 'schoenheit', 'gaeste', 'essen', 'natur', 'kunsthandwerk', 'fahrzeuge', 'bau'],        // Menschen und Dinge
-  4: ['elektro', 'it', 'metall', 'fahrzeuge', 'labor', 'planung', 'medien', 'bau'],                        // Dinge und Infos
+// Unterthemen für die 2. Ebene der Abzweige (z. B. Bau → Innenausbau).
+const UNTERTHEMEN = {
+  rohbau: "Rohbau und Straße",
+  hoehe: "Dach und Höhe",
+  ausbau: "Innenausbau",
+  haustechnik: "Haustechnik",
+  anlagen: "Maschinen und Anlagen",
+  praezision: "Präzision",
+  schweissen: "Schweißen und Stahlbau",
+  produktion: "Produktion",
+  gebaeude: "Gebäudetechnik",
+  automatisierung: "Automatisierung",
+  geraete: "Geräte und Elektronik",
+  buehne: "Bühnentechnik",
+  reparieren: "Reparieren",
+  flug: "Flugzeuge",
+  fahren: "Fahren und Steuern",
+  karosserie: "Karosserie und Lack",
+  garten: "Gärten und Pflanzen",
+  tiere: "Tiere",
+  land: "Land und Wald",
+  umwelt: "Umwelt",
+  kochen: "Kochen",
+  backen: "Backen",
+  lebensmittelindustrie: "Lebensmittelherstellung",
+  service: "Service",
+  moebel: "Möbel",
+  holzbau: "Holzbau",
+  instrumente: "Instrumente und Kunsthandwerk",
+  holzindustrie: "Holzindustrie",
+  mode: "Mode",
+  schmuck: "Schmuck und Uhren",
+  glas: "Glas und Keramik",
+  leder: "Leder und Polster",
+  pflege: "Pflegen und helfen",
+  praxis: "Praxis",
+  hilfsmittel: "Hilfsmittel",
+  kinder: "Kinder",
+  hotel: "Hotel und Reisen",
+  laden: "Laden",
+  beratung: "Beratung",
+  online: "Online und Werbung",
+  programmieren: "Programmieren",
+  systeme: "IT-Systeme",
+  digital: "Digitales",
+  bild: "Foto und Video",
+  druck: "Druck",
+  marketing: "Marketing",
+  zahlen: "Zahlen",
+  organisation: "Organisation",
+  handel: "Handel und Logistik",
+  chemie: "Chemie",
+  bio: "Biologie",
+  pruefen: "Prüfen und Messen",
 };
+
+// Unterthemen pro Beruf (Stand 09.10.2026, erste Zuordnung nach Berufsnamen – fachlich prüfen).
+// Berufe ohne Eintrag haben kein Unterthema; dann zählt nur das Thema.
+const BERUF_UNTERTHEMEN = {
+  "Tischler/in":                                                                     ["moebel"],
+  "Elektroniker/in für Energie- und Gebäudetechnik":                                 ["haustechnik", "gebaeude"],
+  "Kfz-Mechatroniker/in":                                                            ["reparieren"],
+  "Kaufmann/-frau für Büromanagement":                                               ["zahlen", "organisation"],
+  "Steuerfachangestellte/r":                                                         ["zahlen"],
+  "Fachinformatiker/in Anwendungsentwicklung":                                       ["programmieren"],
+  "Mechatroniker/in":                                                                ["anlagen", "automatisierung"],
+  "IT-Systemelektroniker/in":                                                        ["geraete", "systeme"],
+  "Erzieher/in":                                                                     ["kinder"],
+  "Sozialversicherungsfachangestellte/r":                                            ["organisation"],
+  "Kaufmann/-frau im Einzelhandel":                                                  ["laden", "organisation"],
+  "Vertriebsassistent/in":                                                           ["beratung"],
+  "Pflegefachmann/-frau":                                                            ["pflege"],
+  "Notfallsanitäter/in":                                                             ["pflege"],
+  "Physiotherapeut/in":                                                              ["pflege"],
+  "Mediengestalter/in Digital und Print":                                            ["druck"],
+  "Fotograf/in":                                                                     ["bild"],
+  "Werbekaufmann/-frau":                                                             ["online", "marketing"],
+  "Fachkraft für Lagerlogistik":                                                     ["handel"],
+  "Kaufmann/-frau für Spedition und Logistikdienstleistung":                         ["handel"],
+  "Anlagenmechaniker/in":                                                            ["anlagen"],
+  "Anlagenmechaniker/in für Sanitär-, Heizungs- und Klimatechnik":                   ["haustechnik"],
+  "Asphaltbauer/in":                                                                 ["rohbau"],
+  "Aufbereitungsmechaniker/in":                                                      ["anlagen"],
+  "Augenoptiker/in":                                                                 ["hilfsmittel"],
+  "Ausbaufacharbeiter/in":                                                           ["ausbau"],
+  "Automatenfachmann/-frau":                                                         ["geraete"],
+  "Automobilkaufmann/-frau":                                                         ["reparieren", "beratung"],
+  "Bäcker/in":                                                                       ["backen"],
+  "Bankkaufmann/-frau":                                                              ["beratung", "zahlen"],
+  "Baugeräteführer/in":                                                              ["rohbau", "fahren"],
+  "Baustoffprüfer/in":                                                               ["pruefen"],
+  "Bauwerksabdichter/in":                                                            ["hoehe"],
+  "Bauwerksmechaniker/in für Abbruch und Betontrenntechnik":                         ["rohbau"],
+  "Behälter- und Apparatebauer/in":                                                  ["schweissen"],
+  "Berg- und Maschinenmann/-frau":                                                   ["anlagen"],
+  "Bergbautechnologe/-in":                                                           ["anlagen"],
+  "Bestattungsfachkraft":                                                            ["pflege"],
+  "Beton- und Stahlbetonbauer/in":                                                   ["rohbau"],
+  "Betonfertigteilbauer/in":                                                         ["rohbau"],
+  "Binnenschiffer/in":                                                               ["fahren"],
+  "Binnenschifffahrtskapitän/in":                                                    ["fahren"],
+  "Biologielaborant/in":                                                             ["bio"],
+  "Biologiemodellmacher/in":                                                         ["bio"],
+  "Bodenleger/in":                                                                   ["ausbau"],
+  "Bogenmacher/in":                                                                  ["instrumente"],
+  "Bootsbauer/in":                                                                   ["karosserie"],
+  "Böttcher/in":                                                                     ["instrumente"],
+  "Brauer/in und Mälzer/in":                                                         ["lebensmittelindustrie"],
+  "Brenner/in":                                                                      ["lebensmittelindustrie"],
+  "Brunnenbauer/in":                                                                 ["rohbau"],
+  "Buchbinder/in":                                                                   ["druck"],
+  "Buchhändler/in":                                                                  ["laden"],
+  "Büchsenmacher/in":                                                                ["praezision"],
+  "Bürsten- und Pinselmacher/in":                                                    ["instrumente"],
+  "Chemielaborant/in":                                                               ["chemie"],
+  "Chemielaborjungwerker/in":                                                        ["chemie"],
+  "Chemikant/in":                                                                    ["produktion", "chemie"],
+  "Chirurgiemechaniker/in":                                                          ["praezision"],
+  "Dachdecker/in":                                                                   ["hoehe"],
+  "Destillateur/in":                                                                 ["lebensmittelindustrie"],
+  "Drechsler/in (Elfenbeinschnitzer/in)":                                            ["moebel"],
+  "Drogist/in":                                                                      ["praxis", "laden"],
+  "Edelsteinfasser/in":                                                              ["schmuck"],
+  "Edelsteinschleifer/in":                                                           ["schmuck"],
+  "Eisenbahner/in im Betriebsdienst Lokführer/in und Transport":                     ["fahren"],
+  "Eisenbahner/in in der Zugverkehrssteuerung":                                      ["fahren"],
+  "Elektroanlagenmonteur/in":                                                        ["gebaeude"],
+  "Elektroniker/in":                                                                 ["gebaeude"],
+  "Elektroniker/in für Automatisierungstechnik":                                     ["automatisierung"],
+  "Elektroniker/in für Betriebstechnik":                                             ["automatisierung"],
+  "Elektroniker/in für Gebäude- und Infrastruktursysteme":                           ["gebaeude"],
+  "Elektroniker/in für Gebäudesystemintegration":                                    ["haustechnik", "gebaeude", "systeme"],
+  "Elektroniker/in für Geräte und Systeme":                                          ["geraete"],
+  "Elektroniker/in für Informations- und Systemtechnik":                             ["geraete", "systeme"],
+  "Elektroniker/in für Maschinen und Antriebstechnik nach dem Berufsbildungsgesetz": ["automatisierung"],
+  "Elektroniker/in für Maschinen und Antriebstechnik nach der Handwerksordnung":     ["automatisierung"],
+  "Estrichleger/in":                                                                 ["ausbau"],
+  "Fachangestellte/r für Arbeitsmarktdienstleistungen":                              ["organisation"],
+  "Fachangestellte/r für Markt- und Sozialforschung":                                ["zahlen"],
+  "Fachkraft Agrarservice":                                                          ["fahren", "land"],
+  "Fachkraft für Fruchtsafttechnik":                                                 ["lebensmittelindustrie"],
+  "Fachkraft für Gastronomie":                                                       ["kochen", "service"],
+  "Fachkraft für Holz- und Bautenschutzarbeiten":                                    ["ausbau", "holzbau"],
+  "Fachkraft für Kurier-, Express- und Postdienstleistungen":                        ["fahren"],
+  "Fachkraft für Lebensmitteltechnik":                                               ["lebensmittelindustrie"],
+  "Fachkraft für Lederherstellung und Gerbereitechnik":                              ["leder"],
+  "Fachkraft für Lederverarbeitung":                                                 ["leder"],
+  "Fachkraft für Metalltechnik":                                                     ["schweissen"],
+  "Fachkraft für Möbel-, Küchen- und Umzugsservice":                                 ["moebel"],
+  "Fachkraft für Veranstaltungstechnik":                                             ["buehne"],
+  "Fachkraft für Wasserwirtschaft":                                                  ["umwelt"],
+  "Fachkraft im Fahrbetrieb":                                                        ["fahren"],
+  "Fachkraft Küche":                                                                 ["kochen"],
+  "Fachmann/-frau für Restaurants und Veranstaltungsgastronomie":                    ["kochen", "service"],
+  "Fachmann/-frau für Systemgastronomie":                                            ["kochen", "service"],
+  "Fachverkäufer/in im Lebensmittelhandwerk":                                        ["service", "laden"],
+  "Fahrradmonteur/in":                                                               ["reparieren"],
+  "Fahrzeuginterieur-Mechaniker/in":                                                 ["karosserie"],
+  "Fahrzeuglackierer/in":                                                            ["karosserie"],
+  "Fassadenmonteur/in":                                                              ["hoehe"],
+  "Feinoptiker/in":                                                                  ["praezision"],
+  "Feinpolierer/in":                                                                 ["schmuck"],
+  "Feinwerkmechaniker/in":                                                           ["praezision"],
+  "Fertigungsmechaniker/in":                                                         ["anlagen"],
+  "Feuerungs- und Schornsteinbauer/in":                                              ["hoehe", "haustechnik"],
+  "Figurenkeramformer/in":                                                           ["glas"],
+  "Fischwirt/in":                                                                    ["tiere"],
+  "Flachglastechnologe/-in":                                                         ["produktion"],
+  "Flechtwerkgestalter/in":                                                          ["instrumente"],
+  "Fleischer/in":                                                                    ["lebensmittelindustrie"],
+  "Fliesen-, Platten- und Mosaikleger/in":                                           ["ausbau"],
+  "Florist/in":                                                                      ["garten", "laden"],
+  "Fluggerätelektroniker/in":                                                        ["geraete", "flug"],
+  "Fluggerätmechaniker/in":                                                          ["flug"],
+  "Forstwirt/in":                                                                    ["land"],
+  "Fotomedienfachmann/-frau":                                                        ["laden", "bild"],
+  "Gärtner/in":                                                                      ["garten"],
+  "Gebäudereiniger/in":                                                              ["ausbau"],
+  "Geigenbauer/in":                                                                  ["instrumente"],
+  "Gerüstbauer/in":                                                                  ["hoehe"],
+  "Gestalter/in für immersive Medien":                                               ["digital", "bild"],
+  "Gestalter/in für visuelles Marketing":                                            ["online", "marketing"],
+  "Gießereimechaniker/in":                                                           ["schweissen"],
+  "Glas- und Porzellanmaler/in":                                                     ["glas"],
+  "Glasapparatebauer/in":                                                            ["glas"],
+  "Glasbläser/in":                                                                   ["glas"],
+  "Glaser/in":                                                                       ["ausbau", "glas"],
+  "Glasmacher/in":                                                                   ["glas"],
+  "Glasveredler/in":                                                                 ["glas"],
+  "Gleisbauer/in":                                                                   ["rohbau"],
+  "Gold- und Silberschmied/in":                                                      ["schmuck"],
+  "Graveur/in":                                                                      ["praezision", "schmuck"],
+  "Hafenschiffer/in":                                                                ["fahren"],
+  "Handzuginstrumentenmacher/in":                                                    ["instrumente"],
+  "Hauswirtschafter/in":                                                             ["kochen", "pflege"],
+  "Hochbaufacharbeiter/in":                                                          ["rohbau"],
+  "Holz- und Bautenschützer/in":                                                     ["ausbau", "holzbau"],
+  "Holzbearbeitungsmechaniker/in":                                                   ["holzbau", "holzindustrie"],
+  "Holzbildhauer/in":                                                                ["instrumente"],
+  "Holzblasinstrumentenmacher/in":                                                   ["instrumente"],
+  "Holzmechaniker/in":                                                               ["moebel", "holzindustrie"],
+  "Holzspielzeugmacher/in":                                                          ["instrumente"],
+  "Hörakustiker/in":                                                                 ["hilfsmittel"],
+  "Hotelfachmann/-frau":                                                             ["service", "hotel"],
+  "Immobilienkaufmann/-frau":                                                        ["beratung"],
+  "Industrieelektriker/in":                                                          ["automatisierung"],
+  "Industrie-Isolierer/in":                                                          ["ausbau"],
+  "Industriekaufmann/-frau":                                                         ["zahlen"],
+  "Industriekeramiker/in Anlagentechnik":                                            ["produktion"],
+  "Industriekeramiker/in Modelltechnik":                                             ["mode"],
+  "Industriekeramiker/in Verfahrenstechnik":                                         ["produktion"],
+  "Industriemechaniker/in":                                                          ["anlagen"],
+  "Informationselektroniker/in":                                                     ["geraete", "systeme"],
+  "Investmentfondskaufmann/-frau":                                                   ["beratung", "zahlen"],
+  "Isolierfacharbeiter/in":                                                          ["ausbau"],
+  "Justizfachangestellte/r":                                                         ["organisation"],
+  "Kanalbauer/in":                                                                   ["rohbau"],
+  "Karosserie- und Fahrzeugbaumechaniker/in":                                        ["karosserie"],
+  "Kaufmann/-frau für audiovisuelle Medien":                                         ["bild"],
+  "Kaufmann/-frau für Dialogmarketing":                                              ["online"],
+  "Kaufmann/-frau für Digitalisierungsmanagement":                                   ["digital"],
+  "Kaufmann/-frau für Groß- und Außenhandelsmanagement":                             ["handel"],
+  "Kaufmann/-frau für Hotelmanagement":                                              ["hotel"],
+  "Kaufmann/-frau für IT-System-Management":                                         ["systeme"],
+  "Kaufmann/-frau für Kurier-, Express- und Postdienstleistungen":                   ["handel"],
+  "Kaufmann/-frau für Marketingkommunikation":                                       ["online", "marketing"],
+  "Kaufmann/-frau für Tourismus und Freizeit":                                       ["hotel"],
+  "Kaufmann/-frau für Verkehrsservice":                                              ["handel"],
+  "Kaufmann/-frau für Versicherungen und Finanzanlagen":                             ["beratung", "zahlen"],
+  "Kaufmann/-frau im E-Commerce":                                                    ["online", "digital"],
+  "Kaufmann/-frau im Eisenbahn- und Straßenverkehr":                                 ["handel"],
+  "Kaufmann/-frau im Gesundheitswesen":                                              ["praxis", "organisation"],
+  "Keramiker/in":                                                                    ["glas"],
+  "Kerzenhersteller/in und Wachsbildner/in":                                         ["glas"],
+  "Klavier- und Cembalobauer/in":                                                    ["instrumente"],
+  "Klempner/in":                                                                     ["hoehe"],
+  "Koch / Köchin":                                                                   ["kochen"],
+  "Konditor/in":                                                                     ["backen"],
+  "Konstruktionsmechaniker/in":                                                      ["schweissen"],
+  "Kunststoff- und Kautschuktechnologe/-in":                                         ["produktion"],
+  "Kürschner/in":                                                                    ["leder"],
+  "Lacklaborant/in":                                                                 ["chemie"],
+  "Land- und Baumaschinenmechatroniker/in":                                          ["anlagen", "reparieren"],
+  "Landwirt/in":                                                                     ["land"],
+  "Leichtflugzeugbauer/in":                                                          ["karosserie"],
+  "Leuchtröhrenglasbläser/in":                                                       ["buehne"],
+  "Maler/in und Lackierer/in":                                                       ["ausbau", "chemie"],
+  "Maschinen- und Anlagenführer/in":                                                 ["anlagen", "produktion"],
+  "Mathematisch-technische/r Softwareentwickler/in":                                 ["programmieren"],
+  "Maurer/in":                                                                       ["rohbau"],
+  "Mechaniker/in für Reifen- und Vulkanisationstechnik":                             ["reparieren"],
+  "Mechatroniker/in für Kältetechnik":                                               ["haustechnik"],
+  "Mediengestalter/in Bild und Ton":                                                 ["buehne", "bild"],
+  "Medienkaufmann/-frau Digital und Print":                                          ["druck", "marketing"],
+  "Medientechnologe/-in Druck":                                                      ["druck"],
+  "Medientechnologe/-in Druckverarbeitung":                                          ["druck"],
+  "Medientechnologe/-in Siebdruck":                                                  ["druck"],
+  "Medizinische/r Fachangestellte/r":                                                ["praxis"],
+  "Metall- und Glockengießer/in":                                                    ["schweissen"],
+  "Metallbauer/in":                                                                  ["schweissen"],
+  "Metallbildner/in":                                                                ["schweissen"],
+  "Metallblasinstrumentenmacher/in":                                                 ["instrumente"],
+  "Mikrotechnologe/-in":                                                             ["praezision", "geraete"],
+  "Milchtechnologe/-in":                                                             ["lebensmittelindustrie"],
+  "Milchwirtschaftliche/r Laborant/in":                                              ["lebensmittelindustrie", "bio"],
+  "Modist/in":                                                                       ["mode"],
+  "Musikfachhändler/in":                                                             ["laden"],
+  "Oberflächenbeschichter/in":                                                       ["produktion"],
+  "Ofen- und Luftheizungsbauer/in":                                                  ["haustechnik"],
+  "Orgelbauer/in":                                                                   ["instrumente"],
+  "Orthopädieschuhmacher/in":                                                        ["hilfsmittel"],
+  "Orthopädietechnik-Mechaniker/in":                                                 ["hilfsmittel"],
+  "Packmitteltechnologe/-in":                                                        ["produktion"],
+  "Papiertechnologe/-in":                                                            ["produktion"],
+  "Parkettleger/in":                                                                 ["ausbau", "moebel"],
+  "Patentanwaltsfachangestellte/r":                                                  ["organisation"],
+  "Pelzveredler/in":                                                                 ["leder"],
+  "Personaldienstleistungskaufmann/-frau":                                           ["beratung", "organisation"],
+  "Pferdewirt/in":                                                                   ["tiere", "land"],
+  "Pflanzentechnologe/-in":                                                          ["land", "bio"],
+  "Pharmakant/in":                                                                   ["produktion", "chemie"],
+  "Pharmazeutisch-kaufmännische/r Angestellte/r":                                    ["praxis"],
+  "Physiklaborant/in":                                                               ["pruefen"],
+  "Polster- und Dekorationsnäher/in":                                                ["moebel", "leder"],
+  "Polsterer / Polsterin":                                                           ["moebel", "leder"],
+  "Präzisionswerkzeugmechaniker/in":                                                 ["praezision"],
+  "Produktgestalter/in-Textil":                                                      ["mode"],
+  "Produktionsfachkraft Chemie":                                                     ["produktion", "chemie"],
+  "Produktionsmechaniker/in-Textil":                                                 ["produktion", "mode"],
+  "Produktionstechnologe/-in":                                                       ["anlagen"],
+  "Produktprüfer/in-Textil":                                                         ["mode"],
+  "Produktveredler/in-Textil":                                                       ["mode"],
+  "Prüftechnologe/-in Keramik":                                                      ["glas", "pruefen"],
+  "Raumausstatter/in":                                                               ["ausbau", "moebel", "leder"],
+  "Rechtsanwalts- und Notarfachangestellte/r":                                       ["organisation"],
+  "Rechtsanwaltsfachangestellte/r":                                                  ["organisation"],
+  "Revierjäger/in":                                                                  ["tiere", "land"],
+  "Rohrleitungsbauer/in":                                                            ["rohbau"],
+  "Rollladen- und Sonnenschutzmechatroniker/in":                                     ["haustechnik", "gebaeude"],
+  "Sattler/in":                                                                      ["leder"],
+  "Schädlingsbekämpfer/in":                                                          ["umwelt"],
+  "Schifffahrtskaufmann/-frau":                                                      ["handel"],
+  "Schilder- und Lichtreklamehersteller/in":                                         ["buehne", "druck"],
+  "Schornsteinfeger/in":                                                             ["hoehe"],
+  "Schuhfertiger/in":                                                                ["leder"],
+  "Segelmacher/in":                                                                  ["mode"],
+  "Seiler/in":                                                                       ["leder"],
+  "Servicefachkraft für Dialogmarketing":                                            ["online"],
+  "Servicefahrer/in":                                                                ["fahren"],
+  "Servicekaufmann/-frau im Luftverkehr":                                            ["hotel", "handel"],
+  "Spezialtiefbauer/in":                                                             ["rohbau"],
+  "Spielzeughersteller/in":                                                          ["instrumente"],
+  "Sportfachmann/-frau":                                                             ["kinder"],
+  "Stanz- und Umformmechaniker/in":                                                  ["schweissen"],
+  "Straßenbauer/in":                                                                 ["rohbau"],
+  "Straßenwärter/in":                                                                ["rohbau"],
+  "Stuckateur/in":                                                                   ["ausbau"],
+  "Süßwarentechnologe/-in":                                                          ["backen", "lebensmittelindustrie"],
+  "Tankwart/in":                                                                     ["reparieren", "laden"],
+  "Technische/r Konfektionär/in":                                                    ["mode"],
+  "Technische/r Modellbauer/in":                                                     ["mode"],
+  "Textil- und Modenäher/in":                                                        ["mode"],
+  "Textil- und Modeschneider/in":                                                    ["mode"],
+  "Textilgestalter/in im Handwerk":                                                  ["mode"],
+  "Textillaborant/in":                                                               ["mode", "pruefen"],
+  "Textilreiniger/in":                                                               ["mode"],
+  "Thermometermacher/in":                                                            ["glas"],
+  "Tiefbaufacharbeiter/in":                                                          ["rohbau"],
+  "Tiermedizinische/r Fachangestellte/r":                                            ["tiere", "praxis"],
+  "Tierpfleger/in":                                                                  ["tiere"],
+  "Tierwirt/in":                                                                     ["tiere", "land"],
+  "Tourismuskaufmann/-frau (Kaufmann/-frau für Privat- und Geschäftsreisen)":        ["hotel"],
+  "Trockenbaumonteur/in":                                                            ["ausbau"],
+  "Uhrmacher/in":                                                                    ["praezision", "schmuck"],
+  "Umwelttechnologe/-in für Abwasserbewirtschaftung":                                ["umwelt"],
+  "Umwelttechnologe/-in für Kreislauf- und Abfallwirtschaft":                        ["umwelt"],
+  "Umwelttechnologe/-in für Rohrleitungsnetze und Industrieanlagen":                 ["umwelt"],
+  "Umwelttechnologe/-in für Wasserversorgung":                                       ["umwelt"],
+  "Veranstaltungskaufmann/-frau":                                                    ["hotel"],
+  "Verfahrensmechaniker/in für Beschichtungstechnik":                                ["produktion"],
+  "Verfahrensmechaniker/in für Brillenoptik":                                        ["hilfsmittel"],
+  "Verfahrensmechaniker/in Glastechnik":                                             ["produktion", "glas"],
+  "Verfahrensmechaniker/in in der Steine- und Erdenindustrie":                       ["produktion"],
+  "Verfahrenstechnologe/-in Metall":                                                 ["anlagen"],
+  "Verfahrenstechnologe/-in Mühlen- und Getreidewirtschaft":                         ["lebensmittelindustrie"],
+  "Verkäufer/in":                                                                    ["laden"],
+  "Vermessungstechniker/in":                                                         ["rohbau"],
+  "Verwaltungsfachangestellte/r":                                                    ["organisation"],
+  "Wärme-, Kälte- und Schallschutzisolierer/in":                                     ["ausbau"],
+  "Wasserbauer/in":                                                                  ["rohbau", "umwelt"],
+  "Weintechnologe/-in":                                                              ["lebensmittelindustrie"],
+  "Werkgehilfe/-in Schmuckwarenindustrie, Taschen- und Armbanduhren":                ["schmuck"],
+  "Werksteinhersteller/in":                                                          ["rohbau"],
+  "Werkstoffprüfer/in":                                                              ["pruefen"],
+  "Werkzeugmechaniker/in":                                                           ["praezision"],
+  "Winzer/in":                                                                       ["land"],
+  "Zahnmedizinische/r Fachangestellte/r":                                            ["praxis"],
+  "Zahntechniker/in":                                                                ["hilfsmittel"],
+  "Zerspanungsmechaniker/in":                                                        ["praezision"],
+  "Zimmerer / Zimmerin":                                                             ["hoehe", "holzbau"],
+  "Zupfinstrumentenmacher/in":                                                       ["instrumente"],
+  "Zweiradmechatroniker/in":                                                         ["reparieren"],
+  "Berufskraftfahrer/in":                                                            ["fahren"],
+};
+
 
 // Themen pro Beruf (Stand 02.10.2026, erste Zuordnung – fachlich prüfen).
 const BERUF_THEMEN = {
@@ -1908,7 +2497,10 @@ const BERUFE_VORLAEUFIG = [
 
 // Alle Berufe zusammen: erst die geprueften, dann die vorlaeufigen.
 const BERUFE = BERUFE_GEPRUEFT.concat(BERUFE_VORLAEUFIG);
-BERUFE.forEach(beruf => { beruf.themen = BERUF_THEMEN[beruf.name] || []; });
+BERUFE.forEach(beruf => {
+  beruf.themen = BERUF_THEMEN[beruf.name] || [];
+  beruf.unterthemen = BERUF_UNTERTHEMEN[beruf.name] || [];
+});
 
 
 /* =============================================================================
@@ -1941,15 +2533,28 @@ function istMultipleChoice(frage) {
 }
 
 // Antwortmöglichkeiten einer Frage. Bei der Themenfrage hängen sie von einer früheren Antwort ab.
-function antwortenVon(frage, antworten) {
-  if (frage.typ === 'themen') {
-    const keys = THEMEN_JE_ANTWORT[antworten[frage.abhaengigVon]] || [];
-    return [
-      ...keys.map(k => ({ text: THEMEN[k], thema: k, punkte: {} })),
-      { text: 'Weiß ich noch nicht', punkte: {}, exklusiv: true },
-    ];
-  }
+function antwortenVon(frage) {
   return frage.antworten || [];
+}
+
+const alsListe = x => (x == null ? [] : Array.isArray(x) ? x : [x]);
+
+// Für die Abzweige: Wurde bei Frage nr eine Antwort mit diesem Thema gewählt?
+function hatThema(antworten, nr, thema) {
+  const frage = FRAGEN.find(f => f.nr === nr);
+  return !!frage && (!frage.zeigeWenn || frage.zeigeWenn(antworten)) &&
+    gewaehlt(frage, antworten).some(a => alsListe(a.thema).includes(thema));
+}
+
+// Löscht Antworten von Abzweigen, die nach einer Änderung nicht mehr dran sind.
+function inaktiveLoeschen(antworten) {
+  let geaendert = true;
+  while (geaendert) {
+    geaendert = false;
+    for (const f of FRAGEN) {
+      if (f.zeigeWenn && antworten[f.nr] !== undefined && !f.zeigeWenn(antworten)) { delete antworten[f.nr]; geaendert = true; }
+    }
+  }
 }
 
 // Welche Fragen gerade dran sind: Abzweige erscheinen nur, wenn ihre Bedingung erfüllt ist.
@@ -1996,10 +2601,42 @@ function punkteZaehlen(antworten) {
   return punkte;
 }
 
-// Gewählte Themen (ohne „Weiß ich noch nicht“).
+// Gewählte Themen und Unterthemen aus allen Abzweigen (ohne „Weiß ich noch nicht“).
+// unter: { thema: Set(unterthemen) } – nur Themen, bei denen ein Unterthema gewählt wurde.
+// Die genauen Nachfragen der 2. Ebene (z. B. „Am Bau – was reizt dich mehr?“) haben Vorrang:
+// Hast du dort ein Unterthema gewählt, weichen spätere, allgemeinere Antworten es nicht wieder auf.
 function themenAuswahl(antworten) {
-  return aktiveFragen(antworten).filter(f => f.typ === 'themen')
-    .flatMap(f => gewaehlt(f, antworten)).filter(a => a.thema).map(a => a.thema);
+  const themen = new Set(), unter = {}, genau = new Set();
+  const fragen = aktiveFragen(antworten);
+  const istGenau = f => String(f.nr).includes('-') && !String(f.nr).startsWith('11');
+  for (const runde of [fragen.filter(istGenau), fragen.filter(f => !istGenau(f))]) {
+    for (const frage of runde) {
+      for (const a of gewaehlt(frage, antworten)) {
+        for (const t of alsListe(a.thema)) {
+          themen.add(t);
+          if (runde[0] && istGenau(runde[0])) { if (alsListe(a.unterthema).length) genau.add(t); }
+          else if (genau.has(t)) continue;
+          for (const u of alsListe(a.unterthema)) (unter[t] = unter[t] || new Set()).add(u);
+        }
+      }
+    }
+  }
+  return { themen: [...themen], unter };
+}
+
+// Wie gut passt ein Beruf zu deinen Themen? 100, 50 oder 0 – und welche Themen/Unterthemen treffen.
+function themenWertung(beruf, wahl) {
+  let wert = 0;
+  const themen = [], unterthemen = [];
+  for (const t of beruf.themen.filter(t => wahl.themen.includes(t))) {
+    themen.push(t);
+    const gewuenscht = wahl.unter[t];
+    if (!gewuenscht) { wert = 100; continue; }
+    const treffer = beruf.unterthemen.filter(u => gewuenscht.has(u));
+    unterthemen.push(...treffer);
+    wert = Math.max(wert, treffer.length ? 100 : REGELN.unterthemaDaneben);
+  }
+  return { wert, themen, unterthemen: [...new Set(unterthemen)] };
 }
 
 // Ausschlüsse aus den Nachfragen, z. B. „auf keinen Fall draußen“.
@@ -2104,29 +2741,31 @@ function prozentText(wert) {
   return `${wert.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
 }
 
-function berufeBewerten(prozente, topSet, themen = [], regeln = []) {
+function berufeBewerten(prozente, topSet, wahl = { themen: [], unter: {} }, regeln = []) {
   const du = nutzerProfil(prozente);
-  const themenSet = new Set(themen);
-  const w = themenSet.size ? REGELN.themenGewicht / 100 : 0;
+  const w = wahl.themen.length ? REGELN.themenGewicht / 100 : 0;
   const bewertet = BERUFE
     .filter(beruf => !istAusgeschlossen(beruf, regeln))
     .map(beruf => {
       const profilPassung = passungBerechnen(beruf.profil, du);
-      const themaTreffer = beruf.themen.filter(t => themenSet.has(t));
+      const tw = themenWertung(beruf, wahl);
+      const themaTreffer = tw.themen;
       return {
         beruf,
         treffer: beruf.merkmale.filter(m => topSet.has(m)),
         gegensaetze: beruf.merkmale.filter(m => !topSet.has(m) && gegenpolIstTop(m, topSet)),
         themaTreffer,
+        unterTreffer: tw.unterthemen,
+        themenWert: tw.wert,
         profilPassung,
-        passung: (1 - w) * profilPassung + w * (themaTreffer.length ? 100 : 0),
+        passung: (1 - w) * profilPassung + w * tw.wert,
       };
     });
   if (REGELN.zufallBeiGleichstand) mischen(bewertet);
   return bewertet.sort((a, b) =>
     (Math.abs(b.passung - a.passung) > EPS ? b.passung - a.passung : 0) ||
     (b.treffer.length - a.treffer.length) ||
-    (b.themaTreffer.length - a.themaTreffer.length) ||
+    (b.themenWert - a.themenWert) ||
     ((a.beruf.vorlaeufig ? 1 : 0) - (b.beruf.vorlaeufig ? 1 : 0)) ||
     (REGELN.zufallBeiGleichstand ? 0 : a.beruf.name.localeCompare(b.beruf.name, 'de')));
 }
@@ -2151,11 +2790,12 @@ function auswerten(antworten) {
   const prozente = prozenteBerechnen(punkte, max);
   const top = topEigenschaftenBestimmen(prozente);
   const topSet = new Set(top.map(t => t.eig));
-  const themen = themenAuswahl(antworten);
+  const wahl = themenAuswahl(antworten);
   const regeln = ausschluesse(antworten);
-  const rangliste = berufeBewerten(prozente, topSet, themen, regeln);
+  const rangliste = berufeBewerten(prozente, topSet, wahl, regeln);
   return {
-    max, punkte, prozente, top, topSet, rangliste, themen, regeln,
+    max, punkte, prozente, top, topSet, rangliste, regeln,
+    themen: wahl.themen, unter: wahl.unter,
     ausgeschlossen: BERUFE.filter(b => istAusgeschlossen(b, regeln)),
     vorschlaege: vorschlaegeAuswaehlen(rangliste),
     profil: nutzerProfil(prozente),
@@ -2184,7 +2824,19 @@ function datenPruefen() {
     if (!beruf.themen.length) probleme.push(`${beruf.name}: kein Thema in BERUF_THEMEN`);
     beruf.themen.forEach(t => { if (!(t in THEMEN)) probleme.push(`${beruf.name}: unbekanntes Thema „${t}“`); });
   }
-  Object.values(THEMEN_JE_ANTWORT).flat().forEach(t => { if (!(t in THEMEN)) probleme.push(`THEMEN_JE_ANTWORT: unbekanntes Thema „${t}“`); });
+  for (const [n, us] of Object.entries(BERUF_UNTERTHEMEN)) {
+    if (!BERUFE.some(b => b.name === n)) probleme.push(`BERUF_UNTERTHEMEN: Beruf „${n}“ gibt es nicht`);
+    us.forEach(u => { if (!(u in UNTERTHEMEN)) probleme.push(`${n}: unbekanntes Unterthema „${u}“`); });
+  }
+  for (const frage of FRAGEN) {
+    (frage.antworten || []).forEach((a, i) => {
+      alsListe(a.thema).forEach(t => { if (!(t in THEMEN)) probleme.push(`Frage ${frage.nr}, Antwort ${i + 1}: unbekanntes Thema „${t}“`); });
+      alsListe(a.unterthema).forEach(u => {
+        if (!(u in UNTERTHEMEN)) probleme.push(`Frage ${frage.nr}, Antwort ${i + 1}: unbekanntes Unterthema „${u}“`);
+        else if (!BERUFE.some(b => b.unterthemen.includes(u))) probleme.push(`Unterthema „${u}“ hat keinen Beruf`);
+      });
+    });
+  }
   Object.keys(BERUF_THEMEN).forEach(n => { if (!BERUFE.some(b => b.name === n)) probleme.push(`BERUF_THEMEN: Beruf „${n}“ gibt es nicht`); });
   return probleme;
 }
@@ -2333,7 +2985,7 @@ function starteApp() {
     return [
       el('h3', { id: 'job-tip-title' }, r.beruf.name.replaceAll('/-', '/‑')),
       el('p', { class: 'tip-desc' }, r.beruf.beschreibung || 'Für diesen Beruf gibt es noch keine Beschreibung.'),
-      r.themaTreffer.length > 0 && el('p', { class: 'tip-label' }, `Gehört zu deinem Thema: ${aufzaehlen(r.themaTreffer.map(t => THEMEN[t]))}`),
+      r.themaTreffer.length > 0 && el('p', { class: 'tip-label' }, `Gehört zu deinem Thema: ${aufzaehlen([...r.themaTreffer.map(t => THEMEN[t]), ...r.unterTreffer.map(u => UNTERTHEMEN[u])])}`),
       el('p', { class: 'tip-label' }, `Passt in ${passt} von ${zeilen.length} Bereichen zu dir`),
       el('ul', { class: 'tip-rows' }, zeilen.map(z =>
         el('li', {},
@@ -2481,7 +3133,7 @@ function starteApp() {
       $('hint').hidden = !frage.mehrfach;
       if (frage.mehrfach) $('hint').textContent = `Mehrere Antworten möglich – bis zu ${frage.mehrfach}.`;
       const knoepfe = el('div', { class: frage.mehrfach ? 'answers multi' : 'answers', role: 'group', 'aria-labelledby': 'question' });
-      antwortenVon(frage, zustand.antworten).forEach((antwort, i) => {
+      antwortenVon(frage).forEach((antwort, i) => {
         const knopf = el('button', { type: 'button', class: antwort.exklusiv ? 'answer exklusiv' : 'answer', 'aria-pressed': istGewaehlt(frage, i) },
           el('span', { class: 'key', 'aria-hidden': 'true' }, BUCHSTABEN[i]),
           el('span', {}, antwort.text));
@@ -2519,16 +3171,13 @@ function starteApp() {
     return Array.isArray(wert) ? wert.includes(i) : wert === i;
   }
 
-  // Ändert sich eine Antwort, von der eine Nachfrage abhängt, wird deren Antwort gelöscht.
-  function abhaengigeLoeschen(frage) {
-    FRAGEN.filter(f => f.abhaengigVon === frage.nr).forEach(f => { delete zustand.antworten[f.nr]; });
-  }
+
 
   function waehle(i) {
     const frage = aktiv()[zustand.index];
     clearTimeout(weiterTimer);
     if (frage.mehrfach) {
-      const optionen = antwortenVon(frage, zustand.antworten);
+      const optionen = antwortenVon(frage);
       let auswahl = Array.isArray(zustand.antworten[frage.nr]) ? [...zustand.antworten[frage.nr]] : [];
       if (auswahl.includes(i)) auswahl = auswahl.filter(x => x !== i);
       else if (optionen[i].exklusiv) auswahl = [i];                              // „Weiß ich noch nicht“ steht allein
@@ -2539,9 +3188,9 @@ function starteApp() {
       }
       zustand.antworten[frage.nr] = auswahl;
     } else {
-      if (zustand.antworten[frage.nr] !== i) abhaengigeLoeschen(frage);
       zustand.antworten[frage.nr] = i;
     }
+    inaktiveLoeschen(zustand.antworten); // Abzweige, die jetzt nicht mehr passen, vergessen
     $('answer-area').querySelectorAll('.answer').forEach((knopf, j) => knopf.setAttribute('aria-pressed', String(istGewaehlt(frage, j))));
     weiterKnopfAktualisieren();
     if (!frage.mehrfach && einstellungen.autoWeiter) weiterTimer = setTimeout(weiter, 320); // kurz zeigen, was gewählt wurde, dann weiter
@@ -2577,7 +3226,7 @@ function starteApp() {
     return el('div', { class: 'job-back' },
       el('p', { class: 'back-label' }, `Was man als ${v.beruf.name.replaceAll('/-', '/‑')} macht`),
       el('p', { class: 'back-text' }, v.beruf.beschreibung || 'Für diesen Beruf gibt es noch keine Beschreibung.'),
-      v.themaTreffer.length > 0 && el('p', { class: 'back-flag' }, `Gehört zu deinem Thema: ${aufzaehlen(v.themaTreffer.map(t => THEMEN[t]))}`),
+      v.themaTreffer.length > 0 && el('p', { class: 'back-flag' }, `Gehört zu deinem Thema: ${aufzaehlen([...v.themaTreffer.map(t => THEMEN[t]), ...v.unterTreffer.map(u => UNTERTHEMEN[u])])}`),
       el('div', { class: 'back-foot' },
         el('span', {}, `Passt in ${passt} von ${zeilen.length} Bereichen zu dir`),
         el('strong', { class: 'fit-wert' }, prozentText(v.passung))),
@@ -2646,7 +3295,8 @@ function starteApp() {
             v.gegensaetze.map(m => el('span', { class: 'chip contrast' }, m))),
           v.themaTreffer.length > 0 && el('div', { class: 'chips' },
             el('span', { class: 'chips-label' }, 'Dein Thema:'),
-            v.themaTreffer.map(t => el('span', { class: 'chip' }, THEMEN[t]))),
+            v.themaTreffer.map(t => el('span', { class: 'chip' }, THEMEN[t])),
+            v.unterTreffer.map(u => el('span', { class: 'chip' }, UNTERTHEMEN[u]))),
           el('div', { class: 'fit' },
             el('span', {}, 'Passung'),
             el('span', { class: 'meter', 'aria-hidden': 'true' }, el('span', { style: `width:${v.passung}%` })),
@@ -2654,7 +3304,7 @@ function starteApp() {
          jobRueckseite(v, erg)))));
     if (erg.ausgeschlossen.length) {
       const gruende = [...new Set(erg.regeln.map(r => r.grund))];
-      berufe.append(el('p', { class: 'note' }, `Nicht dabei sind ${erg.ausgeschlossen.length} Berufe, ${aufzaehlen(gruende)} – das hast du bei den Nachfragen ausgeschlossen.`));
+      berufe.append(el('p', { class: 'note' }, `Nicht dabei sind ${erg.ausgeschlossen.length} Berufe, ${aufzaehlen(gruende)} – das passt nicht zu deinen Antworten.`));
     }
     if (erg.vorschlaege[0].passung < 50) {
       berufe.append(el('p', { class: 'note' }, 'Deine Antworten verteilen sich ziemlich gleichmäßig – du bist vielseitig. Deshalb sind die Prozentwerte eher niedrig. Die Reihenfolge zeigt trotzdem, was am ehesten zu dir passt.'));
@@ -2708,8 +3358,8 @@ function starteApp() {
         el('li', {}, `Sind weniger als ${REGELN.mindestTop} Eigenschaften deutlich, rücken die nächststärksten nach.`),
         el('li', {}, 'Jeder Beruf hat ein Profil in Prozent, zum Beispiel 85 % Dinge, 95 % drinnen, 45 % Verantwortung. Werte ab 60 % gelten als Merkmal des Berufs.'),
         el('li', {}, 'Aus deinen Antworten entsteht dein eigenes Profil im selben Format. Die Passung zeigt, wie nah dein Profil am Profil des Berufs liegt: 100 % heißt gleich. Am stärksten zählt, womit du arbeitest (30 %), dann drinnen/draußen (25 %), Arbeitsweise (20 %), Verantwortung (15 %) und Sichtbarkeit (10 %).'),
-        el('li', {}, `Hast du bei der Nachfrage zu Frage 5 Themen gewählt, zählen sie ${REGELN.themenGewicht} % der Passung: Berufe aus deinen Themen bekommen dafür 100 %, alle anderen 0 %. Der Rest (${100 - REGELN.themenGewicht} %) ist der Profilvergleich.`),
-        el('li', {}, 'Hast du bei einer Nachfrage etwas ausgeschlossen (zum Beispiel „auf keinen Fall draußen“), werden diese Berufe gar nicht vorgeschlagen.'),
+        el('li', {}, `Je nach Antwort kommen Nachfragen (Abzweige), etwa „Womit möchtest du am liebsten arbeiten?“ und danach „Am Bau – was reizt dich mehr?“. Die gewählten Themen zählen ${REGELN.themenGewicht} % der Passung: Beruf aus deinem Thema 100 % – hast du ein Unterthema gewählt und der Beruf gehört nicht dazu, ${REGELN.unterthemaDaneben} % – alle anderen 0 %. Der Rest (${100 - REGELN.themenGewicht} %) ist der Profilvergleich.`),
+        el('li', {}, 'Manche Antworten schließen Berufe ganz aus. Wer zum Beispiel „draußen“ sagt, bekommt keine Berufe vorgeschlagen, bei denen man fast nur drinnen ist – und umgekehrt.'),
         el('li', {}, 'Höhere Passung = weiter oben. Bei exakt gleicher Passung kommen zuerst die Berufe, die mehr deiner stärksten Eigenschaften treffen, dann die geprüften Berufe, darunter wird zufällig ausgewählt.'),
         el('li', {}, `Vorgeschlagen werden die Berufe, die höchstens ${REGELN.passungAbstand} Prozentpunkte unter dem besten liegen – mindestens ${REGELN.minBerufe}, höchstens ${REGELN.maxBerufe}.`)),
       el('h3', {}, 'Dein Profil'),
@@ -2777,7 +3427,7 @@ function starteApp() {
     const taste = e.key.toUpperCase();
     let i = BUCHSTABEN.indexOf(taste);
     if (i < 0 && /^[1-9]$/.test(taste)) i = Number(taste) - 1;
-    if (i >= 0 && i < antwortenVon(frage, zustand.antworten).length) {
+    if (i >= 0 && i < antwortenVon(frage).length) {
       e.preventDefault();
       waehle(i);
     }
