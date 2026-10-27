@@ -1,7 +1,7 @@
 # CLAUDE.md – Hinweise für Claude Code
 
 Aptio ist ein Berufsorientierungs-Quiz für Jugendliche („Welcher Job passt zu dir?“).
-Aktueller Stand: **Prototyp v0.12**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
+Aktueller Stand: **Prototyp v0.12.2**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
 
 ## Sprache und Ton
 
@@ -24,7 +24,7 @@ Aktueller Stand: **Prototyp v0.12**. Ausführliche Beschreibung, Rechenweg und o
 - **Antworten werden nicht gespeichert.** Nur die Einstellungen liegen im Browser (`localStorage`, Schlüssel `aptio-einstellungen`, immer in try/catch). Speichern/Mitnehmen der Ergebnisse ist für Version 1 geplant – vorher mit dem Projektinhaber klären, wie.
 - **Fragetexte und Originalantworten nicht umformulieren.** Sie stammen 1:1 aus `TiP_Quizfragen_Entwurf_2026-08-28`. Nur typografische Apostrophe (’). Seit v0.6 hat jede Antwortfrage 5 Antworten: die Originale vorn, die neuen dahinter (Tabelle in `LIESMICH.md`).
 - Hell und dunkel: Farben nur über die CSS-Variablen in `:root` ändern, und zwar in allen drei Blöcken (dunkel, `[data-theme="light"]`, `prefers-color-scheme: light`).
-- Bei jeder inhaltlichen Änderung **`LIESMICH.md` mitpflegen** (Rechenweg, Tabellen, Offene Punkte abhaken) und im Footer von `Aptio.html` Version/Datum anpassen („Aptio · Prototyp v0.5 · Stand …“).
+- Bei jeder inhaltlichen Änderung **`LIESMICH.md` mitpflegen** (Rechenweg, Tabellen, Offene Punkte abhaken) und im Footer von `Aptio.html` Version/Datum anpassen („Aptio · Prototyp v0.x · Stand …“).
 
 ## Aufbau von `Aptio.html` (im `<script>`-Teil)
 
@@ -65,10 +65,14 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 - Online braucht die Seite die Capability `downloads` (beim Veröffentlichen `capabilities: {downloads: true}`). Offline fällt `ergebnisSpeichern()` auf einen normalen Blob-Download zurück.
 - Schreibfragen: `TEXT_SIGNALE`, `BERUF_SYNONYME`, `ALLGEMEINE_WOERTER` beeinflussen nur Hinweise, nie die Passung.
 
-- Animationen: alles im CSS-Block „ANIMATIONEN“. Neue Animationen müssen bei `data-motion="ruhig"` und `prefers-reduced-motion` aus sein; Inhalte dürfen dann nie unsichtbar bleiben (`.reveal`). JS prüft das über `ruhig()`.
+- Animationen: alles im CSS-Block „ANIMATIONEN“. Hochgezählte Zahlen lesen ihr Ziel aus `data-ziel`, nie aus dem Text. Neue Animationen müssen bei `data-motion="ruhig"` und `prefers-reduced-motion` aus sein; Inhalte dürfen dann nie unsichtbar bleiben (`.reveal`). JS prüft das über `ruhig()`.
 - Die Grundfarbe liegt auf `html`, nicht auf `body` – sonst verdeckt sie die Farbflächen.
 
 ## Prüfen nach Änderungen
+
+- **`node tests/logik.js 20000`** – ohne Zusatzpakete: Daten, zufällige Wege durch den Fragebaum, Ausschlüsse, Nachrechnen der Passung. Muss „KEINE FEHLER“ melden.
+- **`node tests/browser.js`** – braucht Playwright (`npm i -D playwright && npx playwright install chromium`): echte Klickdurchläufe auf Desktop, hell, Handy und mit reduzierter Bewegung, inkl. Infofenster, Speichern, Ändern, Neustart.
+
 
 - `datenPruefen()` läuft beim Öffnen und meldet Profilfehler in der **Browser-Konsole** – nach Datenänderungen kontrollieren.
 - Logikänderungen mit vielen zufälligen Antwort-Kombinationen gegenprüfen (wie in `LIESMICH.md` unter „Gegenprobe“: keine Fehler, immer 3–5 Vorschläge, Anzahl erreichbarer Berufe, Spanne der besten Passung) und die Zahlen dort aktualisieren.

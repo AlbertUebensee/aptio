@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.12.1
+# Aptio – Prototyp v0.12.2
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
@@ -9,24 +9,24 @@ Antworten werden nicht gespeichert: Wenn du die Seite neu lädst, fängt das Qui
 
 ## Was drin ist
 
-- Alle 20 Fragen (18 Multiple-Choice, 2 Freitext), per Du. **Jede Antwortfrage hat jetzt 5 Antworten** (siehe „Neue Antworten in v0.6“). Antwort antippen springt automatisch weiter (abschaltbar).
+- 20 Grundfragen (18 zum Antippen, 2 zum Schreiben) plus Nachfragen je nach Antwort, per Du. **Jede Antwortfrage hat jetzt 5 Antworten** (siehe „Neue Antworten in v0.6“). Antwort antippen springt automatisch weiter (abschaltbar).
 - Punkte für 16 Fragen (alle außer 7, 12, 19 und 20)
 - **Fragebaum mit Abzweigen:** Je nach Antwort kommen andere Nachfragen, in zwei Ebenen:
   - Frage 5 → 1. Ebene je nach Antwort: *Menschen* → „Mit welchen Menschen?“ · *Dinge* → „Womit am liebsten?“ · *Infos* → „Welche Infos?“ (bei Mischungen beide)
   - → 2. Ebene je nach gewähltem Thema, z. B. Bau → „Rohbau, Dach, Innenausbau oder Haustechnik?“, Essen → „Kochen, Backen, Industrie oder Service?“, IT → „Programmieren, Systeme oder Digitales?“ (15 solche Fragen)
   - Frage 11 → *draußen* → „Was möchtest du draußen machen?“ · *drinnen* → „Wo drinnen am liebsten?“
   - Frage 8 → bei *Hintergrund* → „Wäre täglicher Kundenkontakt okay?“
-  Je nach Weg sind es etwa 21 bis 26 Fragen.
+  Je nach Weg sind es 21 bis 28 Fragen (meist 23–24), ca. 10 Minuten.
 - **Mehrfachauswahl:** Frage 1, 4, 17 und die Abzweige der 1. Ebene erlauben bis zu 2 Antworten. Die Punkte werden gemittelt. Sobald die Höchstzahl gewählt ist (oder „Weiß ich noch nicht“), geht es automatisch weiter – mit kurzer Pause, in der man die Wahl noch zurücknehmen kann. Bei nur einer Antwort tippt man auf „Weiter“. Gilt nur, wenn „automatisch weiter“ in den Einstellungen an ist.
 - **Ausschlüsse:** Schon die Antwort bei Frage 11 schließt aus: *Drinnen* → keine Berufe mit Drinnen bis 40 · *eher drinnen* → bis 25 · *Draußen* → keine Berufe mit Drinnen ab 65 · *eher draußen* → ab 80. Dazu Frage 8a (viel vor Leuten). Das Ergebnis sagt, wie viele Berufe deshalb fehlen.
 - **329 Berufe**: 20 geprüfte aus der eigenen Berufsliste und 309 aus dem BIBB-Verzeichnis 2026, jeder mit eigenem Profil und einer Kurzbeschreibung „Was man dort tut“
-- Ergebnis: stärkste Eigenschaften, 3–5 Berufe mit Passung in Prozent (eine Nachkommastelle), ein Satz aus Frage 7, Zitate aus Frage 19 und 20
+- Ergebnis: stärkste Eigenschaften, 3–5 Berufe mit Passung in Prozent (eine Nachkommastelle) und Begründung, ein Satz aus Frage 7, Frage 19 und 20 zitiert und ausgewertet (siehe „Neu in v0.11“)
 - Unter den Vorschlägen: **„Alle weiteren Berufe mit Prozentzahl“** zum Aufklappen – die komplette Rangliste aller 329 Berufe
-- **Berufskarten:** Fährt man mit der Maus über einen vorgeschlagenen Beruf, wischt der Inhalt nach oben weg und von unten erscheint eine **ausführliche Beschreibung** (2–3 Sätze: was man macht, wo und womit; am Handy: antippen). In der Liste „Alle weiteren Berufe“ öffnet sich stattdessen ein Infofenster mit derselben Beschreibung und dem Vergleich in den fünf Bereichen (passt / teils / anders).
+- **Berufskarten:** Fährt man mit der Maus über einen vorgeschlagenen Beruf, wischt der Inhalt nach oben weg und von unten erscheint eine **ausführliche Beschreibung** (2–3 Sätze: was man macht, wo und womit; am Handy: antippen). In der Liste „Alle weiteren Berufe“ öffnet sich stattdessen ein Infofenster mit derselben Beschreibung und dem Vergleich in den fünf Bereichen plus Thema (passt / teils / anders, jeweils mit Prozent und Gewicht).
 - **Einstellungen** (Zahnrad oben rechts): Aussehen (wie Gerät / hell / dunkel), Schriftgröße, automatisch weiter an/aus, Bewegungen reduzieren, Berufsdetails an/aus. Wird im Browser gespeichert (`localStorage`, Schlüssel `aptio-einstellungen`).
 - Ganz unten: **„So wurde gerechnet“** zum Aufklappen, mit deinem Profil, allen Punkten und den besten 25 Berufen
 
-Nicht drin (kommt später): Bewerbungshilfe, echte Stellenangebote, Login. Speichern fehlt noch, gehört aber zu Version 1 (siehe Offene Punkte).
+Nicht drin (kommt später): Bewerbungshilfe, echte Stellenangebote, Login. Das Ergebnis lässt sich als Datei speichern (seit v0.11).
 
 ## Berufsprofile
 
@@ -127,6 +127,15 @@ Die Punkte für die Fragen 1, 2, 3, 4, 6, 8, 11 und 14 stammen aus `TiP_Auswertu
 - Frage 12 bleibt ohne Punkte: Punkte auf Vorne/Hintergrund haben im Test „Vorne“ fast doppelt so oft zur stärksten Eigenschaft gemacht wie „Hintergrund“.
 
 Höchstpunkte in v0.5: Menschen 12, Dinge 11, Infos 11, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 5, Vorne 2, Hintergrund 4 (aktuelle Werte siehe „Neue Antworten in v0.6“).
+
+## Durchsicht v0.12.2
+
+Großer automatischer Test (viele zufällige Durchläufe auf Desktop hell/dunkel, Handy, Tablet und mit reduzierter Bewegung; geprüft: JS-Fehler, seitliches Scrollen, kaputte Texte, doppelte IDs, Knöpfe ohne Namen, unsichtbare Abschnitte, Balken, Prozentzahlen, Infofenster, Speichern, Ändern, Neustart). Behoben:
+
+- **Falsche Prozentzahlen möglich:** Karten liegen im Abschnitt „Berufe“; beide lösten das Hochzählen aus, der zweite Lauf las die halb hochgezählte Zahl als Ziel. Dadurch konnte z. B. „0,0 %“ oder eine zu kleine Zahl stehen bleiben. Jetzt wird das Ziel einmal fest gespeichert und jede Zahl zählt nur einmal.
+- Nach „Nochmal von vorn“ glitt Frage 1 falsch herum herein, wenn man zuletzt zurückgeblättert hatte.
+- Der Hinweis bei Mehrfachfragen blieb veraltet, wenn man „automatisch weiter“ während der Frage umgestellt hat.
+- Veraltete Aussagen in LIESMICH und Code-Kommentar korrigiert.
 
 ## Neu in v0.12: Animationen
 

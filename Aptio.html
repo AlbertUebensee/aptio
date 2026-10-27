@@ -657,7 +657,7 @@
     </div>
   </dialog>
 
-  <p class="footer">Aptio · Prototyp v0.12.1 · Stand 09.10.2026</p>
+  <p class="footer">Aptio · Prototyp v0.12.2 · Stand 09.10.2026</p>
 </div>
 
 <script>
@@ -3052,13 +3052,16 @@ BERUFE.forEach(beruf => {
         übertrifft (Verantwortung: ab 50 %). Sind weniger als 2 deutlich, rücken die
         nächststärksten Gewinner nach.
      d) Jeder Beruf hat ein Profil in Prozent (z. B. Dinge 85, Drinnen 95, Verantwortung 45).
-        Werte ab 60 gelten als Merkmal und erklaeren im Ergebnis das "Passt zu dir".
-     e) Passung: Aus deinen Prozentwerten entsteht dein Profil im selben Format. Die Passung
-        ist der gewichtete Durchschnitt der Übereinstimmung pro Bereich (Übereinstimmung = 100 − Abstand). Hoehere Passung = weiter vorn.
-        Bei exakt gleicher Passung zuerst die Berufe mit mehr Treffern bei deinen staerksten
-        Eigenschaften, dann die geprueften Berufe, darunter zufaellig.
-     f) Gezeigt werden die Berufe, die hoechstens 10 Prozentpunkte unter dem besten
-        liegen (mindestens 3, hoechstens 5).
+        Werte ab 60 gelten als Merkmal und erklären im Ergebnis das „Passt zu dir“.
+     e) Passung: Aus deinen Prozentwerten entsteht dein Profil im selben Format. Pro Bereich
+        Übereinstimmung = 100 − Abstand; Profil-Passung = gewichteter Durchschnitt (REGELN.gewichte).
+     f) Themen aus den Abzweigen zählen REGELN.themenGewicht (30 %): Gesamt = 70 % Profil + 30 % Thema.
+        Thema-Wert 100 / 50 (anderes Unterthema oder nur über den Arbeitsort) / 0.
+     g) Ausschlüsse (z. B. „draußen“ → keine reinen Drinnen-Berufe) nehmen Berufe ganz heraus.
+     h) Höhere Passung = weiter vorn. Bei Gleichstand: mehr Treffer bei deinen stärksten Eigenschaften,
+        höherer Thema-Wert, geprüfte Berufe, dann zufällig.
+     i) Gezeigt werden die Berufe, die höchstens 10 Prozentpunkte unter dem besten liegen
+        (mindestens 3, höchstens 5).
    ============================================================================= */
 
 const EPS = 1e-9; // gegen Rundungsfehler bei Kommazahlen
@@ -3483,7 +3486,11 @@ function starteApp() {
     if (einstellungen.ruhig) r.dataset.motion = 'ruhig'; else delete r.dataset.motion;
     if (einstellungen.details) delete r.dataset.tips;
     else { r.dataset.tips = 'aus'; versteckeTip(); document.querySelectorAll('.job.is-flipped').forEach(k => k.classList.remove('is-flipped')); }
-    if (!bildschirme.quiz.hidden) weiterKnopfAktualisieren();
+    if (!bildschirme.quiz.hidden) {
+      weiterKnopfAktualisieren();
+      const frage = aktiv()[zustand.index];
+      if (frage && istMultipleChoice(frage)) mehrfachHinweis(frage);
+    }
   }
   function formularFuellen() {
     document.querySelectorAll('#settings input[name="theme"]').forEach(i => { i.checked = i.value === einstellungen.theme; });
@@ -3743,10 +3750,7 @@ function starteApp() {
     bereich.replaceChildren();
 
     if (istMultipleChoice(frage)) {
-      $('hint').hidden = !frage.mehrfach;
-      if (frage.mehrfach) $('hint').textContent = einstellungen.autoWeiter
-        ? `Bis zu ${frage.mehrfach} Antworten – bei ${frage.mehrfach} geht’s automatisch weiter. Nur eine? Dann tipp auf „Weiter“.`
-        : `Mehrere Antworten möglich – bis zu ${frage.mehrfach}.`;
+      mehrfachHinweis(frage);
       const knoepfe = el('div', { class: frage.mehrfach ? 'answers multi' : 'answers', role: 'group', 'aria-labelledby': 'question' });
       antwortenVon(frage).forEach((antwort, i) => {
         const knopf = el('button', { type: 'button', class: antwort.exklusiv ? 'answer exklusiv' : 'answer', 'aria-pressed': istGewaehlt(frage, i), style: `--i:${i}` },
@@ -3771,6 +3775,13 @@ function starteApp() {
     void karte.offsetWidth; // Animation neu starten
     karte.classList.add(richtung < 0 ? 'slide-zurueck' : 'slide-vor');
     $('question').focus({ preventScroll: true });
+  }
+
+  function mehrfachHinweis(frage) {
+    $('hint').hidden = !frage.mehrfach;
+    if (frage.mehrfach) $('hint').textContent = einstellungen.autoWeiter
+      ? `Bis zu ${frage.mehrfach} Antworten – bei ${frage.mehrfach} geht’s automatisch weiter. Nur eine? Dann tipp auf „Weiter“.`
+      : `Mehrere Antworten möglich – bis zu ${frage.mehrfach}.`;
   }
 
   // Bei Antwortfragen mit „automatisch weiter“ braucht es keinen Weiter-Knopf; Freitext braucht ihn immer.
@@ -3975,13 +3986,16 @@ function starteApp() {
       return;
     }
     balken.forEach(b => { b.dataset.w = b.style.width; b.style.width = '0%'; });
+    // Zielwert EINMAL merken – nie aus dem (evtl. gerade hochzählenden) Text lesen
+    zahlen.forEach(z => { z.dataset.ziel = parseFloat(z.textContent.replace(',', '.')); });
     const bloecke = [...inhalt.querySelectorAll(':scope > .section, :scope > p, :scope > h1, .jobs > .job, .trait')];
     bloecke.forEach(b => b.classList.add('reveal'));
     inhalt.querySelectorAll('.jobs > .job').forEach((k, i) => { k.style.transitionDelay = `${i * 90}ms`; });
     inhalt.querySelectorAll('.trait').forEach((k, i) => { k.style.transitionDelay = `${i * 80}ms`; });
     const hochzaehlen = node => {
-      const ziel = parseFloat(node.textContent.replace(',', '.'));
-      if (!isFinite(ziel)) return;
+      const ziel = parseFloat(node.dataset.ziel);
+      if (!isFinite(ziel) || node.dataset.gezaehlt) return; // jede Zahl zählt nur einmal hoch
+      node.dataset.gezaehlt = '1';
       const start = performance.now(), dauer = 1000;
       const schritt = jetzt => {
         const t = Math.min(1, (jetzt - start) / dauer);
@@ -3999,8 +4013,10 @@ function starteApp() {
         beobachter.unobserve(b);
         const verz = parseInt(b.style.transitionDelay) || 0;
         setTimeout(() => {
-          b.querySelectorAll('.meter > span[data-w]').forEach(m => { m.style.width = m.dataset.w; });
-          b.querySelectorAll('.fit-wert').forEach(hochzaehlen);
+          // nur Balken/Zahlen, die direkt zu diesem Block gehören (Karten im Abschnitt animieren selbst)
+          const eigene = sel => [...b.querySelectorAll(sel)].filter(x => x.closest('.reveal') === b);
+          eigene('.meter > span[data-w]').forEach(m => { m.style.width = m.dataset.w; });
+          eigene('.fit-wert').forEach(hochzaehlen);
         }, verz + 150);
         // Hover-Verzögerung nicht dauerhaft behalten
         setTimeout(() => { b.style.transitionDelay = ''; }, verz + 700);
@@ -4013,7 +4029,7 @@ function starteApp() {
     setTimeout(() => {
       bloecke.forEach(b => b.classList.add('sichtbar'));
       balken.forEach(m => { if (m.dataset.w) m.style.width = m.dataset.w; });
-      zahlen.forEach(z => { if (z.textContent === prozentText(0)) hochzaehlen(z); });
+      zahlen.forEach(hochzaehlen);
     }, 4000);
   }
 
@@ -4336,6 +4352,7 @@ ${erg.wunschberuf ? `<h2>Das reizt mich schon</h2><blockquote>„${htmlEsc(erg.w
   // ---------- Steuerung ----------
 
   $('start').addEventListener('click', () => {
+    richtung = 1;
     zustand.index = 0;
     zustand.antworten = {};
     zeige('quiz');
@@ -4344,6 +4361,7 @@ ${erg.wunschberuf ? `<h2>Das reizt mich schon</h2><blockquote>„${htmlEsc(erg.w
   $('back').addEventListener('click', zurueck);
   $('next').addEventListener('click', weiter);
   $('edit').addEventListener('click', () => {
+    richtung = -1;
     zustand.index = aktiv().length - 1;
     zeige('quiz');
     zeigeFrage();
