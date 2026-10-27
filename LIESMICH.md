@@ -1,11 +1,11 @@
-# Aptio – Prototyp v0.12.2
+# Aptio – Prototyp v0.13
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
 ## Öffnen
 
 Doppelklick auf **`Aptio.html`**. Die App läuft in jedem Browser, ohne Internet, ohne Installation.
-Antworten werden nicht gespeichert: Wenn du die Seite neu lädst, fängt das Quiz von vorn an. Nur die Einstellungen (Zahnrad oben rechts) merkt sich der Browser.
+Antworten werden nirgends hochgeladen. Solange der Tab offen ist, merkt sich Aptio sie (sessionStorage), damit beim versehentlichen Neuladen nichts verloren geht – Tab zu, „Neu anfangen“ oder „Nochmal von vorn“ löscht sie. Die Einstellungen (Zahnrad oben rechts) merkt sich der Browser dauerhaft.
 
 ## Was drin ist
 
@@ -127,6 +127,17 @@ Die Punkte für die Fragen 1, 2, 3, 4, 6, 8, 11 und 14 stammen aus `TiP_Auswertu
 - Frage 12 bleibt ohne Punkte: Punkte auf Vorne/Hintergrund haben im Test „Vorne“ fast doppelt so oft zur stärksten Eigenschaft gemacht wie „Hintergrund“.
 
 Höchstpunkte in v0.5: Menschen 12, Dinge 11, Infos 11, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 5, Vorne 2, Hintergrund 4 (aktuelle Werte siehe „Neue Antworten in v0.6“).
+
+## Neu in v0.13
+
+- **Übersicht vor der Auswertung:** Nach der letzten Frage kommt „Passt alles so?“ mit allen Antworten. „Ändern“ springt zur Frage; danach geht es direkt zurück zur Übersicht (neu aufgetauchte Nachfragen werden vorher noch gestellt). „Antworten ändern“ im Ergebnis öffnet ebenfalls die Übersicht.
+- **Weitermachen nach Neuladen:** Antworten, aktuelle Frage und Merkliste liegen in `sessionStorage` (Schlüssel `aptio-sitzung`) – nur für diesen Tab. Beim Neuladen bietet die Startseite „Weitermachen“ oder „Neu anfangen“ an (dann ist „Los geht’s“ ausgeblendet, damit man nicht aus Versehen alles verliert).
+- **Vorlesen:** Knopf unter jeder Frage liest Frage und Antworten vor (Sprachausgabe des Browsers, deutsche Stimme). Am Handy nur als Symbol. Erscheint nur, wenn der Browser Sprachausgabe kann.
+- **Berufe suchen:** Suchfeld über der langen Liste. Zeigt Treffer, sagt, wenn ein Beruf schon oben bei den Vorschlägen steht oder wegen der Antworten ausgeschlossen ist.
+- **Hinweise & Datenschutz:** Link in der Fußzeile, verständlich für Jugendliche: was Aptio ist, dass das Ergebnis eine Orientierung ist, was wo gespeichert wird, Tipp für Schulrechner.
+- **Tests im Repo:** `tests/logik.js` (ohne Zusatzpakete) und `tests/browser.js` (Playwright), Bedienung in `CLAUDE.md`.
+
+**Vor einer echten Veröffentlichung noch nötig:** Impressum und eine vollständige Datenschutzerklärung mit den Verantwortlichen (Name, Kontakt) – das kann Aptio nicht selbst wissen.
 
 ## Durchsicht v0.12.2
 

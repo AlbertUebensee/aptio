@@ -43,6 +43,32 @@ const TEXTE = ['Ich baue was mit Holz', 'Tiere pflegen', '', 'Tischlerin', 'Poli
           if (await p.isVisible('#screen-quiz') && (await p.textContent('#question')) === vorher && !(await p.isDisabled('#next'))) await klick(p.locator('#next'));
         } else await p.waitForTimeout(400);
       }
+      // Übersicht vor der Auswertung
+      if (!(await p.isVisible('#screen-uebersicht'))) add('keine Übersicht vor der Auswertung');
+      else {
+        await seite('Übersicht');
+        const zeilen = await p.locator('#uebersicht-liste li').count();
+        if (zeilen < 21 || zeilen > 28) add(`Übersicht hat ${zeilen} Zeilen`);
+        if (await p.locator('#uebersicht-liste .ue-antwort.leer', { hasText: 'noch offen' }).count()) add('Übersicht: Frage noch offen');
+        // eine Antwort über „Ändern“ korrigieren → zurück zur Übersicht
+        await p.locator('.ue-aendern').nth(2).click(); await p.waitForTimeout(400);
+        if (!(await p.isVisible('#screen-quiz'))) add('„Ändern“ öffnet die Frage nicht');
+        const multi = await p.locator('.answers.multi').count();
+        await klick(p.locator('.answer').nth(0)); await p.waitForTimeout(multi ? 300 : 700);
+        if (multi && await p.isVisible('#screen-quiz')) await klick(p.locator('#next'));
+        for (let i = 0; i < 6 && await p.isVisible('#screen-quiz'); i++) { // evtl. neue Nachfragen
+          if (await p.locator('textarea').count()) { await klick(p.locator('#next')); continue; }
+          const m = await p.locator('.answers.multi').count(); await klick(p.locator('.answer').nth(0)); await p.waitForTimeout(m ? 300 : 700); if (m) await klick(p.locator('#next'));
+        }
+        if (!(await p.isVisible('#screen-uebersicht'))) add('nach „Ändern“ nicht zurück in der Übersicht');
+        // Neu laden → „Weitermachen“ wird angeboten und stellt die Übersicht wieder her
+        await p.reload(); await p.waitForTimeout(400);
+        if (!(await p.isVisible('#resume'))) add('nach Neuladen kein „Weitermachen“');
+        else { await p.click('#resume-yes'); await p.waitForTimeout(400); if (!(await p.isVisible('#screen-uebersicht'))) add('„Weitermachen“ stellt die Übersicht nicht her'); }
+        await p.click('#auswerten');
+        await p.waitForTimeout(200);
+        if (await p.isVisible('#screen-rechnen')) rechnen = true;
+      }
       if (name === 'ruhig' && rechnen) add('Auswertungs-Bildschirm trotz reduzierter Bewegung');
       await p.waitForSelector('#screen-result:not([hidden])', { timeout: 8000 }).catch(() => add('kein Ergebnis'));
       const H = await p.evaluate(() => document.documentElement.scrollHeight);
@@ -59,15 +85,29 @@ const TEXTE = ['Ich baue was mit Holz', 'Tiere pflegen', '', 'Tischlerin', 'Poli
       });
       if (r.karten < 3 || r.karten > 5) add(`${r.karten} Vorschläge`);
       if (r.unsichtbar) add(`${r.unsichtbar} Abschnitte unsichtbar`); if (r.falsch) add(`${r.falsch} falsche Prozentzahlen`); if (r.leer) add(`${r.leer} leere Balken`);
-      await p.locator('details.more summary').click(); const zeile = p.locator('.more-list .more-row').nth(2);
+      // Suche
+      // Suchbegriff aus einem Beruf nehmen, der wirklich in der Liste steht (je nach Antworten sind andere ausgeschlossen)
+      const begriff = (await p.locator('.more-list .more-row .more-name').nth(5).textContent()).replace(/[^A-Za-zÄÖÜäöüß]/g, ' ').trim().split(/\s+/)[0].slice(0, 5).toLowerCase();
+      await p.fill('.suche', begriff); await p.waitForTimeout(150);
+      const sichtbar = await p.locator('.more-list .more-row:not([hidden])').count();
+      if (!sichtbar) add(`Suche „${begriff}“ findet nichts`);
+      if (await p.locator('.more-list .more-row:not([hidden]) .more-name').evaluateAll((els, b) => els.some(e => !e.textContent.toLowerCase().replace(/[^a-zäöüß]/g, '').includes(b)), begriff)) add('Suche zeigt falsche Treffer');
+      await p.fill('.suche', 'xyzq'); await p.waitForTimeout(100); if (!(await p.textContent('.suche-info')).includes('Keinen Beruf')) add('Suche ohne Treffer ohne Hinweis');
+      await p.fill('.suche', ''); await p.waitForTimeout(100);
+      // Hinweise-Dialog
+      await p.click('#open-info'); await p.waitForTimeout(200); if (!(await p.isVisible('#info'))) add('Hinweise öffnen nicht'); else await seite('Hinweise'); await p.click('#done-info');
+      if (!(await p.locator('details.more').evaluate(d => d.open))) await p.locator('details.more summary').click();
+      const zeile = p.locator('.more-list .more-row').nth(2);
       if (opts.hasTouch) await zeile.tap(); else await zeile.click(); await p.waitForTimeout(250);
       if (!(await p.locator('#job-tip').count())) add('Infofenster öffnet nicht');
       await p.keyboard.press('Escape');
       const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 5000 }).catch(() => null), p.click('#save-result')]);
       if (!dl) add('kein Download'); else { const f = path.join(require('os').tmpdir(), 'aptio-test.html'); await dl.saveAs(f); const t = fs.readFileSync(f, 'utf8'); if (/undefined|NaN/.test(t)) add('Datei kaputt'); if (/<b>x<\/b>/.test(t)) add('HTML nicht entschärft'); }
-      await p.click('#edit'); await p.waitForTimeout(400); if (!(await p.isVisible('#screen-quiz'))) add('Ändern geht nicht');
-      await klick(p.locator('#next')); await p.waitForSelector('#screen-result:not([hidden])', { timeout: 8000 }).catch(() => add('nach Ändern kein Ergebnis'));
-      await p.click('#restart'); await p.waitForTimeout(300); await p.click('#start'); await p.waitForTimeout(300);
+      await p.click('#edit'); await p.waitForTimeout(400); if (!(await p.isVisible('#screen-uebersicht'))) add('„Antworten ändern“ öffnet nicht die Übersicht');
+      await klick(p.locator('#auswerten')); await p.waitForSelector('#screen-result:not([hidden])', { timeout: 8000 }).catch(() => add('nach Ändern kein Ergebnis'));
+      await p.click('#restart'); await p.waitForTimeout(300);
+      await p.reload(); await p.waitForTimeout(300); if (await p.isVisible('#resume')) add('nach „Nochmal von vorn“ noch Sitzung gespeichert');
+      await p.click('#start'); await p.waitForTimeout(300);
       if (await p.locator('.answer[aria-pressed="true"]').count()) add('Neustart: Antworten noch markiert');
       await ctx.close();
     }

@@ -480,6 +480,40 @@
   .next-steps a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
   .save-note { margin: 12px 0 0; text-align: center; }
 
+
+  /* ---------- v0.13: Fortsetzen, Übersicht, Vorlesen, Suche, Hinweise ---------- */
+  .resume { margin: 22px 0 6px; padding: 16px 18px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface-2); }
+  .resume p { margin: 0 0 12px; }
+  .resume-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .speak { display: inline-flex; align-items: center; gap: 8px; }
+  .quiz-nav .btn { white-space: nowrap; }
+  @media (max-width: 480px) { .speak span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } .speak { padding-inline: .8rem; } }
+  .speak svg { width: 18px; height: 18px; }
+  .speak[aria-pressed="true"] { color: var(--text); }
+  .speak[aria-pressed="true"] svg { animation: puls 1.2s ease-in-out infinite; }
+  .uebersicht-titel { font-family: var(--font-display); font-size: clamp(1.8rem, 6vw, 2.4rem); letter-spacing: -.035em; margin: 0 0 8px; outline: none; }
+  .uebersicht { list-style: none; margin: 18px 0 26px; padding: 0; counter-reset: ue; }
+  .uebersicht li { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+  .uebersicht li:last-child { border-bottom: 1px solid var(--line); }
+  .ue-frage { font-size: .82rem; color: var(--subtle); grid-column: 1; }
+  .ue-frage b { color: var(--muted); font-weight: 600; margin-right: 6px; }
+  .ue-antwort { font-weight: 600; grid-column: 1; overflow-wrap: anywhere; }
+  .ue-antwort.leer { font-weight: 400; color: var(--subtle); font-style: italic; }
+  .ue-aendern { grid-column: 2; grid-row: 1 / span 2; }
+  .uebersicht li.ist-nachfrage { padding-left: 16px; border-left: 2px solid var(--line-strong); }
+  .btn-klein { padding: .45rem .85rem; font-size: .85rem; }
+  .suche-box { margin: 18px 0 0; }
+  .suche { width: 100%; padding: .7rem .95rem; font: inherit; font-size: .95rem; color: var(--text); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 12px; }
+  .suche:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--ring); }
+  .suche-info { margin: 8px 0 0; }
+  .footer-link { appearance: none; border: 0; padding: 0; background: none; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+  .footer-link:hover { color: var(--text); }
+  .info h3 { font-size: .98rem; margin: 18px 0 6px; }
+  .info p, .info li { font-size: .9rem; color: var(--muted); line-height: 1.55; }
+  .info p { margin: 0; }
+  .info ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; }
+  .info strong { color: var(--text); }
+
   /* Berufsdetails beim Drüberfahren / Antippen */
   .job[data-tip], .more-row[data-tip] { cursor: pointer; }
   .job[data-tip]:hover, .job[data-tip].is-active { border-color: var(--line-strong); }
@@ -559,8 +593,15 @@
           <li><strong id="fact-mc">21–28</strong><span>Fragen</span></li>
           <li><strong id="fact-text">2</strong><span>zum Schreiben</span></li>
         </ul>
+        <div class="resume" id="resume" hidden>
+          <p><strong>Du warst schon mittendrin.</strong> <span id="resume-text"></span></p>
+          <div class="resume-actions">
+            <button class="btn btn-primary" id="resume-yes" type="button">Weitermachen</button>
+            <button class="btn btn-ghost" id="resume-no" type="button">Neu anfangen</button>
+          </div>
+        </div>
         <button class="btn btn-primary btn-lg" id="start" type="button">Los geht’s</button>
-        <p class="small muted">Deine Antworten bleiben in diesem Browserfenster und werden nirgends gespeichert.</p>
+        <p class="small muted">Deine Antworten werden nirgends hochgeladen. Solange dieser Tab offen ist, merkt sich Aptio sie, damit nichts verloren geht, wenn du aus Versehen neu lädst – schließt du den Tab, sind sie weg.</p>
       </div>
     </section>
 
@@ -578,12 +619,30 @@
         <div id="answer-area"></div>
         <div class="quiz-nav">
           <button class="btn btn-ghost" id="back" type="button">← Zurück</button>
+          <button class="btn btn-ghost speak" id="speak" type="button" hidden aria-pressed="false" title="Frage vorlesen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+            <span>Vorlesen</span>
+          </button>
           <button class="btn btn-primary" id="next" type="button">Weiter →</button>
         </div>
       </div>
     </section>
 
     <!-- Ergebnis -->
+    <!-- Übersicht aller Antworten vor der Auswertung -->
+    <section id="screen-uebersicht" hidden>
+      <div class="card" id="uebersicht-card">
+        <p class="eyebrow">Fast geschafft</p>
+        <h1 class="uebersicht-titel" tabindex="-1" id="uebersicht-titel">Passt alles so?</h1>
+        <p class="lead small">Hier sind alle deine Antworten. Tipp auf „Ändern“, wenn du etwas anders sagen möchtest – danach kommst du direkt hierher zurück.</p>
+        <ol class="uebersicht" id="uebersicht-liste"></ol>
+        <div class="quiz-nav">
+          <button class="btn btn-ghost" id="uebersicht-back" type="button">← Zurück</button>
+          <button class="btn btn-primary btn-lg" id="auswerten" type="button">Auswerten →</button>
+        </div>
+      </div>
+    </section>
+
     <!-- Auswertung (kurz, antippen überspringt) -->
     <section id="screen-rechnen" hidden>
       <div class="card rechnen" id="rechnen-card" role="status" aria-live="polite">
@@ -657,14 +716,39 @@
     </div>
   </dialog>
 
-  <p class="footer">Aptio · Prototyp v0.12.2 · Stand 09.10.2026</p>
+  <p class="footer">Aptio · Prototyp v0.13 · Stand 09.10.2026 · <button class="footer-link" id="open-info" type="button">Hinweise &amp; Datenschutz</button></p>
+
+  <dialog class="settings info" id="info" aria-labelledby="info-title">
+    <div class="settings-head">
+      <h2 id="info-title">Hinweise &amp; Datenschutz</h2>
+      <button class="icon-btn" id="close-info" type="button" aria-label="Schließen" title="Schließen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <h3>Was ist Aptio?</h3>
+    <p>Aptio hilft dir, Berufe und Ausbildungen zu finden, die zu dir passen könnten. Es ist eine <strong>Testversion</strong>: Manche Berufsprofile und Beschreibungen sind noch vorläufig und werden gerade geprüft.</p>
+    <h3>Das Ergebnis ist eine Orientierung</h3>
+    <p>Die Prozentzahl zeigt, wie nah deine Antworten am Profil eines Berufs liegen – nicht, ob du den Beruf „kannst“. Ob ein Beruf wirklich passt, merkst du am besten bei einem Praktikum oder im Gespräch mit der Berufsberatung.</p>
+    <h3>Was wird gespeichert?</h3>
+    <ul>
+      <li><strong>Kein Konto, keine Anmeldung.</strong> Deine Antworten werden nirgends hochgeladen und an niemanden geschickt.</li>
+      <li><strong>Deine Antworten</strong> merkt sich nur dieser Browser-Tab (sessionStorage), damit beim versehentlichen Neuladen nichts verloren geht. Schließt du den Tab, sind sie gelöscht. Mit „Neu anfangen“ oder „Nochmal von vorn“ löschst du sie sofort.</li>
+      <li><strong>Deine Einstellungen</strong> (hell/dunkel, Schriftgröße …) merkt sich dein Browser dauerhaft (localStorage). Mit „Zurücksetzen“ in den Einstellungen werden sie gelöscht.</li>
+      <li><strong>Ergebnis speichern</strong> lädt eine Datei nur auf dein Gerät – nur wenn du auf den Knopf tippst.</li>
+    </ul>
+    <h3>Links zu anderen Seiten</h3>
+    <p>Unter „So geht’s weiter“ gibt es Links zu planet-beruf.de und zur Arbeitsagentur. Dort gelten deren Datenschutzregeln.</p>
+    <h3>Tipp für Schulrechner</h3>
+    <p>Wenn sich mehrere Leute einen Rechner teilen: Am Ende auf „Nochmal von vorn“ tippen oder den Tab schließen – dann sind deine Antworten weg.</p>
+    <div class="settings-foot"><span></span><button class="btn btn-primary" id="done-info" type="button">Verstanden</button></div>
+  </dialog>
 </div>
 
 <script>
 'use strict';
 
 /* =============================================================================
-   APTIO – Prototyp v0.12
+   APTIO – Prototyp v0.13
    Diese Datei hat drei Teile:
      1. DATEN       – Eigenschaften, Fragen mit Punkten, Berufe, Regeln
      2. AUSWERTUNG  – Punkte zählen, Top-Eigenschaften bestimmen, Berufe zuordnen
@@ -3455,13 +3539,14 @@ function aufzaehlen(teile) {
 
 function starteApp() {
   const $ = id => document.getElementById(id);
-  const bildschirme = { start: $('screen-intro'), quiz: $('screen-quiz'), rechnen: $('screen-rechnen'), ergebnis: $('screen-result') };
+  const bildschirme = { start: $('screen-intro'), quiz: $('screen-quiz'), uebersicht: $('screen-uebersicht'), rechnen: $('screen-rechnen'), ergebnis: $('screen-result') };
   let richtung = 1; // 1 = vorwärts, -1 = zurück (für die Wisch-Richtung der Fragen)
   // Bewegungen reduziert? (Einstellung in Aptio oder am Gerät)
   const ruhig = () => einstellungen.ruhig || matchMedia('(prefers-reduced-motion: reduce)').matches;
   const BUCHSTABEN = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
   const aktiv = () => aktiveFragen(zustand.antworten);
-  const zustand = { index: 0, antworten: {} };
+  const zustand = { index: 0, antworten: {}, korrigieren: false };
+  const merkliste = new Set(); // gemerkte Berufe (♥), nur für diese Sitzung
   let weiterTimer = null;
   let aktuellesErgebnis = null;
 
@@ -3505,6 +3590,11 @@ function starteApp() {
     einstellungenAnwenden();
   }
 
+  const infoDialog = $('info');
+  $('open-info').addEventListener('click', () => { versteckeTip(); infoDialog.showModal(); });
+  $('close-info').addEventListener('click', () => infoDialog.close());
+  $('done-info').addEventListener('click', () => infoDialog.close());
+  infoDialog.addEventListener('click', e => { if (e.target === infoDialog) infoDialog.close(); });
   const dialog = $('settings');
   $('open-settings').addEventListener('click', () => { formularFuellen(); versteckeTip(); dialog.showModal(); });
   $('close-settings').addEventListener('click', () => dialog.close());
@@ -3720,9 +3810,63 @@ function starteApp() {
 
   function zeige(name) {
     versteckeTip();
+    vorlesenStopp();
     for (const [key, node] of Object.entries(bildschirme)) node.hidden = key !== name;
     window.scrollTo({ top: 0 });
+    if (name !== 'rechnen') sitzungSpeichern(name);
   }
+
+  // ---------- Sitzung: Antworten nur für diesen Tab merken (sessionStorage) ----------
+  // Damit beim versehentlichen Neuladen nichts verloren geht. Tab zu = gelöscht.
+  const SITZUNG_KEY = 'aptio-sitzung';
+  let aktuellerBildschirm = 'start';
+  function sitzungSpeichern(bildschirm = aktuellerBildschirm) {
+    aktuellerBildschirm = bildschirm;
+    try {
+      if (bildschirm === 'start' || !Object.keys(zustand.antworten).length) { sessionStorage.removeItem(SITZUNG_KEY); return; }
+      sessionStorage.setItem(SITZUNG_KEY, JSON.stringify({
+        v: 1, bildschirm, index: zustand.index, antworten: zustand.antworten,
+        merkliste: [...merkliste],
+      }));
+    } catch (_) { /* ohne Speicher geht es auch */ }
+  }
+  function sitzungLesen() {
+    try {
+      const d = JSON.parse(sessionStorage.getItem(SITZUNG_KEY) || 'null');
+      return d && d.v === 1 && d.antworten && Object.keys(d.antworten).length ? d : null;
+    } catch (_) { return null; }
+  }
+  function sitzungLoeschen() {
+    try { sessionStorage.removeItem(SITZUNG_KEY); } catch (_) { /* egal */ }
+  }
+
+  // ---------- Vorlesen (Sprachausgabe des Browsers) ----------
+  const kannVorlesen = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
+  function vorlesenStopp() {
+    if (!kannVorlesen) return;
+    try { speechSynthesis.cancel(); } catch (_) { /* egal */ }
+    const k = $('speak'); if (k) { k.setAttribute('aria-pressed', 'false'); k.querySelector('span').textContent = 'Vorlesen'; }
+  }
+  function vorlesen() {
+    if (!kannVorlesen) return;
+    if (speechSynthesis.speaking) return vorlesenStopp();
+    const frage = aktiv()[zustand.index];
+    if (!frage) return;
+    let text = frage.text;
+    if (istMultipleChoice(frage)) {
+      text += ' ' + antwortenVon(frage).map((a, i) => `${BUCHSTABEN[i]}: ${a.text}.`).join(' ');
+      if (frage.mehrfach) text += ` Du kannst bis zu ${frage.mehrfach} Antworten wählen.`;
+    }
+    const u = new SpeechSynthesisUtterance(text.replace(/–/g, ',').replace(/…/g, '.'));
+    u.lang = 'de-DE';
+    u.rate = 0.95;
+    const stimme = speechSynthesis.getVoices().find(v => /^de/i.test(v.lang));
+    if (stimme) u.voice = stimme;
+    u.onend = u.onerror = () => vorlesenStopp();
+    const k = $('speak'); k.setAttribute('aria-pressed', 'true'); k.querySelector('span').textContent = 'Stopp';
+    speechSynthesis.speak(u);
+  }
+  if (kannVorlesen) { $('speak').hidden = false; $('speak').addEventListener('click', vorlesen); }
 
   function animiere(node) {
     node.classList.remove('enter');
@@ -3765,7 +3909,7 @@ function starteApp() {
       $('hint').hidden = false;
       const feld = el('textarea', { rows: 5, maxlength: 600, placeholder: frage.platzhalter, 'aria-labelledby': 'question' });
       feld.value = zustand.antworten[frage.nr] || '';
-      feld.addEventListener('input', () => { zustand.antworten[frage.nr] = feld.value; });
+      feld.addEventListener('input', () => { zustand.antworten[frage.nr] = feld.value; sitzungSpeichern('quiz'); });
       bereich.append(feld);
     }
     weiterKnopfAktualisieren();
@@ -3774,6 +3918,8 @@ function starteApp() {
     karte.classList.remove('enter', 'slide-vor', 'slide-zurueck');
     void karte.offsetWidth; // Animation neu starten
     karte.classList.add(richtung < 0 ? 'slide-zurueck' : 'slide-vor');
+    vorlesenStopp();
+    sitzungSpeichern('quiz');
     $('question').focus({ preventScroll: true });
   }
 
@@ -3820,6 +3966,7 @@ function starteApp() {
       zustand.antworten[frage.nr] = i;
     }
     inaktiveLoeschen(zustand.antworten); // Abzweige, die jetzt nicht mehr passen, vergessen
+    sitzungSpeichern('quiz');
     $('answer-area').querySelectorAll('.answer').forEach((knopf, j) => knopf.setAttribute('aria-pressed', String(istGewaehlt(frage, j))));
     weiterKnopfAktualisieren();
     if (einstellungen.autoWeiter) {
@@ -3841,16 +3988,64 @@ function starteApp() {
     const wert = zustand.antworten[frage.nr];
     if (istMultipleChoice(frage) && (wert === undefined || (Array.isArray(wert) && !wert.length))) return;
     richtung = 1;
+    if (zustand.korrigieren) {
+      // Nach einer Änderung aus der Übersicht: neu aufgetauchte, noch offene Nachfragen beantworten, dann zurück
+      const offen = liste.findIndex((f, i) => i > zustand.index && unbeantwortet(f));
+      if (offen >= 0) { zustand.index = offen; zeigeFrage(); }
+      else zeigeUebersicht();
+      return;
+    }
     if (zustand.index < liste.length - 1) {
       zustand.index++;
       zeigeFrage();
     } else {
-      zeigeAuswertung();
+      zeigeUebersicht();
     }
   }
 
+  function unbeantwortet(frage) {
+    const w = zustand.antworten[frage.nr];
+    return istMultipleChoice(frage) ? (w === undefined || (Array.isArray(w) && !w.length)) : w === undefined;
+  }
+
+  // ---------- Übersicht aller Antworten ----------
+  function antwortText(frage) {
+    const w = zustand.antworten[frage.nr];
+    if (!istMultipleChoice(frage)) return w && String(w).trim() ? `„${String(w).trim()}“` : '';
+    return gewaehlt(frage, zustand.antworten).map(a => a.text).join(' · ');
+  }
+  function zeigeUebersicht() {
+    zustand.korrigieren = false;
+    const liste = aktiv();
+    $('uebersicht-liste').replaceChildren(...liste.map((frage, i) => {
+      const text = antwortText(frage);
+      const knopf = el('button', { type: 'button', class: 'btn btn-outline btn-klein ue-aendern', 'aria-label': `Antwort ${i + 1} ändern` }, 'Ändern');
+      knopf.addEventListener('click', () => {
+        zustand.index = i;
+        zustand.korrigieren = true;
+        richtung = -1;
+        zeige('quiz');
+        zeigeFrage();
+      });
+      return el('li', { class: frage.zeigeWenn ? 'ist-nachfrage' : null },
+        el('span', { class: 'ue-frage' }, el('b', {}, `${i + 1}.`), frage.text),
+        el('span', { class: text ? 'ue-antwort' : 'ue-antwort leer' }, text || (istMultipleChoice(frage) ? 'noch offen' : 'nichts geschrieben – ist okay')),
+        knopf);
+    }));
+    zeige('uebersicht');
+    animiere($('uebersicht-card'));
+    $('uebersicht-titel').focus({ preventScroll: true });
+  }
+  $('auswerten').addEventListener('click', () => {
+    const offen = aktiv().findIndex(unbeantwortet);
+    if (offen >= 0 && istMultipleChoice(aktiv()[offen])) { zustand.index = offen; zustand.korrigieren = true; zeige('quiz'); zeigeFrage(); return; }
+    zeigeAuswertung();
+  });
+  $('uebersicht-back').addEventListener('click', () => { richtung = -1; zustand.index = aktiv().length - 1; zeige('quiz'); zeigeFrage(); });
+
   function zurueck() {
     clearTimeout(weiterTimer);
+    if (zustand.korrigieren) return zeigeUebersicht();
     if (zustand.index === 0) return zeige('start');
     richtung = -1;
     zustand.index--;
@@ -3898,8 +4093,7 @@ function starteApp() {
     return satz;
   }
 
-  // Merkliste (nur für diese Sitzung, landet in der gespeicherten Datei)
-  const merkliste = new Set();
+  // Merkliste: oben bei „zustand“ angelegt (wird auch beim Speichern der Sitzung gebraucht)
   function merkKnopf(name, klein = false) {
     const knopf = el('button', { type: 'button', class: klein ? 'merk merk-klein' : 'merk', 'aria-pressed': merkliste.has(name),
       'aria-label': `${name} merken`, title: 'Merken' });
@@ -3918,6 +4112,7 @@ function starteApp() {
       }
       document.querySelectorAll('.merk').forEach(k => { if (k.dataset.name === name) k.setAttribute('aria-pressed', merkliste.has(name)); });
       merkAnzeigeAktualisieren();
+      sitzungSpeichern();
     });
     knopf.dataset.name = name;
     return knopf;
@@ -4119,6 +4314,28 @@ function starteApp() {
     // Aufklappbar: alle weiteren Berufe mit ihrer Passung
     const weitere = erg.rangliste.slice(erg.vorschlaege.length);
     if (weitere.length) {
+      const suche = el('input', { type: 'search', class: 'suche', placeholder: 'Beruf suchen, z. B. Mechatroniker …', 'aria-label': 'Beruf in der Liste suchen', autocomplete: 'off', spellcheck: 'false' });
+      const sucheInfo = el('p', { class: 'small muted suche-info', role: 'status', hidden: true });
+      berufe.append(el('div', { class: 'suche-box' }, suche, sucheInfo));
+      const norm = t => t.toLowerCase().replace(/ae/g, 'ä').replace(/oe/g, 'ö').replace(/ue/g, 'ü').replace(/[^a-zäöüß0-9]/g, '');
+      suche.addEventListener('input', () => {
+        const q = norm(suche.value);
+        const details = berufe.querySelector('details.more');
+        const reihen = [...berufe.querySelectorAll('.more-list .more-row')];
+        if (!q) { reihen.forEach(r => { r.hidden = false; }); sucheInfo.hidden = true; return; }
+        details.open = true;
+        let treffer = 0;
+        reihen.forEach(r => { const ok = norm(r.querySelector('.more-name').textContent).includes(q); r.hidden = !ok; if (ok) treffer++; });
+        const oben = erg.vorschlaege.filter(v => norm(v.beruf.name).includes(q)).map(v => v.beruf.name);
+        const raus = erg.ausgeschlossen.filter(b => norm(b.name).includes(q));
+        const teile = [];
+        if (oben.length) teile.push(`${aufzaehlen(oben)} ${oben.length > 1 ? 'sind' : 'ist'} schon oben bei deinen Vorschlägen.`);
+        if (treffer) teile.push(`${treffer} ${treffer === 1 ? 'Treffer' : 'Treffer'} in der Liste.`);
+        if (raus.length) teile.push(`${aufzaehlen(raus.slice(0, 3).map(b => b.name))}${raus.length > 3 ? ' und weitere' : ''}: nicht dabei, weil ${raus.length > 1 ? 'sie' : 'er'} nicht zu deinen Antworten zu drinnen/draußen oder Kundenkontakt ${raus.length > 1 ? 'passen' : 'passt'}.`);
+        if (!teile.length) teile.push('Keinen Beruf mit diesem Namen gefunden. Probier es mit einem Teil des Wortes, z. B. „elektr“ oder „kauf“.');
+        sucheInfo.textContent = teile.join(' ');
+        sucheInfo.hidden = false;
+      });
       berufe.append(el('details', { class: 'more' },
         el('summary', {}, `Alle weiteren ${weitere.length} Berufe mit Prozentzahl`),
         el('ul', { class: 'more-list' }, weitere.map((r, i) =>
@@ -4355,22 +4572,29 @@ ${erg.wunschberuf ? `<h2>Das reizt mich schon</h2><blockquote>„${htmlEsc(erg.w
     richtung = 1;
     zustand.index = 0;
     zustand.antworten = {};
+    zustand.korrigieren = false;
+    merkliste.clear();
+    $('resume').hidden = true;
     zeige('quiz');
     zeigeFrage();
   });
   $('back').addEventListener('click', zurueck);
   $('next').addEventListener('click', weiter);
-  $('edit').addEventListener('click', () => {
-    richtung = -1;
-    zustand.index = aktiv().length - 1;
-    zeige('quiz');
-    zeigeFrage();
+  $('edit').addEventListener('click', zeigeUebersicht);
+  $('restart').addEventListener('click', () => {
+    merkliste.clear();
+    zustand.antworten = {};
+    zustand.index = 0;
+    sitzungLoeschen();
+    $('save-note').hidden = true;
+    $('resume').hidden = true;
+    $('start').hidden = false;
+    zeige('start');
   });
-  $('restart').addEventListener('click', () => { merkliste.clear(); $('save-note').hidden = true; zeige('start'); });
 
   // Tastatur: A–E oder 1–5 wählt eine Antwort
   document.addEventListener('keydown', e => {
-    if (bildschirme.quiz.hidden || dialog.open || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (bildschirme.quiz.hidden || dialog.open || infoDialog.open || e.altKey || e.ctrlKey || e.metaKey) return;
     if (e.target instanceof HTMLTextAreaElement) return;
     const frage = aktiv()[zustand.index];
     if (!istMultipleChoice(frage)) return;
@@ -4384,6 +4608,26 @@ ${erg.wunschberuf ? `<h2>Das reizt mich schon</h2><blockquote>„${htmlEsc(erg.w
   });
 
   einstellungenAnwenden();
+
+  // Angefangene Sitzung (nur dieser Tab) zum Weitermachen anbieten
+  const alt = sitzungLesen();
+  if (alt) {
+    const beantwortet = Object.keys(alt.antworten).length;
+    $('resume-text').textContent = alt.bildschirm === 'ergebnis' ? 'Dein Ergebnis ist noch da.'
+      : `Du hast schon ${beantwortet} ${beantwortet === 1 ? 'Frage' : 'Fragen'} beantwortet.`;
+    $('resume').hidden = false;
+    $('start').hidden = true; // nur „Weitermachen“ oder „Neu anfangen“ – nicht aus Versehen alles verlieren
+    $('resume-yes').addEventListener('click', () => {
+      zustand.antworten = alt.antworten;
+      zustand.index = Math.min(alt.index || 0, aktiv().length - 1);
+      (alt.merkliste || []).forEach(n => merkliste.add(n));
+      $('resume').hidden = true;
+      if (alt.bildschirm === 'ergebnis') zeigeErgebnis();
+      else if (alt.bildschirm === 'uebersicht') zeigeUebersicht();
+      else { zeige('quiz'); zeigeFrage(); }
+    });
+    $('resume-no').addEventListener('click', () => { sitzungLoeschen(); $('resume').hidden = true; $('start').hidden = false; $('start').focus(); });
+  }
 }
 
 if (typeof document !== 'undefined') starteApp();
