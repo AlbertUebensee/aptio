@@ -42,8 +42,8 @@ for (let n = 0; n < N; n++) {
   for (const r of e.regeln) for (const v of e.rangliste)
     if ((r.ab !== undefined && v.beruf.profil[r.feld] >= r.ab) || (r.bis !== undefined && v.beruf.profil[r.feld] <= r.bis)) { melde(`Ausgeschlossener Beruf ${v.beruf.name} in der Rangliste`); break; }
   // Nachrechnen: Passung = 70/30-Mischung aus Profil (gewichteter Durchschnitt) und Thema
-  const g = A.REGELN.gewichte, summe = Object.values(g).reduce((x, y) => x + y, 0);
-  const w = e.themen.length ? A.REGELN.themenGewicht / 100 : 0;
+  const g = e.gewichte, summe = Object.values(g).reduce((x, y) => x + y, 0);
+  const w = e.themen.length ? e.themenGewicht / 100 : 0;
   for (const r of e.rangliste.slice(0, 20)) {
     const d = A.bereichAbstaende(r.beruf.profil, e.profil);
     const profil = Object.keys(g).reduce((s, key) => s + g[key] * (100 - d[key]), 0) / summe;

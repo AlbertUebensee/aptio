@@ -103,6 +103,22 @@ const TEXTE = ['Ich baue was mit Holz', 'Tiere pflegen', '', 'Tischlerin', 'Poli
       await p.keyboard.press('Escape');
       const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 5000 }).catch(() => null), p.click('#save-result')]);
       if (!dl) add('kein Download'); else { const f = path.join(require('os').tmpdir(), 'aptio-test.html'); await dl.saveAs(f); const t = fs.readFileSync(f, 'utf8'); if (/undefined|NaN/.test(t)) add('Datei kaputt'); if (/<b>x<\/b>/.test(t)) add('HTML nicht entschärft'); }
+      // Bewerbungshilfe
+      await p.locator('.bewerbung-einstieg .btn').click(); await p.waitForTimeout(400);
+      if (!(await p.isVisible('#screen-bewerbung'))) add('Bewerbungshilfe öffnet nicht');
+      else {
+        await p.fill('[name="vorname"]', 'Testa'); await p.fill('[name="nachname"]', 'Person'); await p.fill('[name="kontakt"]', 'Herr Meier');
+        await p.click('text=Entwurf erstellen'); await p.waitForTimeout(400);
+        const brief = await p.inputValue('.bw-anschreiben');
+        if (!/Sehr geehrter Herr Meier,/.test(brief)) add('Anschreiben: Anrede falsch');
+        if (/undefined|NaN|null/.test(brief)) add('Anschreiben: kaputter Text');
+        if (/(den|die|das) (Erster|Mittlerer)/.test(brief)) add('Anschreiben: Grammatik beim Abschluss');
+        await seite('Bewerbung');
+        const ss = await p.evaluate(() => sessionStorage.getItem('aptio-sitzung') || '');
+        if (/Testa|Meier/.test(ss)) add('persönliche Daten im sessionStorage');
+        await p.click('#bewerbung-zurueck'); await p.waitForTimeout(300);
+        if (!(await p.isVisible('#screen-result'))) add('Bewerbung: zurück geht nicht');
+      }
       await p.click('#edit'); await p.waitForTimeout(400); if (!(await p.isVisible('#screen-uebersicht'))) add('„Antworten ändern“ öffnet nicht die Übersicht');
       await klick(p.locator('#auswerten')); await p.waitForSelector('#screen-result:not([hidden])', { timeout: 8000 }).catch(() => add('nach Ändern kein Ergebnis'));
       await p.click('#restart'); await p.waitForTimeout(300);

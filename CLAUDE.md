@@ -1,7 +1,7 @@
 # CLAUDE.md – Hinweise für Claude Code
 
 Aptio ist ein Berufsorientierungs-Quiz für Jugendliche („Welcher Job passt zu dir?“).
-Aktueller Stand: **Prototyp v0.13**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
+Aktueller Stand: **Prototyp v0.14**. Ausführliche Beschreibung, Rechenweg und offene Punkte stehen in `LIESMICH.md` – vor größeren Änderungen lesen.
 
 ## Sprache und Ton
 
@@ -70,9 +70,13 @@ Alle Stellschrauben stehen in `REGELN` (Mindestprozent, Vorsprung, Gewichte, Anz
 
 - Ablauf: Quiz → Übersicht (`zeigeUebersicht`) → Auswertung. `zustand.korrigieren` = aus der Übersicht kommend; `weiter()` springt dann zu offenen Nachfragen und zurück zur Übersicht.
 
+- Persönliche Gewichte: `persoenlicheGewichte(antworten)` aus der Frage `wichtig`; `erg.gewichte` / `erg.themenGewicht` werden überall statt `REGELN.gewichte` benutzt.
+- Bewerbungshilfe: persönliche Daten nur in den Formularfeldern – nie in `zustand`, `sessionStorage` oder `localStorage`.
+
 ## Prüfen nach Änderungen
 
 - **`node tests/logik.js 20000`** – ohne Zusatzpakete: Daten, zufällige Wege durch den Fragebaum, Ausschlüsse, Nachrechnen der Passung. Muss „KEINE FEHLER“ melden.
+- **`node tests/personas.js -v`** – Genauigkeit: 16 Test-Personen, passender Beruf muss unter den Vorschlägen sein (Stand v0.14: 13/16 auf Platz 1). Nach jeder Änderung an Fragen, Punkten, Profilen oder Themen laufen lassen und nicht verschlechtern.
 - **`node tests/browser.js`** – braucht Playwright (`npm i -D playwright && npx playwright install chromium`): echte Klickdurchläufe auf Desktop, hell, Handy und mit reduzierter Bewegung, inkl. Infofenster, Speichern, Ändern, Neustart.
 
 

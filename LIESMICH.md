@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.13
+# Aptio – Prototyp v0.14
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
@@ -16,7 +16,7 @@ Antworten werden nirgends hochgeladen. Solange der Tab offen ist, merkt sich Apt
   - → 2. Ebene je nach gewähltem Thema, z. B. Bau → „Rohbau, Dach, Innenausbau oder Haustechnik?“, Essen → „Kochen, Backen, Industrie oder Service?“, IT → „Programmieren, Systeme oder Digitales?“ (15 solche Fragen)
   - Frage 11 → *draußen* → „Was möchtest du draußen machen?“ · *drinnen* → „Wo drinnen am liebsten?“
   - Frage 8 → bei *Hintergrund* → „Wäre täglicher Kundenkontakt okay?“
-  Je nach Weg sind es 21 bis 28 Fragen (meist 23–24), ca. 10 Minuten.
+  Je nach Weg sind es 22 bis 29 Fragen (meist 24–25), ca. 10 Minuten.
 - **Mehrfachauswahl:** Frage 1, 4, 17 und die Abzweige der 1. Ebene erlauben bis zu 2 Antworten. Die Punkte werden gemittelt. Sobald die Höchstzahl gewählt ist (oder „Weiß ich noch nicht“), geht es automatisch weiter – mit kurzer Pause, in der man die Wahl noch zurücknehmen kann. Bei nur einer Antwort tippt man auf „Weiter“. Gilt nur, wenn „automatisch weiter“ in den Einstellungen an ist.
 - **Ausschlüsse:** Schon die Antwort bei Frage 11 schließt aus: *Drinnen* → keine Berufe mit Drinnen bis 40 · *eher drinnen* → bis 25 · *Draußen* → keine Berufe mit Drinnen ab 65 · *eher draußen* → ab 80. Dazu Frage 8a (viel vor Leuten). Das Ergebnis sagt, wie viele Berufe deshalb fehlen.
 - **329 Berufe**: 20 geprüfte aus der eigenen Berufsliste und 309 aus dem BIBB-Verzeichnis 2026, jeder mit eigenem Profil und einer Kurzbeschreibung „Was man dort tut“
@@ -26,7 +26,7 @@ Antworten werden nirgends hochgeladen. Solange der Tab offen ist, merkt sich Apt
 - **Einstellungen** (Zahnrad oben rechts): Aussehen (wie Gerät / hell / dunkel), Schriftgröße, automatisch weiter an/aus, Bewegungen reduzieren, Berufsdetails an/aus. Wird im Browser gespeichert (`localStorage`, Schlüssel `aptio-einstellungen`).
 - Ganz unten: **„So wurde gerechnet“** zum Aufklappen, mit deinem Profil, allen Punkten und den besten 25 Berufen
 
-Nicht drin (kommt später): Bewerbungshilfe, echte Stellenangebote, Login. Das Ergebnis lässt sich als Datei speichern (seit v0.11).
+Nicht drin (kommt später): echte Stellenangebote, Login. Eine erste Bewerbungshilfe gibt es seit v0.14. Das Ergebnis lässt sich als Datei speichern (seit v0.11).
 
 ## Berufsprofile
 
@@ -127,6 +127,31 @@ Die Punkte für die Fragen 1, 2, 3, 4, 6, 8, 11 und 14 stammen aus `TiP_Auswertu
 - Frage 12 bleibt ohne Punkte: Punkte auf Vorne/Hintergrund haben im Test „Vorne“ fast doppelt so oft zur stärksten Eigenschaft gemacht wie „Hintergrund“.
 
 Höchstpunkte in v0.5: Menschen 12, Dinge 11, Infos 11, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 5, Vorne 2, Hintergrund 4 (aktuelle Werte siehe „Neue Antworten in v0.6“).
+
+## Neu in v0.14
+
+**Genauere Auswertung – gemessen mit Test-Personen** (`tests/personas.js`): 16 Personen mit eindeutigem Wunsch (z. B. „Tierpflege, draußen“, „Programmieren“, „Lkw fahren“) beantworten das Quiz; geprüft wird, auf welchem Platz der passende Beruf landet.
+
+| | v0.13 | v0.14 |
+|---|---|---|
+| Passender Beruf auf Platz 1 | 11 / 16 | **13 / 16** |
+| Unter den Top 3 | 16 / 16 | 16 / 16 |
+| Mittlerer Platz | 1,4 | **1,2** |
+
+Außerdem liegen passende und unpassende Berufe jetzt weiter auseinander (z. B. „Garten“: Gärtner/in 92 % zu nächstem fremden Beruf 69 %, vorher 89 % zu 75 %). Was sich geändert hat:
+
+- **Neue Frage „Was ist dir bei einem Beruf am wichtigsten?“** (nach Frage 18, bis zu 2 Antworten): Gewählte Bereiche zählen doppelt (`REGELN.wichtigFaktor`), das Thema bis 50 % (`REGELN.themenGewichtMax`). Die persönlichen Gewichte stehen im Infofenster („zählt …“) – die Passung bleibt nachrechenbar.
+- **Fahrzeug-Frage feiner:** Autos / Fahrräder und Motorräder / Traktoren und Baumaschinen / Lkw oder Bus / Zug oder Schiff / Karosserie / Flugzeuge (vorher „Reparieren“ und „Fahren“ für alles).
+- **Genaue Wahl gilt auch für verwandte Themen:** Wer „Lkw oder Bus“ wählt, bekommt durch „Unterwegs sein und fahren“ keine Schiffer mehr vorgeschlagen.
+- **Zuordnungen korrigiert:** Bestattungsfachkraft und Hauswirtschafter/in nicht mehr unter „Pflegen und helfen“ (neu: „Betreuen und versorgen“), Elektroanlagenmonteur/in unter Automatisierung statt Gebäudetechnik.
+
+**Bewerbungshilfe (erste Version):** Knopf „Bewerbung vorbereiten“ im Ergebnis. Beruf wählen (gemerkte und vorgeschlagene, oder ein anderer), Angaben eintragen (alles freiwillig), Stärken sind nach dem Ergebnis vorausgewählt. Aptio erstellt:
+
+- einen **Anschreiben-Entwurf** (bearbeitbar, mit [Platzhaltern] und dem Hinweis, ihn in eigenen Worten umzuschreiben),
+- ein **Lebenslauf-Gerüst**, eine **Checkliste** der Unterlagen, **typische Fragen im Vorstellungsgespräch** mit Tipps,
+- alles zusammen als **druckfertige Datei** („Bewerbung speichern“).
+
+Persönliche Angaben werden nirgends gespeichert, auch nicht im Tab (getestet).
 
 ## Neu in v0.13
 
