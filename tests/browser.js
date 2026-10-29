@@ -22,7 +22,7 @@ const TEXTE = ['Ich baue was mit Holz', 'Tiere pflegen', '', 'Tischlerin', 'Poli
       p.on('pageerror', e => add('JS-Fehler ' + e.message));
       p.on('console', m => { if (['error', 'warning'].includes(m.type())) add('Konsole ' + m.text()); });
       const seite = async wo => {
-        const r = await p.evaluate(() => ({ breit: document.documentElement.scrollWidth - innerWidth, kaputt: (document.body.innerText.match(/\b(undefined|NaN|\[object Object\])\b/g) || []).length }));
+        const r = await p.evaluate(() => ({ breit: document.documentElement.scrollWidth - innerWidth, kaputt: (document.body.innerText.match(/\b(undefined|NaN)\b|\[object Object\]/g) || []).length }));
         if (r.breit > 1) add(`${wo}: seitlich scrollbar`); if (r.kaputt) add(`${wo}: kaputter Text`);
       };
       const klick = async loc => { try { await loc.click({ timeout: 2000 }); } catch (_) {} };
@@ -111,7 +111,8 @@ const TEXTE = ['Ich baue was mit Holz', 'Tiere pflegen', '', 'Tischlerin', 'Poli
         await p.click('text=Entwurf erstellen'); await p.waitForTimeout(400);
         const brief = await p.inputValue('.bw-anschreiben');
         if (!/Sehr geehrter Herr Meier,/.test(brief)) add('Anschreiben: Anrede falsch');
-        if (/undefined|NaN|null/.test(brief)) add('Anschreiben: kaputter Text');
+        if (/undefined|NaN|null|\[object Object\]/.test(brief)) add('Anschreiben: kaputter Text');
+        if (/\[object Object\]|undefined/.test(await p.locator('#bewerbung-inhalt').innerText())) add('Bewerbungshilfe: kaputter Text');
         if (/(den|die|das) (Erster|Mittlerer)/.test(brief)) add('Anschreiben: Grammatik beim Abschluss');
         await seite('Bewerbung');
         const ss = await p.evaluate(() => sessionStorage.getItem('aptio-sitzung') || '');

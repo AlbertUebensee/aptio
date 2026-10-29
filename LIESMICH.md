@@ -1,4 +1,4 @@
-# Aptio – Prototyp v0.14
+# Aptio – Prototyp v0.15
 
 Erster Testlauf des Kernflows: Quiz → Auswertung → Berufsvorschläge.
 
@@ -127,6 +127,30 @@ Die Punkte für die Fragen 1, 2, 3, 4, 6, 8, 11 und 14 stammen aus `TiP_Auswertu
 - Frage 12 bleibt ohne Punkte: Punkte auf Vorne/Hintergrund haben im Test „Vorne“ fast doppelt so oft zur stärksten Eigenschaft gemacht wie „Hintergrund“.
 
 Höchstpunkte in v0.5: Menschen 12, Dinge 11, Infos 11, Drinnen 3, Draußen 4, Struktur 9, Spontan 9, Verantwortung 5, Vorne 2, Hintergrund 4 (aktuelle Werte siehe „Neue Antworten in v0.6“).
+
+## Neu in v0.15
+
+**Auswertung: Kalibrierung der Skalen.** Das Quiz misst, wie sehr jemand zu etwas *neigt*; die Berufsprofile beschreiben, wie viel der Beruf davon *hat*. Die Skalen passten nicht zusammen (Simulation mit 4.000 zufälligen Durchläufen):
+
+| Bereich | Nutzer typisch | Berufe typisch |
+|---|---|---|
+| Verantwortung | 14 % | 40 % |
+| Arbeitsweise (Struktur) | 20–80 % | 50–90 % |
+
+Dadurch wurden Berufe mit normaler Verantwortung (z. B. Tierpfleger/in, Elektroniker/in) systematisch zu schlecht bewertet. Jetzt werden die Nutzerwerte bei **Verantwortung und Arbeitsweise** über die beiden Verteilungen übersetzt (gleicher Rang unter allen Nutzern → gleicher Rang unter allen Berufen, `REGELN.kalibrierung`, Funktion `kalibriere`). Drinnen/Draußen, Vorne und Arbeitsfeld bleiben unverändert (klare Aussagen bzw. fast nur 0/100). Im Infofenster steht bei kalibrierten Bereichen deine eigene Aussage („Du: lieber wenig“) ohne Prozentzahl.
+
+**Weitere Korrekturen:** Fachkraft für Gastronomie, Restaurant- und Systemgastronomie unter „Service“ statt „Kochen“; Drechsler/in unter „Instrumente und Kunsthandwerk“, Parkettleger/in unter „Innenausbau“ statt „Möbel“. Fehler aus v0.14 behoben: „In der Werkstatt“ hat das Unterthema „Möbel“ auf Metall, Elektro und Fahrzeuge übertragen.
+
+**Strengerer Genauigkeitstest:** Jede Test-Person hat jetzt einen *Hauptberuf* (den typischen Beruf für ihren Wunsch). Stand v0.15: passender Beruf 13/16 auf Platz 1, 16/16 in den Top 3; **Hauptberuf 14/16 in den Top 3** (v0.14: 13/16), mittlerer Platz 1,9 (v0.14: 2,1). Vielfalt unverändert (321 von 329 Berufen erreichbar). Offen: Elektroniker/in für Energie- und Gebäudetechnik (Platz 4, das geprüfte Profil hat Verantwortung 70) und Tierpfleger/in (Platz 5, Drinnen 45) – bitte die Profile fachlich ansehen.
+
+**Bewerbungshilfe verbessert:**
+
+- Feld „Ein Beispiel für eine deiner Stärken“ – kommt direkt in den Brief statt eines Platzhalters.
+- **Brief-Check** beim Bearbeiten: Länge, offene Platzhalter, „Hiermit bewerbe ich mich“, Ausrufezeichen, „du“ statt „Sie“, viele Sätze mit „Ich“, fehlende persönliche Anrede.
+- **E-Mail zum Verschicken** (Betreff + Begleittext).
+- **Vorstellungsgespräch üben:** zu jeder Frage ein Antwortfeld; Antworten kommen mit in die Datei.
+- **Wo und wann bewerben?** – Zeitplan und Links (Jobbörse der Arbeitsagentur, IHK-Lehrstellenbörse, Lehrstellen-Radar).
+- Fehler behoben: Bei „Was sind deine Stärken?“ stand „[object Object]“. Der Browser-Test hatte an dieser Stelle eine Lücke, die jetzt geschlossen ist.
 
 ## Neu in v0.14
 

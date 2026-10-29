@@ -541,6 +541,17 @@
   .bw-lebenslauf .platz { color: var(--subtle); }
   .bw-lebenslauf .klein { font-size: .8rem; color: var(--subtle); }
   .bw-checkliste { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .bw-pruef-titel { font-size: .95rem; margin: 16px 0 8px; }
+  .bw-pruefung { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: .88rem; }
+  .bw-pruefung li { display: flex; gap: 8px; align-items: baseline; }
+  .bw-pruefung li::before { content: "✓"; font-weight: 700; color: var(--ok); }
+  .bw-pruefung li.warn::before { content: "!"; color: var(--teils); }
+  .bw-email { font-family: var(--font); font-size: .95rem; }
+  .bw-uebung { display: block; width: 100%; margin-top: 8px; padding: .55rem .75rem; font: inherit; font-size: .9rem; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; resize: vertical; }
+  .bw-uebung:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--ring); }
+  .bw-tipps { margin: 0; padding-left: 1.1rem; display: grid; gap: 8px; font-size: .93rem; color: var(--muted); }
+  .bw-tipps strong { color: var(--text); }
+  .bw-tipps a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
   .bw-fragen dt { font-weight: 650; margin-top: 14px; }
   .bw-fragen dd { margin: 4px 0 0; color: var(--muted); font-size: .92rem; }
   @media (max-width: 560px) { .bw-raster, .bw-staerken { grid-template-columns: 1fr; } .bw-anders { margin-left: 0; } }
@@ -760,7 +771,7 @@
     </div>
   </dialog>
 
-  <p class="footer">Aptio · Prototyp v0.14 · Stand 09.10.2026 · <button class="footer-link" id="open-info" type="button">Hinweise &amp; Datenschutz</button></p>
+  <p class="footer">Aptio · Prototyp v0.15 · Stand 09.10.2026 · <button class="footer-link" id="open-info" type="button">Hinweise &amp; Datenschutz</button></p>
 
   <dialog class="settings info" id="info" aria-labelledby="info-title">
     <div class="settings-head">
@@ -793,7 +804,7 @@
 'use strict';
 
 /* =============================================================================
-   APTIO – Prototyp v0.14
+   APTIO – Prototyp v0.15
    Diese Datei hat drei Teile:
      1. DATEN       – Eigenschaften, Fragen mit Punkten, Berufe, Regeln
      2. AUSWERTUNG  – Punkte zählen, Top-Eigenschaften bestimmen, Berufe zuordnen
@@ -853,6 +864,15 @@ const REGELN = {
   unterthemaDaneben: 50,
   // Frage „Was ist dir am wichtigsten?“: gewählte Bereiche zählen so viel mal stärker (Thema: Themengewicht × Faktor, max. 50 %)
   wichtigFaktor: 2,
+  // Kalibrierung (seit v0.15): Das Quiz misst, wie sehr du zu etwas NEIGST; Berufsprofile, wie viel der Beruf davon HAT.
+  // Die Skalen sind verschieden (z. B. Verantwortung: Nutzer typisch 14 %, Berufe typisch 40 %). Deshalb wird dein Wert
+  // über die Verteilungen übersetzt: gleicher Rang unter allen Nutzern → gleicher Rang unter allen Berufen.
+  // Je 11 Stützstellen (0 %, 10 %, … 100 % der Verteilung). Nutzer-Werte per Simulation mit 20.000 zufälligen Durchläufen ermittelt.
+  // Nicht kalibriert: Drinnen (klare Aussagen wie „Mix“), Vorne (fast nur 0/100 – würde Extreme verwischen), Arbeitsfeld.
+  kalibrierung: {
+    Struktur: { nutzer: [0, 25, 33, 37, 43, 50, 57, 60, 67, 78, 100], beruf: [20, 50, 60, 65, 70, 75, 75, 80, 85, 90, 95] },
+    Verantwortung: { nutzer: [0, 0, 0, 14, 14, 14, 29, 29, 43, 43, 86], beruf: [15, 25, 30, 30, 35, 40, 45, 45, 50, 60, 95] }
+  },
   themenGewichtMax: 50,
   // Thema nur über den Arbeitsort gewählt (Frage 11, z. B. „In der Werkstatt“), nicht bei „Womit möchtest du arbeiten?“
   ortThemaWert: 50
@@ -1914,7 +1934,7 @@ const BERUF_UNTERTHEMEN = {
   "Chirurgiemechaniker/in":                                                          ["praezision"],
   "Dachdecker/in":                                                                   ["hoehe"],
   "Destillateur/in":                                                                 ["lebensmittelindustrie"],
-  "Drechsler/in (Elfenbeinschnitzer/in)":                                            ["moebel"],
+  "Drechsler/in (Elfenbeinschnitzer/in)": ["instrumente"],
   "Drogist/in":                                                                      ["praxis", "laden"],
   "Edelsteinfasser/in":                                                              ["schmuck"],
   "Edelsteinschleifer/in":                                                           ["schmuck"],
@@ -1935,7 +1955,7 @@ const BERUF_UNTERTHEMEN = {
   "Fachangestellte/r für Markt- und Sozialforschung":                                ["zahlen"],
   "Fachkraft Agrarservice": ["landmaschinen", "land"],
   "Fachkraft für Fruchtsafttechnik":                                                 ["lebensmittelindustrie"],
-  "Fachkraft für Gastronomie":                                                       ["kochen", "service"],
+  "Fachkraft für Gastronomie": ["service"],
   "Fachkraft für Holz- und Bautenschutzarbeiten":                                    ["ausbau", "holzbau"],
   "Fachkraft für Kurier-, Express- und Postdienstleistungen": ["strasse"],
   "Fachkraft für Lebensmitteltechnik":                                               ["lebensmittelindustrie"],
@@ -1947,8 +1967,8 @@ const BERUF_UNTERTHEMEN = {
   "Fachkraft für Wasserwirtschaft":                                                  ["umwelt"],
   "Fachkraft im Fahrbetrieb": ["strasse"],
   "Fachkraft Küche":                                                                 ["kochen"],
-  "Fachmann/-frau für Restaurants und Veranstaltungsgastronomie":                    ["kochen", "service"],
-  "Fachmann/-frau für Systemgastronomie":                                            ["kochen", "service"],
+  "Fachmann/-frau für Restaurants und Veranstaltungsgastronomie": ["service"],
+  "Fachmann/-frau für Systemgastronomie": ["service"],
   "Fachverkäufer/in im Lebensmittelhandwerk":                                        ["service", "laden"],
   "Fahrradmonteur/in": ["zweirad"],
   "Fahrzeuginterieur-Mechaniker/in":                                                 ["karosserie"],
@@ -2068,7 +2088,7 @@ const BERUF_UNTERTHEMEN = {
   "Orthopädietechnik-Mechaniker/in":                                                 ["hilfsmittel"],
   "Packmitteltechnologe/-in":                                                        ["produktion"],
   "Papiertechnologe/-in":                                                            ["produktion"],
-  "Parkettleger/in":                                                                 ["ausbau", "moebel"],
+  "Parkettleger/in": ["ausbau"],
   "Patentanwaltsfachangestellte/r":                                                  ["organisation"],
   "Pelzveredler/in":                                                                 ["leder"],
   "Personaldienstleistungskaufmann/-frau":                                           ["beratung", "organisation"],
@@ -3312,7 +3332,7 @@ function themenAuswahl(antworten) {
         const themenDerAntwort = alsListe(a.thema);
         // Allgemeine Antwort (z. B. „Unterwegs sein und fahren“ = Transport + Fahrzeuge) und eins ihrer Themen
         // ist schon genau festgelegt („Lkw oder Bus“)? Dann gilt die genaue Wahl auch für die anderen Themen der Antwort.
-        const genauVorlage = runde[0] && istGenau(runde[0]) ? null : themenDerAntwort.find(t => genau.has(t));
+        const genauVorlage = runde[0] && istGenau(runde[0]) || !alsListe(a.unterthema).length ? null : themenDerAntwort.find(t => genau.has(t));
         for (const t of themenDerAntwort) {
           themen.add(t);
           if (!String(frage.nr).startsWith('11')) haupt.add(t);
@@ -3413,7 +3433,21 @@ BERUFE.forEach(beruf => { beruf.merkmale = merkmaleAusProfil(beruf.profil); });
 
 // Dein Profil im selben Format wie die Berufsprofile, berechnet aus deinen Prozentwerten.
 // Beispiel: Menschen 67 % und Dinge 33 % der Punkte in diesem Bereich -> Menschen 67, Dinge 33, Infos 0.
-function nutzerProfil(prozente) {
+// Wert über zwei Verteilungen übersetzen (stückweise linear). Bei gleichen Stützwerten zählt die Mitte des Bereichs.
+function kalibriere(x, tab) {
+  const n = tab.nutzer, b = tab.beruf, letzte = n.length - 1;
+  if (x <= n[0]) return b[n.lastIndexOf(n[0]) >> 1];
+  if (x >= n[letzte]) return b[(n.indexOf(n[letzte]) + letzte) >> 1];
+  let pos;
+  const gleich = n.reduce((l, v, i) => (v === x ? [...l, i] : l), []);
+  if (gleich.length) pos = (gleich[0] + gleich[gleich.length - 1]) / 2;
+  else { const i = n.findIndex((v, j) => v < x && n[j + 1] > x); pos = i + (x - n[i]) / (n[i + 1] - n[i]); }
+  const u = Math.floor(pos), o = Math.min(letzte, u + 1);
+  return b[u] + (pos - u) * (b[o] - b[u]);
+}
+
+// Dein Profil, wie du geantwortet hast (für Texte wie „Du: lieber wenig“)
+function nutzerProfilRoh(prozente) {
   const anteil = (a, b) => (a + b > 0 ? (a / (a + b)) * 100 : 50);
   const feld = prozente.Menschen + prozente.Dinge + prozente.Infos;
   return {
@@ -3425,6 +3459,14 @@ function nutzerProfil(prozente) {
     Verantwortung: prozente.Verantwortung,
     Vorne: anteil(prozente.Vorne, prozente.Hintergrund),
   };
+}
+
+// Dein Profil auf der Skala der Berufe – damit wird verglichen
+function nutzerProfil(prozente) {
+  const roh = nutzerProfilRoh(prozente);
+  const kal = { ...roh };
+  for (const [dim, tab] of Object.entries(REGELN.kalibrierung || {})) kal[dim] = kalibriere(roh[dim], tab);
+  return kal;
 }
 
 // Abstand pro Bereich (0 = gleich, 100 = maximal verschieden).
@@ -3551,6 +3593,7 @@ function auswerten(antworten) {
   const rangliste = berufeBewerten(prozente, topSet, wahl, regeln, pg);
   return {
     gewichte: pg.gewichte, themenGewicht: pg.themenGewicht, wichtig: pg.wichtig,
+    profilRoh: nutzerProfilRoh(prozente),
     max, punkte, prozente, top, topSet, rangliste, regeln,
     themen: wahl.themen, unter: wahl.unter, hauptThemen: wahl.haupt,
     ausgeschlossen: BERUFE.filter(b => istAusgeschlossen(b, regeln)),
@@ -3736,11 +3779,18 @@ function starteApp() {
     const summe = Object.values(g).reduce((a, b) => a + b, 0);
     const anteil = k => (100 * profilAnteil * g[k]) / summe;
     const d = bereichAbstaende(p, du);
-    const zweiseitig = (dim, k, wertBeruf, wertDu, texte, texteDu = texte) => ({
-      dim, anteil: anteil(k),
-      beruf: `${texte[stufe(wertBeruf)]} (${pz(wertBeruf)})`, du: `${texteDu[stufe(wertDu)]} (${pz(wertDu)})`,
-      ...bewertung(100 - d[k]),
-    });
+    const roh = (erg && erg.profilRoh) || du;
+    const profilKey = { Umgebung: 'Drinnen', Arbeitsweise: 'Struktur', Verantwortung: 'Verantwortung', Sichtbarkeit: 'Vorne' };
+    const zweiseitig = (dim, k, wertBeruf, wertDu, texte, texteDu = texte) => {
+      const rohDu = roh[profilKey[k]];
+      const kalibriert = Math.abs(rohDu - wertDu) > 0.5;
+      return {
+        dim, anteil: anteil(k),
+        beruf: `${texte[stufe(wertBeruf)]} (${pz(wertBeruf)})`,
+        du: kalibriert ? texteDu[stufe(rohDu)] : `${texteDu[stufe(wertDu)]} (${pz(wertDu)})`,
+        ...bewertung(100 - d[k]),
+      };
+    };
     const zeilen = [
       { dim: 'Womit du arbeitest', anteil: anteil('Arbeitsfeld'), beruf: feld(p).text, du: feld(du).text, ...bewertung(100 - d.Arbeitsfeld) },
       zweiseitig('Drinnen oder draußen', 'Umgebung', p.Drinnen, du.Drinnen,
@@ -4595,6 +4645,9 @@ function starteApp() {
       el('h3', {}, 'Deine Stärken'),
       el('p', { class: 'small muted' }, 'Vorausgewählt nach deinem Ergebnis – wähl am besten 2 bis 3, zu denen du ein Beispiel erzählen kannst.'),
       staerken,
+      el('div', { class: 'bw-raster', style: 'margin-top:14px' },
+        feld('Ein Beispiel für eine deiner Stärken (kommt so in den Brief)', { name: 'beispiel', typ: 'textarea', rows: 2, breit: true,
+          placeholder: 'z. B. Beim Schulfest habe ich den Getränkestand organisiert und eingeteilt, wer wann arbeitet.' })),
       el('h2', {}, '3. Der Betrieb'),
       el('div', { class: 'bw-raster' },
         feld('Name des Betriebs', { name: 'firma', placeholder: 'z. B. Schreinerei Müller GmbH' }),
@@ -4624,7 +4677,7 @@ function starteApp() {
       beruf, vorname: wert('vorname'), nachname: wert('nachname'), strasse: wert('strasse'), ort: wert('ort'),
       telefon: wert('telefon'), email: wert('email'), schule: wert('schule'), klasse: wert('klasse'),
       abschluss: wert('abschluss'), abschlussWann: wert('abschlussWann'), praktikum: wert('praktikum'), hobbys: wert('hobbys'),
-      warum: wert('warum'), firma: wert('firma'), kontakt: wert('kontakt'), firmaAdresse: wert('firmaAdresse'), beginn: wert('beginn'),
+      warum: wert('warum'), beispiel: wert('beispiel'), firma: wert('firma'), kontakt: wert('kontakt'), firmaAdresse: wert('firmaAdresse'), beginn: wert('beginn'),
       staerken: [...form.querySelectorAll('input[name="staerke"]:checked')].map(c => STAERKEN.find(st => st.key === c.value)).filter(Boolean),
     };
   }
@@ -4678,7 +4731,8 @@ function starteApp() {
     zeilen.push(`${absatz2} ${motivation}`, '');
     // Absatz 3: Stärken + Hobbys
     const teile = [];
-    if (d.staerken.length) teile.push(`Zu meinen Stärken gehört, dass ich ${aufzaehlen(d.staerken.slice(0, 3).map(st => st.dass))}. [Nenn zu einer Stärke ein kurzes Beispiel, z. B. aus der Schule, dem Praktikum oder dem Verein.]`);
+    if (d.staerken.length) teile.push(`Zu meinen Stärken gehört, dass ich ${aufzaehlen(d.staerken.slice(0, 3).map(st => st.dass))}. ${d.beispiel ? `${ohneSchluss(d.beispiel.charAt(0).toUpperCase() + d.beispiel.slice(1))}.` : '[Nenn zu einer Stärke ein kurzes Beispiel, z. B. aus der Schule, dem Praktikum oder dem Verein.]'}`);
+    else if (d.beispiel) teile.push(`${ohneSchluss(d.beispiel.charAt(0).toUpperCase() + d.beispiel.slice(1))}.`);
     if (d.hobbys) teile.push(`Meine Hobbys sind ${ohneSchluss(d.hobbys)}.`);
     if (teile.length) zeilen.push(teile.join(' '), '');
     zeilen.push('Über eine Einladung zu einem Vorstellungsgespräch oder einem Praktikum bei Ihnen freue ich mich sehr.', '');
@@ -4701,6 +4755,15 @@ function starteApp() {
     const text = anschreibenText(d, erg);
     const textfeld = el('textarea', { class: 'bw-anschreiben', rows: 22, 'aria-label': 'Anschreiben-Entwurf' });
     textfeld.value = text;
+    // Brief-Check: aktualisiert sich beim Schreiben
+    const pruefung = el('ul', { class: 'bw-pruefung', 'aria-live': 'polite' });
+    const pruefen = () => pruefung.replaceChildren(...briefPruefen(textfeld.value, d).map(([art, t]) => el('li', { class: art }, t)));
+    textfeld.addEventListener('input', pruefen);
+    pruefen();
+    // E-Mail zum Verschicken
+    const emailText = emailEntwurf(d);
+    const emailFeld = el('textarea', { class: 'bw-anschreiben bw-email', rows: 11, 'aria-label': 'E-Mail-Entwurf' });
+    emailFeld.value = emailText;
     const lebenslauf = el('div', { class: 'bw-lebenslauf' }); lebenslauf.innerHTML = lebenslaufHtml(d);
     const check = [
       'Anschreiben – höchstens eine Seite, in deinen eigenen Worten',
@@ -4712,7 +4775,9 @@ function starteApp() {
       'Alles zusammen als eine PDF-Datei, z. B. „Bewerbung_Vorname_Nachname.pdf“',
       'Rechtschreibung prüfen lassen – von Eltern, Lehrkraft oder Berufsberatung',
     ];
-    const staerke = d.staerken[0] ? `„${d.staerken[0]}“ – überleg dir ein Beispiel, wann du das gezeigt hast.` : 'Nenn zwei Stärken mit je einem kurzen Beispiel.';
+    const staerke = d.staerken[0]
+      ? `„${d.staerken[0].text}“${d.beispiel ? ` – dein Beispiel: ${ohneSchluss(d.beispiel)}. Erzähl es in zwei, drei Sätzen.` : ' – überleg dir ein Beispiel, wann du das gezeigt hast.'}`
+      : 'Nenn zwei Stärken mit je einem kurzen Beispiel.';
     const fragen = [
       ['Warum möchtest du diesen Beruf lernen?', d.warum ? `Du hast geschrieben: „${ohneSchluss(d.warum)}“ – erzähl das ruhig genau so.` : (r && r.beruf.ausfuehrlich ? `Lies dir nochmal durch, was man dort macht: ${r.beruf.ausfuehrlich}` : 'Sag, was dich an den Aufgaben reizt.')],
       ['Warum bewirbst du dich bei uns?', 'Schau dir vorher die Webseite des Betriebs an: Was stellen sie her, was ist ihnen wichtig? Nenn eine Sache, die dir gefallen hat.'],
@@ -4721,10 +4786,11 @@ function starteApp() {
       ['Was machst du in deiner Freizeit?', d.hobbys ? `Du hast „${ohneSchluss(d.hobbys)}“ angegeben – was lernst du dabei?` : 'Hobbys zeigen, wer du bist – auch Ehrenamt oder Familie zählt.'],
       ['Hast du noch Fragen an uns?', 'Immer mit „Ja“ antworten! Zum Beispiel: Wie sieht ein typischer Tag aus? Wer betreut mich in der Ausbildung? Kann ich vorher ein Praktikum machen?'],
     ];
+    const uebung = fragen.map(() => el('textarea', { class: 'bw-uebung', rows: 2, placeholder: 'Deine Antwort zum Üben – laut sprechen hilft noch mehr!', 'aria-label': 'Deine Antwort' }));
     const hinweis = el('p', { class: 'small muted save-note', role: 'status', hidden: true });
     const speichern = el('button', { type: 'button', class: 'btn btn-primary' }, 'Bewerbung speichern');
     speichern.addEventListener('click', () => {
-      const datei = bewerbungDatei({ ...d, anschreiben: textfeld.value }, check, fragen);
+      const datei = bewerbungDatei({ ...d, anschreiben: textfeld.value, email: emailFeld.value }, check, fragen.map((f, i) => [...f, uebung[i].value.trim()]));
       const sauber = t => t.replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/Ä/g, 'Ae').replace(/Ö/g, 'Oe').replace(/Ü/g, 'Ue').replace(/ß/g, 'ss')
         .replace(/\/(in|-in|-frau|r)\b/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
       dateiSpeichern(`Bewerbung-${sauber(d.nachname || 'Entwurf')}-${sauber(d.beruf)}.html`, datei, hinweis);
@@ -4733,13 +4799,68 @@ function starteApp() {
       el('h2', {}, 'Dein Anschreiben (Entwurf)'),
       el('p', { class: 'note' }, 'Das ist ein Gerüst, kein fertiger Brief. Ersetze alles in [eckigen Klammern], lies den Text laut vor und schreib ihn so um, dass er nach dir klingt – Betriebe merken, wenn ein Text nur kopiert ist.'),
       textfeld,
+      el('h3', { class: 'bw-pruef-titel' }, 'Brief-Check'), pruefung,
+      el('h2', {}, 'E-Mail zum Verschicken'),
+      el('p', { class: 'small muted' }, 'Die meisten Betriebe wollen die Bewerbung per E-Mail oder über ein Online-Formular. Hänge Anschreiben, Lebenslauf und Zeugnisse als eine PDF-Datei an.'),
+      emailFeld,
       el('h2', {}, 'Dein Lebenslauf (Gerüst)'), lebenslauf,
       el('h2', {}, 'Checkliste: Das gehört in die Bewerbung'),
       el('ul', { class: 'bw-checkliste' }, check.map(c => el('li', {}, el('label', { class: 'bw-check' }, el('input', { type: 'checkbox' }), el('span', {}, c))))),
       el('h2', {}, 'Vorstellungsgespräch: typische Fragen'),
-      el('dl', { class: 'bw-fragen' }, fragen.flatMap(([f, t]) => [el('dt', {}, f), el('dd', {}, t)])),
+      el('dl', { class: 'bw-fragen' }, fragen.flatMap(([f, t], i) => [el('dt', {}, f), el('dd', {}, t, uebung[i])])),
+      el('h2', {}, 'Wo und wann bewerben?'),
+      el('ul', { class: 'bw-tipps' },
+        el('li', {}, el('strong', {}, 'Früh anfangen: '), 'Viele Betriebe suchen schon ein Jahr vor Ausbildungsbeginn, große Firmen oft noch früher. Für einen Start im August heißt das: im Sommer oder Herbst davor bewerben.'),
+        el('li', {}, el('strong', {}, 'Ausbildungsplätze finden: '),
+          linkNeu('https://www.arbeitsagentur.de/jobsuche/', 'Jobbörse der Arbeitsagentur'), ', ',
+          linkNeu('https://www.ihk-lehrstellenboerse.de', 'IHK-Lehrstellenbörse'), ' (Industrie und Handel), ',
+          linkNeu('https://www.lehrstellen-radar.de', 'Lehrstellen-Radar'), ' (Handwerk) – und direkt auf den Webseiten von Betrieben in deiner Nähe.'),
+        el('li', {}, el('strong', {}, 'Mehrere Bewerbungen: '), 'Bewirb dich bei mehreren Betrieben und pass das Anschreiben jedes Mal an den Betrieb an.'),
+        el('li', {}, el('strong', {}, 'Nachfragen ist okay: '), 'Wenn du nach zwei bis drei Wochen nichts gehört hast, darfst du freundlich anrufen oder eine kurze E-Mail schreiben.')),
       el('div', { class: 'bw-aktion' }, speichern), hinweis,
     ];
+  }
+
+  const linkNeu = (href, text) => el('a', { href, target: '_blank', rel: 'noopener noreferrer' }, text);
+
+  // Brief-Check: Hinweise zum Anschreiben – [art, text], art = ok | warn
+  function briefPruefen(text, d) {
+    const hinweise = [];
+    const platzhalter = (text.match(/\[[^\]]+\]/g) || []).length;
+    // Wörter nur im eigentlichen Brieftext zählen (ab der Anrede bis zum Gruß)
+    const kern = text.slice(Math.max(0, text.search(/Sehr geehrte/)), text.search(/Mit freundlichen Grüßen/) > 0 ? text.search(/Mit freundlichen Grüßen/) : undefined);
+    const woerter = (kern.match(/[A-Za-zÄÖÜäöüß]+/g) || []).length;
+    if (platzhalter) hinweise.push(['warn', `Noch ${platzhalter} ${platzhalter === 1 ? 'Platzhalter' : 'Platzhalter'} in [eckigen Klammern] – ersetzen oder löschen.`]);
+    else hinweise.push(['ok', 'Keine Platzhalter mehr offen.']);
+    if (woerter > 380) hinweise.push(['warn', `Mit etwa ${woerter} Wörtern wird es wahrscheinlich länger als eine Seite – kürzen.`]);
+    else if (woerter < 120) hinweise.push(['warn', `Mit etwa ${woerter} Wörtern ist der Brief eher kurz – erzähl ruhig etwas mehr über dich.`]);
+    else hinweise.push(['ok', `Länge passt (etwa ${woerter} Wörter, eine Seite).`]);
+    if (/hiermit bewerbe ich mich/i.test(text)) hinweise.push(['warn', '„Hiermit bewerbe ich mich“ steht in sehr vielen Briefen – ein persönlicherer Einstieg fällt mehr auf.']);
+    if (/!/.test(kern)) hinweise.push(['warn', 'Ausrufezeichen wirken im Anschreiben schnell zu laut – lieber weglassen.']);
+    if (d.kontakt && /Sehr geehrte Damen und Herren/.test(text)) hinweise.push(['warn', 'Du kennst die Ansprechperson – sprich sie direkt mit Namen an.']);
+    if (!d.kontakt && /Sehr geehrte Damen und Herren/.test(text)) hinweise.push(['warn', 'Tipp: Ruf beim Betrieb an und frag, wer für Ausbildung zuständig ist – eine persönliche Anrede wirkt besser.']);
+    const ichAnfang = (kern.match(/(^|[.!?]\s+)Ich\b/g) || []).length;
+    if (ichAnfang >= 5) hinweise.push(['warn', `${ichAnfang} Sätze fangen mit „Ich“ an – stell ein paar um, dann liest es sich flüssiger.`]);
+    if (/\bdu\b|\bdein/i.test(kern.replace(/\[[^\]]*\]/g, ''))) hinweise.push(['warn', 'Im Brief an den Betrieb steht „du“ – Betriebe sprichst du mit „Sie“ an.']);
+    return hinweise;
+  }
+
+  function emailEntwurf(d) {
+    const name = [d.vorname, d.nachname].filter(Boolean).join(' ') || '[Dein Name]';
+    const beginn = d.beginn ? ` ab ${d.beginn.replace(/^(zum|ab)\s+/i, '')}` : '';
+    return [
+      `Betreff: Bewerbung um einen Ausbildungsplatz als ${d.beruf}${beginn}`,
+      '',
+      anrede(d.kontakt),
+      '',
+      `anbei sende ich Ihnen meine Bewerbung um einen Ausbildungsplatz als ${d.beruf}${beginn}. Im Anhang finden Sie mein Anschreiben, meinen Lebenslauf und meine Zeugnisse in einer PDF-Datei.`,
+      '',
+      'Über eine Rückmeldung freue ich mich sehr.',
+      '',
+      'Mit freundlichen Grüßen',
+      name,
+      [d.telefon, d.email].filter(Boolean).join(' · ') || '[Telefon · E-Mail]',
+    ].join('\n');
   }
 
   function bewerbungDatei(d, check, fragen) {
@@ -4761,7 +4882,10 @@ function starteApp() {
 <h2>Lebenslauf</h2>
 ${lebenslaufHtml(d)}
 <h2>Checkliste</h2><ul>${check.map(c => `<li>☐ ${htmlEsc(c)}</li>`).join('')}</ul>
-<h2>Vorstellungsgespräch</h2><dl>${fragen.map(([f, t]) => `<dt>${htmlEsc(f)}</dt><dd>${htmlEsc(t)}</dd>`).join('')}</dl>
+<h2>E-Mail zum Verschicken</h2>
+<div class="brief">${htmlEsc(d.email || '')}</div>
+<h2>Vorstellungsgespräch</h2><dl>${fragen.map(([f, t, a]) => `<dt>${htmlEsc(f)}</dt><dd>${htmlEsc(t)}${a ? `<br><strong>Meine Antwort:</strong> ${htmlEsc(a)}` : ''}</dd>`).join('')}</dl>
+<h2>Wo und wann bewerben?</h2><ul><li>Früh anfangen – etwa ein Jahr vor Ausbildungsbeginn.</li><li>Jobbörse der Arbeitsagentur, IHK-Lehrstellenbörse, Lehrstellen-Radar (Handwerk), Webseiten der Betriebe.</li><li>Bei mehreren Betrieben bewerben, das Anschreiben jedes Mal anpassen.</li></ul>
 </body></html>`;
   }
 
@@ -4861,6 +4985,7 @@ ${erg.wunschberuf ? `<h2>Das reizt mich schon</h2><blockquote>„${htmlEsc(erg.w
         el('li', {}, 'Aus deinen Antworten entsteht dein eigenes Profil im selben Format. Pro Bereich wird verglichen, wie nah du und der Beruf beieinanderliegen (100 % = gleich). Die Passung ist der Durchschnitt dieser Bereiche, gewichtet: Am stärksten zählt, womit du arbeitest (30 %), dann drinnen/draußen (25 %), Arbeitsweise (20 %), Verantwortung (15 %) und Sichtbarkeit (10 %). Im Infofenster zu jedem Beruf siehst du jeden Bereich mit seiner Prozentzahl und wie viel er zählt.'),
         el('li', {}, `Je nach Antwort kommen Nachfragen (Abzweige), etwa „Womit möchtest du am liebsten arbeiten?“ und danach „Am Bau – was reizt dich mehr?“. Die gewählten Themen zählen ${erg.themenGewicht} % der Passung: Beruf aus deinem Thema 100 % – hast du ein Unterthema gewählt und der Beruf gehört nicht dazu, ${REGELN.unterthemaDaneben} % – alle anderen 0 %. Der Rest (${100 - erg.themenGewicht} %) ist der Profilvergleich.`),
         erg.wichtig.length > 0 && el('li', {}, `Dir ist am wichtigsten: ${aufzaehlen(erg.wichtig.map(k => ({ Arbeitsfeld: 'womit du arbeitest', Umgebung: 'drinnen oder draußen', Arbeitsweise: 'wie die Arbeit abläuft', Verantwortung: 'Verantwortung', Sichtbarkeit: 'vorne oder im Hintergrund', Thema: 'das Thema' })[k]))}. Das zählt deshalb ${REGELN.wichtigFaktor}-mal so stark – im Infofenster siehst du bei jedem Bereich, wie viel er für dich zählt.`),
+        el('li', {}, 'Bei Arbeitsweise und Verantwortung werden deine Werte auf die Skala der Berufe übertragen: Das Quiz misst, wie sehr du zu etwas neigst – die Berufsprofile, wie viel der Beruf davon wirklich hat. Wer zum Beispiel bei Verantwortung genau in der Mitte liegt, wird mit Berufen verglichen, die eine mittlere Verantwortung haben.'),
         el('li', {}, 'Manche Antworten schließen Berufe ganz aus. Wer zum Beispiel „draußen“ sagt, bekommt keine Berufe vorgeschlagen, bei denen man fast nur drinnen ist – und umgekehrt.'),
         el('li', {}, 'Höhere Passung = weiter oben. Bei exakt gleicher Passung kommen zuerst die Berufe, die mehr deiner stärksten Eigenschaften treffen, dann die geprüften Berufe, darunter wird zufällig ausgewählt.'),
         el('li', {}, `Vorgeschlagen werden die Berufe, die höchstens ${REGELN.passungAbstand} Prozentpunkte unter dem besten liegen – mindestens ${REGELN.minBerufe}, höchstens ${REGELN.maxBerufe}.`)),
